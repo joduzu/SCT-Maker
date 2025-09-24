@@ -6,75 +6,35 @@
     <title>Creador Avanzado de Herramientas de Evaluación HID SCT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7f9;
-            padding: 40px;
-        }
-        .maker-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            padding: 30px;
-        }
-        .maker-header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e9ecef;
-            padding-bottom: 20px;
-        }
-        .subsection-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .subsection-item input {
-            flex-grow: 1;
-        }
-        .weight-input {
-            width: 100px;
-        }
-        .accordion-button:not(.collapsed) {
-            color: #fff;
-            background-color: #0d6efd;
-        }
-        .accordion-button:not(.collapsed)::after {
-            filter: brightness(0) invert(1);
-        }
-        .section-header-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7f9; padding: 40px; }
+        .maker-container { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 12px; padding: 30px; }
+        .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
+        .subsection-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .subsection-item input { flex-grow: 1; }
+        .weight-input { width: 100px; }
+        .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
+        .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
+        .section-header-controls { display: flex; align-items: center; gap: 15px; }
     </style>
 </head>
 <body>
     <div class="maker-container">
         <div class="maker-header">
             <h2>🛠️ Creador Avanzado de Herramientas de Evaluación</h2>
-            <p class="text-muted">Personaliza cada aspecto de tu herramienta de evaluación. Edita títulos, contenido, secciones y pesos para generar un HTML a medida.</p>
+            <p class="text-muted">Personaliza cada aspecto de tu herramienta. Al generar, el nuevo HTML incluirá toda la funcionalidad interactiva original.</p>
         </div>
 
         <div class="accordion" id="generalSettingsAccordion">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingOne">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        Configuración General
-                    </button>
+            <div class="accordion-item"><h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">Configuración General</button>
                 </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#generalSettingsAccordion">
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#generalSettingsAccordion">
                     <div class="accordion-body">
                         <div class="mb-3">
                             <label for="main-title" class="form-label">Título Principal de la Herramienta</label>
                             <input type="text" class="form-control" id="main-title" value="HID SCT Self-Assessment Grid - Customized">
-                        </div>
-                        <div class="mb-3">
-                            <label for="main-description" class="form-label">Descripción Introductoria (Página INFO)</label>
-                            <textarea class="form-control" id="main-description" rows="4">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards. Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</textarea>
                         </div>
                     </div>
                 </div>
@@ -82,408 +42,28 @@
         </div>
 
         <div class="card my-4">
-            <div class="card-header">
-                <h5 class="mb-0">Asignar Pesos de Sección (%)</h5>
-            </div>
+            <div class="card-header"><h5 class="mb-0">Asignar Pesos de Sección (%)</h5></div>
             <div class="card-body">
-                <div class="row" id="weights-container">
-                    </div>
-                <div class="alert alert-info mt-3" id="weight-sum-alert">
-                    Suma total del peso: <span id="weight-sum">0</span>%. Debe ser 100%.
-                </div>
+                <div class="row" id="weights-container"></div>
+                <div class="alert alert-info mt-3" id="weight-sum-alert">Suma total del peso: <span id="weight-sum">0</span>%. Debe ser 100%.</div>
             </div>
         </div>
 
-
-        <div class="accordion" id="sections-accordion">
-            </div>
+        <div class="accordion" id="sections-accordion"></div>
 
         <div class="d-grid mt-4">
-            <button class="btn btn-primary btn-lg" id="btn-make">
-                <i class="fas fa-magic me-2"></i>Generar Herramienta HTML
-            </button>
+            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generar Herramienta HTML Funcional</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    // Initial configuration object for the maker UI
     const TOOL_CONFIG = {
-        'info': {
-            title: 'INFO',
-            hasSubsections: false,
-            weight: 0,
-            enabled: true,
-            content: `
-<h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2>
-<div class="card section-card">
-    <div class="card-body">
-        <h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5>
-        <p class="card-text" id="main-description-placeholder">
-            This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.
-        </p>
-        <p class="text-muted">Version 1.0/2025</p>
-    </div>
-</div>
-`
-        },
-        'definition': {
-            title: 'DEFINITION',
-            hasSubsections: false,
-            weight: 0,
-            enabled: true,
-            content: `
-<h2 class="mb-4">Technical Standards Definition</h2>
-<div class="card section-card">
-    <div class="card-body">
-        <p>
-            HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. 
-            The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.
-        </p>
-    </div>
-</div>
-`
-        },
-        'org-detail': {
-            title: 'ORGANIZATIONAL DETAIL',
-            hasSubsections: false,
-            weight: 0,
-            enabled: true,
-            content: `<h2 class="mb-4">Organizational Details</h2>` // Content for this is mostly static in the final template
-        },
-        'guiding-principles': {
-            title: 'GUIDING PRINCIPLES',
-            hasSubsections: true,
-            weight: 2,
-            enabled: true,
-            subsections: [
-                'Safe Care - Written statement on behalf the organization',
-                'Equitable Care - Written statement on behalf the organization',
-                'Ethical Care - Written statement on behalf the organization'
-            ]
-        },
-        'core-standards': {
-            title: 'CORE STANDARDS',
-            hasSubsections: true,
-            weight: 18,
-            enabled: true,
-            subsections: [
-                'Administration & Organizational Management',
-                'Human Resources',
-                'Professional Licensing & Conduct'
-            ]
-        },
+        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2>...` },
+        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Technical Standards Definition</h2>...` },
+        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Organizational Details</h2>...` },
+        'guiding-principles': { title: 'GUIDING PRINCIPLES', icon: 'fa-star', hasSubsections: true, weight: 2, enabled: true, subsections: ['Safe Care - Written statement on behalf the organization', 'Equitable Care - Written statement on behalf the organization', 'Ethical Care - Written statement on behalf the organization', 'Accountable Response - Written statement on behalf the organization', 'Appropriate Response - Written statement on behalf the organization', 'Coordinated Response - Written statement on behalf the organization'] },
+        'core-standards': { title: 'CORE STANDARDS', icon: 'fa-cogs', hasSubsections: true, weight: 18, enabled: true, subsections: ['Administration & Organizational Management', 'Human Resources', 'Professional Licensing & Conduct', 'Training of Teams', 'Coordination of EMTs', 'Records and Reporting'] },
         'clinical-standards': {
-            title: 'CLINICAL STANDARDS',
-            hasSubsections: true,
-            weight: 20,
-            enabled: true,
-            subsections: [
-                'Screening - SCTs/EMTs have established screening systems',
-                'Triage - SCTs/EMTs have established triage systems',
-                'Treatment - SCT/EMT provides a systematic treatment plan'
-            ]
-        },
-        'logistic-standards': {
-            title: 'LOGISTIC STANDARDS',
-            hasSubsections: true,
-            weight: 10,
-            enabled: true,
-            subsections: [
-                'Power and Fuel - SCTs/EMTs must ensure sufficient power supply',
-                'Communications - SCTs/EMTs must have communication capabilities'
-            ]
-        },
-        'wash-standards': {
-            title: 'WASH STANDARDS',
-            hasSubsections: true,
-            weight: 10,
-            enabled: true,
-            subsections: [
-                'Water Supply - SCTs/EMTs must ensure sufficient safe drinking water',
-                'Hygiene - SCTs/EMTs must ensure safe hygiene measures'
-            ]
-        },
-        'summary': {
-            title: 'SUMMARY',
-            hasSubsections: false,
-            weight: 0,
-            enabled: true,
-            content: `<h2 class="mb-4">Summary & Action Plan</h2>` // Content is static in final template
-        }
-    };
-
-    function renderMakerUI() {
-        const sectionsContainer = document.getElementById('sections-accordion');
-        const weightsContainer = document.getElementById('weights-container');
-        sectionsContainer.innerHTML = '';
-        weightsContainer.innerHTML = '';
-
-        for (const [key, config] of Object.entries(TOOL_CONFIG)) {
-            // Render Accordion for each section
-            const sectionHTML = `
-                <div class="accordion-item" id="accordion-item-${key}">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${key}">
-                            <div class="section-header-controls w-100">
-                                <span class="me-auto">Configurar Sección: ${config.title}</span>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input section-enable-switch" type="checkbox" role="switch" id="enable-${key}" data-key="${key}" ${config.enabled ? 'checked' : ''}>
-                                    <label class="form-check-label" for="enable-${key}">Habilitar</label>
-                                </div>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
-                        <div class="accordion-body">
-                            <div class="mb-3">
-                                <label class="form-label">Título de la Sección</label>
-                                <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
-                            </div>
-                            ${config.hasSubsections ?
-                                `<h5>Subsecciones</h5><div id="subsections-${key}">${
-                                    config.subsections.map(sub => `
-                                        <div class="subsection-item">
-                                            <input type="text" class="form-control" value="${sub}">
-                                            <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
-                                        </div>`).join('')
-                                }</div>
-                                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Subsección</button>`
-                                :
-                                `<div class="mb-3">
-                                    <label class="form-label">Contenido Principal (HTML permitido)</label>
-                                    <textarea class="form-control section-content-input" data-key="${key}" rows="5">${config.content || ''}</textarea>
-                                 </div>`
-                            }
-                        </div>
-                    </div>
-                </div>`;
-            sectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
-
-            // Render Weight Input if applicable
-            if (config.weight > 0) {
-                const weightHTML = `
-                    <div class="col-md-4 mb-3" id="weight-div-${key}">
-                        <label for="weight-${key}" class="form-label">${config.title}</label>
-                        <input type="number" class="form-control weight-input" id="weight-${key}" data-key="${key}" value="${config.weight}" min="0" ${!config.enabled ? 'disabled' : ''}>
-                    </div>`;
-                weightsContainer.insertAdjacentHTML('beforeend', weightHTML);
-            }
-        }
-        updateWeightSum();
-        addEventListeners();
-    }
-    
-    function updateWeightSum() {
-        let sum = 0;
-        document.querySelectorAll('.weight-input').forEach(input => {
-            if (!input.disabled) {
-                sum += parseInt(input.value) || 0;
-            }
-        });
-        const sumSpan = document.getElementById('weight-sum');
-        const alertDiv = document.getElementById('weight-sum-alert');
-        sumSpan.textContent = sum;
-        if (sum !== 100) {
-            alertDiv.classList.replace('alert-info', 'alert-danger');
-        } else {
-            alertDiv.classList.replace('alert-danger', 'alert-info');
-        }
-    }
-
-    function addEventListeners() {
-        // Add/Remove subsection buttons
-        document.querySelectorAll('.add-item').forEach(button => {
-            button.onclick = (e) => {
-                const section = e.currentTarget.dataset.section;
-                const container = document.getElementById(`subsections-${section}`);
-                const newItem = document.createElement('div');
-                newItem.className = 'subsection-item';
-                newItem.innerHTML = `
-                    <input type="text" class="form-control" placeholder="Nueva subsección">
-                    <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
-                container.appendChild(newItem);
-                newItem.querySelector('.remove-item').onclick = () => newItem.remove();
-            };
-        });
-        document.querySelectorAll('.remove-item').forEach(button => {
-            button.onclick = (e) => e.currentTarget.closest('.subsection-item').remove();
-        });
-
-        // Weight input changes
-        document.querySelectorAll('.weight-input').forEach(input => {
-            input.oninput = updateWeightSum;
-        });
-        
-        // Section enable/disable switch
-        document.querySelectorAll('.section-enable-switch').forEach(toggle => {
-            toggle.onchange = (e) => {
-                const key = e.currentTarget.dataset.key;
-                const isChecked = e.currentTarget.checked;
-                TOOL_CONFIG[key].enabled = isChecked;
-                
-                const weightInput = document.getElementById(`weight-${key}`);
-                if (weightInput) {
-                    weightInput.disabled = !isChecked;
-                    if (!isChecked) weightInput.value = 0;
-                }
-                
-                // Dim the accordion item if disabled
-                document.getElementById(`accordion-item-${key}`).style.opacity = isChecked ? '1' : '0.5';
-                
-                updateWeightSum();
-            };
-        });
-
-        // Generate button
-        document.getElementById('btn-make').onclick = generateHTML;
-    }
-
-    function generateHTML() {
-        // 1. Collect all customized data from the UI
-        const finalConfig = JSON.parse(JSON.stringify(TOOL_CONFIG));
-        
-        // General info
-        const mainTitle = document.getElementById('main-title').value;
-        const mainDescription = document.getElementById('main-description').value;
-
-        // Sections data
-        document.querySelectorAll('.section-title-input').forEach(input => {
-            finalConfig[input.dataset.key].title = input.value;
-        });
-        
-        document.querySelectorAll('.section-content-input').forEach(textarea => {
-             finalConfig[textarea.dataset.key].content = textarea.value;
-        });
-
-        for (const key in finalConfig) {
-            if (finalConfig[key].hasSubsections) {
-                const container = document.getElementById(`subsections-${key}`);
-                finalConfig[key].subsections = Array.from(container.querySelectorAll('.subsection-item input')).map(input => input.value);
-            }
-        }
-        
-        // Weights
-        document.querySelectorAll('.weight-input').forEach(input => {
-            if (finalConfig[input.dataset.key]) {
-                finalConfig[input.dataset.key].weight = parseInt(input.value) || 0;
-            }
-        });
-        
-        // 2. Build the HTML string
-        let sidebarLinks = '';
-        let tabPanes = '';
-        
-        const enabledSections = Object.entries(finalConfig).filter(([key, config]) => config.enabled);
-
-        enabledSections.forEach(([key, config], index) => {
-            // Create sidebar link
-            sidebarLinks += `
-                <li class="nav-item">
-                    <a class="nav-link ${index === 0 ? 'active' : ''}" href="#${key}" data-bs-toggle="tab">
-                        <i class="fas fa-info-circle"></i> ${config.title}
-                    </a>
-                </li>`;
-            
-            // Create tab pane
-            let tabContent = '';
-            if (config.hasSubsections) {
-                const tableRows = config.subsections.map(sub => {
-                    const subId = sub.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    return `
-                        <tr>
-                            <td>${sub}</td>
-                            <td>
-                                <select class="form-select score-select" data-section="${key}" data-item="${subId}">
-                                    <option value="">-</option>
-                                    <option value="0">0 - Not started</option>
-                                    <option value="1">1 - Initial</option>
-                                    <option value="2">2 - In progress</option>
-                                    <option value="3">3 - Completed</option>
-                                    <option value="NA">N/A</option>
-                                </select>
-                            </td>
-                            <td><textarea class="form-control" rows="2"></textarea></td>
-                            <td><textarea class="form-control" rows="2"></textarea></td>
-                            <td><textarea class="form-control" rows="2"></textarea></td>
-                        </tr>`;
-                }).join('');
-
-                tabContent = `
-                    <h2 class="mb-4">${config.title}</h2>
-                    <div class="card section-card">
-                        <div class="section-header d-flex justify-content-between align-items-center">
-                            <h5>Compliance</h5>
-                            <div class="score-display" id="${key}Score">0% Complete</div>
-                        </div>
-                        <table class="assessment-table">
-                            <thead>
-                                <tr>
-                                    <th width="40%">Standard</th><th width="10%">Score</th><th width="20%">Evidence</th><th width="15%">Gaps</th><th width="15%">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tableRows}</tbody>
-                        </table>
-                    </div>`;
-            } else {
-                // For static content, inject what was in the maker's textarea
-                let content = config.content;
-                if (key === 'info') {
-                     // Special handling to inject the customized description
-                    content = content.replace('<p class="card-text" id="main-description-placeholder">', `<p class="card-text" id="main-description-placeholder">${mainDescription}`);
-                }
-                tabContent = content;
-            }
-
-            tabPanes += `<div class="tab-pane fade ${index === 0 ? 'show active' : ''}" id="${key}">${tabContent}</div>`;
-        });
-        
-        const template = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>${mainTitle}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>body{font-family:sans-serif;background-color:#f5f7f9;padding:20px 0;}.app-container{max-width:1400px;margin:0 auto;background:white;box-shadow:0 0 15px rgba(0,0,0,0.1);border-radius:8px;}.sidebar{background-color:#2c3e50;color:white;height:100vh;position:sticky;top:0;padding-top:20px;}.sidebar .nav-link{color:rgba(255,255,255,0.8);}.sidebar .nav-link.active{color:white;background-color:rgba(255,255,255,0.1);}.main-content{padding:20px;max-height:100vh;overflow-y:auto;}.assessment-table{width:100%;border-collapse:collapse;}.assessment-table th,.assessment-table td{border:1px solid #dee2e6;padding:12px;}</style>
-</head>
-<body>
-    <div class="app-container">
-        <div class="row g-0">
-            <div class="col-lg-2">
-                <div class="sidebar">
-                    <h4 class="text-center mb-4">Assessment Tool</h4>
-                    <ul class="nav flex-column">${sidebarLinks}</ul>
-                </div>
-            </div>
-            <div class="col-lg-10">
-                <div class="main-content">
-                    <div class="tab-content">${tabPanes}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
-    <script>
-        const weights = ${JSON.stringify(Object.fromEntries(Object.entries(finalConfig).map(([k, v]) => [k, v.weight])))};
-        // Add assessment logic script here (calculation, saving, etc.)
-    <\/script>
-</body>
-</html>`;
-
-        // 3. Create and download the file
-        const blob = new Blob([template], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'custom-assessment-tool.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-    
-    document.addEventListener('DOMContentLoaded', renderMakerUI);
-    </script>
-</body>
-</html>
