@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creador de Herramientas de Evaluación HID SCT</title>
+    <title>Creador Avanzado de Herramientas de Evaluación HID SCT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,180 +16,87 @@
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
             padding: 30px;
         }
         .maker-header {
             text-align: center;
             margin-bottom: 30px;
-        }
-        .section-config-card {
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 20px;
         }
         .subsection-item {
             display: flex;
             align-items: center;
+            gap: 10px;
             margin-bottom: 15px;
         }
         .subsection-item input {
             flex-grow: 1;
         }
-        .subsection-item button {
-            margin-left: 10px;
-        }
         .weight-input {
             width: 100px;
+        }
+        .accordion-button:not(.collapsed) {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .accordion-button:not(.collapsed)::after {
+            filter: brightness(0) invert(1);
+        }
+        .section-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
     </style>
 </head>
 <body>
     <div class="maker-container">
         <div class="maker-header">
-            <h2>🛠️ Creador de Herramientas de Evaluación HID SCT</h2>
-            <p class="text-muted">Personaliza la estructura y los pesos de tu herramienta de evaluación. Luego, genera un archivo HTML listo para usar.</p>
+            <h2>🛠️ Creador Avanzado de Herramientas de Evaluación</h2>
+            <p class="text-muted">Personaliza cada aspecto de tu herramienta de evaluación. Edita títulos, contenido, secciones y pesos para generar un HTML a medida.</p>
         </div>
 
-        <div class="card section-config-card">
+        <div class="accordion" id="generalSettingsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Configuración General
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#generalSettingsAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label for="main-title" class="form-label">Título Principal de la Herramienta</label>
+                            <input type="text" class="form-control" id="main-title" value="HID SCT Self-Assessment Grid - Customized">
+                        </div>
+                        <div class="mb-3">
+                            <label for="main-description" class="form-label">Descripción Introductoria (Página INFO)</label>
+                            <textarea class="form-control" id="main-description" rows="4">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards. Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card my-4">
+            <div class="card-header">
+                <h5 class="mb-0">Asignar Pesos de Sección (%)</h5>
+            </div>
             <div class="card-body">
-                <h5 class="card-title mb-3">Asignar Pesos de Sección (%)</h5>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="weight-guiding-principles" class="form-label">Principios Rectores</label>
-                        <input type="number" class="form-control weight-input" id="weight-guiding-principles" value="2" min="0">
+                <div class="row" id="weights-container">
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="weight-core-standards" class="form-label">Estándares Centrales</label>
-                        <input type="number" class="form-control weight-input" id="weight-core-standards" value="18" min="0">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="weight-clinical-standards" class="form-label">Estándares Clínicos</label>
-                        <input type="number" class="form-control weight-input" id="weight-clinical-standards" value="20" min="0">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="weight-logistic-standards" class="form-label">Estándares Logísticos</label>
-                        <input type="number" class="form-control weight-input" id="weight-logistic-standards" value="10" min="0">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="weight-wash-standards" class="form-label">Estándares WASH</label>
-                        <input type="number" class="form-control weight-input" id="weight-wash-standards" value="10" min="0">
-                    </div>
-                </div>
                 <div class="alert alert-info mt-3" id="weight-sum-alert">
-                    Suma total del peso: <span id="weight-sum">60</span>%.
+                    Suma total del peso: <span id="weight-sum">0</span>%. Debe ser 100%.
                 </div>
             </div>
         </div>
 
-        <div id="sections-container">
-            <div class="card section-config-card">
-                <div class="card-body">
-                    <h5 class="card-title">Estándares Clínicos</h5>
-                    <div id="subsections-clinical-standards">
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Screening - SCTs/EMTs have established screening systems">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Triage - SCTs/EMTs have established triage systems">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Treatment - SCT/EMT provides a systematic treatment plan">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Obstetric & Newborn Care">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline-success mt-3 add-item" data-section="clinical-standards">
-                        <i class="fas fa-plus me-2"></i>Añadir Subsección
-                    </button>
-                </div>
-            </div>
 
-            <div class="card section-config-card">
-                <div class="card-body">
-                    <h5 class="card-title">Estándares Logísticos</h5>
-                    <div id="subsections-logistic-standards">
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Power and Fuel - SCTs/EMTs must ensure sufficient power supply">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Communications - SCTs/EMTs must have communication capabilities">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Transportation & Fleet">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Warehouse Management">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline-success mt-3 add-item" data-section="logistic-standards">
-                        <i class="fas fa-plus me-2"></i>Añadir Subsección
-                    </button>
-                </div>
+        <div class="accordion" id="sections-accordion">
             </div>
-
-            <div class="card section-config-card">
-                <div class="card-body">
-                    <h5 class="card-title">Estándares WASH</h5>
-                    <div id="subsections-wash-standards">
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Water Supply - SCTs/EMTs must ensure sufficient safe drinking water">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Hygiene - SCTs/EMTs must ensure safe hygiene measures">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Environmental Cleaning">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div class="subsection-item">
-                            <input type="text" class="form-control" value="Healthcare Waste Management">
-                            <button class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline-success mt-3 add-item" data-section="wash-standards">
-                        <i class="fas fa-plus me-2"></i>Añadir Subsección
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <div class="d-grid mt-4">
             <button class="btn btn-primary btn-lg" id="btn-make">
@@ -198,1593 +105,385 @@
         </div>
     </div>
 
-    <script>
-        const sectionsConfig = {
-            'guiding-principles': { weight: 2 },
-            'core-standards': { weight: 18 },
-            'clinical-standards': { weight: 20 },
-            'logistic-standards': { weight: 10 },
-            'wash-standards': { weight: 10 }
-        };
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        const staticSections = {
-            'guiding-principles': [
+    <script>
+    const TOOL_CONFIG = {
+        'info': {
+            title: 'INFO',
+            hasSubsections: false,
+            weight: 0,
+            enabled: true,
+            content: `
+<h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2>
+<div class="card section-card">
+    <div class="card-body">
+        <h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5>
+        <p class="card-text" id="main-description-placeholder">
+            This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.
+        </p>
+        <p class="text-muted">Version 1.0/2025</p>
+    </div>
+</div>
+`
+        },
+        'definition': {
+            title: 'DEFINITION',
+            hasSubsections: false,
+            weight: 0,
+            enabled: true,
+            content: `
+<h2 class="mb-4">Technical Standards Definition</h2>
+<div class="card section-card">
+    <div class="card-body">
+        <p>
+            HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. 
+            The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.
+        </p>
+    </div>
+</div>
+`
+        },
+        'org-detail': {
+            title: 'ORGANIZATIONAL DETAIL',
+            hasSubsections: false,
+            weight: 0,
+            enabled: true,
+            content: `<h2 class="mb-4">Organizational Details</h2>` // Content for this is mostly static in the final template
+        },
+        'guiding-principles': {
+            title: 'GUIDING PRINCIPLES',
+            hasSubsections: true,
+            weight: 2,
+            enabled: true,
+            subsections: [
                 'Safe Care - Written statement on behalf the organization',
                 'Equitable Care - Written statement on behalf the organization',
-                'Ethical Care - Written statement on behalf the organization',
-                'Accountable Response - Written statement on behalf the organization',
-                'Appropriate Response - Written statement on behalf the organization',
-                'Coordinated Response - Written statement on behalf the organization'
-            ],
-            'core-standards': [
+                'Ethical Care - Written statement on behalf the organization'
+            ]
+        },
+        'core-standards': {
+            title: 'CORE STANDARDS',
+            hasSubsections: true,
+            weight: 18,
+            enabled: true,
+            subsections: [
                 'Administration & Organizational Management',
                 'Human Resources',
-                'Professional Licensing & Conduct',
-                'Training of Teams',
-                'Coordination of EMTs',
-                'Records and Reporting'
+                'Professional Licensing & Conduct'
             ]
-        };
+        },
+        'clinical-standards': {
+            title: 'CLINICAL STANDARDS',
+            hasSubsections: true,
+            weight: 20,
+            enabled: true,
+            subsections: [
+                'Screening - SCTs/EMTs have established screening systems',
+                'Triage - SCTs/EMTs have established triage systems',
+                'Treatment - SCT/EMT provides a systematic treatment plan'
+            ]
+        },
+        'logistic-standards': {
+            title: 'LOGISTIC STANDARDS',
+            hasSubsections: true,
+            weight: 10,
+            enabled: true,
+            subsections: [
+                'Power and Fuel - SCTs/EMTs must ensure sufficient power supply',
+                'Communications - SCTs/EMTs must have communication capabilities'
+            ]
+        },
+        'wash-standards': {
+            title: 'WASH STANDARDS',
+            hasSubsections: true,
+            weight: 10,
+            enabled: true,
+            subsections: [
+                'Water Supply - SCTs/EMTs must ensure sufficient safe drinking water',
+                'Hygiene - SCTs/EMTs must ensure safe hygiene measures'
+            ]
+        },
+        'summary': {
+            title: 'SUMMARY',
+            hasSubsections: false,
+            weight: 0,
+            enabled: true,
+            content: `<h2 class="mb-4">Summary & Action Plan</h2>` // Content is static in final template
+        }
+    };
 
-        function updateWeightSum() {
-            let sum = 0;
-            document.querySelectorAll('.weight-input').forEach(input => {
-                sum += parseInt(input.value) || 0;
-            });
-            document.getElementById('weight-sum').textContent = sum;
-            if (sum !== 100) {
-                document.getElementById('weight-sum-alert').classList.add('alert-danger');
-                document.getElementById('weight-sum-alert').classList.remove('alert-info');
-            } else {
-                document.getElementById('weight-sum-alert').classList.add('alert-info');
-                document.getElementById('weight-sum-alert').classList.remove('alert-danger');
+    function renderMakerUI() {
+        const sectionsContainer = document.getElementById('sections-accordion');
+        const weightsContainer = document.getElementById('weights-container');
+        sectionsContainer.innerHTML = '';
+        weightsContainer.innerHTML = '';
+
+        for (const [key, config] of Object.entries(TOOL_CONFIG)) {
+            // Render Accordion for each section
+            const sectionHTML = `
+                <div class="accordion-item" id="accordion-item-${key}">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${key}">
+                            <div class="section-header-controls w-100">
+                                <span class="me-auto">Configurar Sección: ${config.title}</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input section-enable-switch" type="checkbox" role="switch" id="enable-${key}" data-key="${key}" ${config.enabled ? 'checked' : ''}>
+                                    <label class="form-check-label" for="enable-${key}">Habilitar</label>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <label class="form-label">Título de la Sección</label>
+                                <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
+                            </div>
+                            ${config.hasSubsections ?
+                                `<h5>Subsecciones</h5><div id="subsections-${key}">${
+                                    config.subsections.map(sub => `
+                                        <div class="subsection-item">
+                                            <input type="text" class="form-control" value="${sub}">
+                                            <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
+                                        </div>`).join('')
+                                }</div>
+                                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Subsección</button>`
+                                :
+                                `<div class="mb-3">
+                                    <label class="form-label">Contenido Principal (HTML permitido)</label>
+                                    <textarea class="form-control section-content-input" data-key="${key}" rows="5">${config.content || ''}</textarea>
+                                 </div>`
+                            }
+                        </div>
+                    </div>
+                </div>`;
+            sectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
+
+            // Render Weight Input if applicable
+            if (config.weight > 0) {
+                const weightHTML = `
+                    <div class="col-md-4 mb-3" id="weight-div-${key}">
+                        <label for="weight-${key}" class="form-label">${config.title}</label>
+                        <input type="number" class="form-control weight-input" id="weight-${key}" data-key="${key}" value="${config.weight}" min="0" ${!config.enabled ? 'disabled' : ''}>
+                    </div>`;
+                weightsContainer.insertAdjacentHTML('beforeend', weightHTML);
             }
         }
-
-        function createNewSubItem(section) {
-            const container = document.getElementById(`subsections-${section}`);
-            const randomId = Math.random().toString(36).substring(2, 9);
-            const newItem = document.createElement('div');
-            newItem.className = 'subsection-item';
-            newItem.innerHTML = `
-                <input type="text" class="form-control" placeholder="Nombre de la nueva subsección">
-                <button class="btn btn-danger btn-sm remove-item">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            container.appendChild(newItem);
-
-            newItem.querySelector('.remove-item').addEventListener('click', () => {
-                if (confirm('¿Estás seguro de que quieres eliminar esta subsección?')) {
-                    newItem.remove();
-                }
-            });
+        updateWeightSum();
+        addEventListeners();
+    }
+    
+    function updateWeightSum() {
+        let sum = 0;
+        document.querySelectorAll('.weight-input').forEach(input => {
+            if (!input.disabled) {
+                sum += parseInt(input.value) || 0;
+            }
+        });
+        const sumSpan = document.getElementById('weight-sum');
+        const alertDiv = document.getElementById('weight-sum-alert');
+        sumSpan.textContent = sum;
+        if (sum !== 100) {
+            alertDiv.classList.replace('alert-info', 'alert-danger');
+        } else {
+            alertDiv.classList.replace('alert-danger', 'alert-info');
         }
+    }
 
-        function generateHTML() {
-            const weights = {};
-            document.querySelectorAll('.weight-input').forEach(input => {
-                weights[input.id.replace('weight-', '')] = parseInt(input.value) || 0;
-            });
-            
-            const customSections = {
-                'clinical-standards': [],
-                'logistic-standards': [],
-                'wash-standards': []
+    function addEventListeners() {
+        // Add/Remove subsection buttons
+        document.querySelectorAll('.add-item').forEach(button => {
+            button.onclick = (e) => {
+                const section = e.currentTarget.dataset.section;
+                const container = document.getElementById(`subsections-${section}`);
+                const newItem = document.createElement('div');
+                newItem.className = 'subsection-item';
+                newItem.innerHTML = `
+                    <input type="text" class="form-control" placeholder="Nueva subsección">
+                    <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
+                container.appendChild(newItem);
+                newItem.querySelector('.remove-item').onclick = () => newItem.remove();
             };
+        });
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.onclick = (e) => e.currentTarget.closest('.subsection-item').remove();
+        });
 
-            document.querySelectorAll('#subsections-clinical-standards .subsection-item input').forEach(input => {
-                customSections['clinical-standards'].push(input.value);
-            });
-            document.querySelectorAll('#subsections-logistic-standards .subsection-item input').forEach(input => {
-                customSections['logistic-standards'].push(input.value);
-            });
-            document.querySelectorAll('#subsections-wash-standards .subsection-item input').forEach(input => {
-                customSections['wash-standards'].push(input.value);
-            });
+        // Weight input changes
+        document.querySelectorAll('.weight-input').forEach(input => {
+            input.oninput = updateWeightSum;
+        });
+        
+        // Section enable/disable switch
+        document.querySelectorAll('.section-enable-switch').forEach(toggle => {
+            toggle.onchange = (e) => {
+                const key = e.currentTarget.dataset.key;
+                const isChecked = e.currentTarget.checked;
+                TOOL_CONFIG[key].enabled = isChecked;
+                
+                const weightInput = document.getElementById(`weight-${key}`);
+                if (weightInput) {
+                    weightInput.disabled = !isChecked;
+                    if (!isChecked) weightInput.value = 0;
+                }
+                
+                // Dim the accordion item if disabled
+                document.getElementById(`accordion-item-${key}`).style.opacity = isChecked ? '1' : '0.5';
+                
+                updateWeightSum();
+            };
+        });
 
-            const template = `
+        // Generate button
+        document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function generateHTML() {
+        // 1. Collect all customized data from the UI
+        const finalConfig = JSON.parse(JSON.stringify(TOOL_CONFIG));
+        
+        // General info
+        const mainTitle = document.getElementById('main-title').value;
+        const mainDescription = document.getElementById('main-description').value;
+
+        // Sections data
+        document.querySelectorAll('.section-title-input').forEach(input => {
+            finalConfig[input.dataset.key].title = input.value;
+        });
+        
+        document.querySelectorAll('.section-content-input').forEach(textarea => {
+             finalConfig[textarea.dataset.key].content = textarea.value;
+        });
+
+        for (const key in finalConfig) {
+            if (finalConfig[key].hasSubsections) {
+                const container = document.getElementById(`subsections-${key}`);
+                finalConfig[key].subsections = Array.from(container.querySelectorAll('.subsection-item input')).map(input => input.value);
+            }
+        }
+        
+        // Weights
+        document.querySelectorAll('.weight-input').forEach(input => {
+            if (finalConfig[input.dataset.key]) {
+                finalConfig[input.dataset.key].weight = parseInt(input.value) || 0;
+            }
+        });
+        
+        // 2. Build the HTML string
+        let sidebarLinks = '';
+        let tabPanes = '';
+        
+        const enabledSections = Object.entries(finalConfig).filter(([key, config]) => config.enabled);
+
+        enabledSections.forEach(([key, config], index) => {
+            // Create sidebar link
+            sidebarLinks += `
+                <li class="nav-item">
+                    <a class="nav-link ${index === 0 ? 'active' : ''}" href="#${key}" data-bs-toggle="tab">
+                        <i class="fas fa-info-circle"></i> ${config.title}
+                    </a>
+                </li>`;
+            
+            // Create tab pane
+            let tabContent = '';
+            if (config.hasSubsections) {
+                const tableRows = config.subsections.map(sub => {
+                    const subId = sub.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    return `
+                        <tr>
+                            <td>${sub}</td>
+                            <td>
+                                <select class="form-select score-select" data-section="${key}" data-item="${subId}">
+                                    <option value="">-</option>
+                                    <option value="0">0 - Not started</option>
+                                    <option value="1">1 - Initial</option>
+                                    <option value="2">2 - In progress</option>
+                                    <option value="3">3 - Completed</option>
+                                    <option value="NA">N/A</option>
+                                </select>
+                            </td>
+                            <td><textarea class="form-control" rows="2"></textarea></td>
+                            <td><textarea class="form-control" rows="2"></textarea></td>
+                            <td><textarea class="form-control" rows="2"></textarea></td>
+                        </tr>`;
+                }).join('');
+
+                tabContent = `
+                    <h2 class="mb-4">${config.title}</h2>
+                    <div class="card section-card">
+                        <div class="section-header d-flex justify-content-between align-items-center">
+                            <h5>Compliance</h5>
+                            <div class="score-display" id="${key}Score">0% Complete</div>
+                        </div>
+                        <table class="assessment-table">
+                            <thead>
+                                <tr>
+                                    <th width="40%">Standard</th><th width="10%">Score</th><th width="20%">Evidence</th><th width="15%">Gaps</th><th width="15%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                    </div>`;
+            } else {
+                // For static content, inject what was in the maker's textarea
+                let content = config.content;
+                if (key === 'info') {
+                     // Special handling to inject the customized description
+                    content = content.replace('<p class="card-text" id="main-description-placeholder">', `<p class="card-text" id="main-description-placeholder">${mainDescription}`);
+                }
+                tabContent = content;
+            }
+
+            tabPanes += `<div class="tab-pane fade ${index === 0 ? 'show active' : ''}" id="${key}">${tabContent}</div>`;
+        });
+        
+        const template = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HID SCT Self-Assessment Grid - Customized</title>
+    <title>${mainTitle}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --primary: #0d6efd;
-            --secondary: #6c757d;
-            --success: #198754;
-            --info: #0dcaf0;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7f9;
-            padding: 20px 0;
-        }
-        
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .sidebar {
-            background-color: #2c3e50;
-            color: white;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            padding-top: 20px;
-            overflow-y: auto;
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            border-left: 3px solid transparent;
-            padding: 10px 15px;
-            margin: 5px 0;
-            transition: all 0.3s;
-        }
-        
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left-color: var(--info);
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .main-content {
-            padding: 20px;
-            max-height: 100vh;
-            overflow-y: auto;
-        }
-        
-        .progress-sidebar {
-            background-color: #f8f9fa;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            padding: 20px 15px;
-            overflow-y: auto;
-            border-left: 1px solid #e9ecef;
-        }
-        
-        .progress-bar-container {
-            background-color: #e9ecef;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            height: 30px;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            border-radius: 5px;
-            transition: width 0.5s ease;
-        }
-        
-        .section-card {
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-            border-radius: 8px;
-        }
-        
-        .section-header {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .assessment-item {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .assessment-item:last-child {
-            border-bottom: none;
-        }
-        
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .comments-section {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 0 0 8px 8px;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .overview-card {
-            text-align: center;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .overview-card .card-value {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .score-display {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        .assessment-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .assessment-table th, .assessment-table td {
-            border: 1px solid #dee2e6;
-            padding: 12px;
-            text-align: left;
-            vertical-align: middle;
-        }
-        
-        .assessment-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-        
-        .score-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        
-        .score-0 { background: #fee2e2; color: #dc2626; }
-        .score-1 { background: #fed7aa; color: #ea580c; }
-        .score-2 { background: #fef3c7; color: #ca8a04; }
-        .score-3 { background: #d1fae5; color: #059669; }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .progress-sidebar-table {
-            width: 100%;
-            font-size: 0.85rem;
-        }
-        
-        .progress-sidebar-table th, .progress-sidebar-table td {
-            padding: 8px 5px;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        .progress-sidebar-table th {
-            font-weight: 600;
-        }
-        
-        .progress-sidebar-table tr:last-child td {
-            border-bottom: none;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        .summary-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        @media (max-width: 992px) {
-            .progress-sidebar {
-                display: none;
-            }
-            
-            .main-content {
-                max-height: none;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                height: auto;
-                position: relative;
-            }
-            
-            .assessment-table {
-                font-size: 0.9rem;
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .assessment-table th, .assessment-table td {
-                padding: 8px;
-                white-space: nowrap;
-            }
-        }
-    </style>
+    <style>body{font-family:sans-serif;background-color:#f5f7f9;padding:20px 0;}.app-container{max-width:1400px;margin:0 auto;background:white;box-shadow:0 0 15px rgba(0,0,0,0.1);border-radius:8px;}.sidebar{background-color:#2c3e50;color:white;height:100vh;position:sticky;top:0;padding-top:20px;}.sidebar .nav-link{color:rgba(255,255,255,0.8);}.sidebar .nav-link.active{color:white;background-color:rgba(255,255,255,0.1);}.main-content{padding:20px;max-height:100vh;overflow-y:auto;}.assessment-table{width:100%;border-collapse:collapse;}.assessment-table th,.assessment-table td{border:1px solid #dee2e6;padding:12px;}</style>
 </head>
 <body>
     <div class="app-container">
         <div class="row g-0">
             <div class="col-lg-2">
                 <div class="sidebar">
-                    <h4 class="text-center mb-4">HID SCT Assessment</h4>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#info" data-bs-toggle="tab">
-                                <i class="fas fa-info-circle"></i> INFO
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#definition" data-bs-toggle="tab">
-                                <i class="fas fa-book"></i> DEFINITION
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#org-detail" data-bs-toggle="tab">
-                                <i class="fas fa-building"></i> ORGANIZATIONAL DETAIL
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#guiding-principles" data-bs-toggle="tab">
-                                <i class="fas fa-star"></i> GUIDING PRINCIPLES
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#core-standards" data-bs-toggle="tab">
-                                <i class="fas fa-cogs"></i> CORE STANDARDS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#clinical-standards" data-bs-toggle="tab">
-                                <i class="fas fa-stethoscope"></i> CLINICAL STANDARDS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#logistic-standards" data-bs-toggle="tab">
-                                <i class="fas fa-truck"></i> LOGISTIC STANDARDS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#wash-standards" data-bs-toggle="tab">
-                                <i class="fas fa-hand-holding-water"></i> WASH STANDARDS
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#summary" data-bs-toggle="tab">
-                                <i class="fas fa-file-alt"></i> SUMMARY
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="mt-4 p-3">
-                        <div class="progress-bar-container">
-                            <div class="progress-bar bg-success" id="overallProgressBar" style="width: 0%"></div>
-                        </div>
-                        <p class="mb-1">Overall Completion</p>
-                        <h5 class="text-center" id="overallProgressText">0%</h5>
-                    </div>
+                    <h4 class="text-center mb-4">Assessment Tool</h4>
+                    <ul class="nav flex-column">${sidebarLinks}</ul>
                 </div>
             </div>
-            
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <div class="main-content">
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="info">
-                            <h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2>
-                            <div class="card section-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5>
-                                    <p class="card-text">
-                                        This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.
-                                    </p>
-                                    <p class="card-text">
-                                        Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.
-                                    </p>
-                                    <p class="text-muted">Version 1.0/2025</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mt-4">
-                                <div class="col-md-4">
-                                    <div class="overview-card bg-light">
-                                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                                        <h5>Completed Sections</h5>
-                                        <div class="card-value" id="completedSections">0/8</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="overview-card bg-light">
-                                        <i class="fas fa-chart-line fa-2x text-primary"></i>
-                                        <h5>Overall Score</h5>
-                                        <div class="card-value" id="overallScore">0%</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="overview-card bg-light">
-                                        <i class="fas fa-clock fa-2x text-warning"></i>
-                                        <h5>Last Updated</h5>
-                                        <div class="card-value" id="lastUpdated">Today</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="definition">
-                            <h2 class="mb-4">Technical Standards Definition</h2>
-                            <div class="card section-card">
-                                <div class="card-body">
-                                    <p>
-                                        HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. 
-                                        The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.
-                                    </p>
-                                    <p>
-                                        Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.
-                                    </p>
-                                    <p>
-                                        The level of required support needs to be clarified prior to any deployment, and agreed by teams, receiving facilities and the coordination mechanism. 
-                                        Teams must have SOPs in place that clearly state the minimum support requirements that need to be provided by the host facility in order to deploy. 
-                                        Teams with greater operational independence have greater flexibility and are more likely to be requested to deploy.
-                                    </p>
-                                    <p>
-                                        Regardless of the modality of deployment, teams need to ensure self-sufficiency and the ability to provide all the required equipment and consumables to deliver their services as defined by 
-                                        "Minimum standards and recommendations for medical teams responding to highly infectious disease outbreaks" for the entire period of their deployment. 
-                                        All teams opting for an embedded or coupled modality of deployment MUST communicate with the receiving facility to determine, 
-                                        which specialist equipment or consumables might be available and to understand local procurement challenges. 
-                                        Teams should always plan for contingencies and deploy with increased quantities of required equipment and consumables if resupply is likely to be challenging. 
-                                        HID SCTs needs to declare their intended length of stay (including potential staff rotations) to the EMT coordination mechanism (EMTCC)/Ministry of Health in their Expression of Interest.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="org-detail">
-                            <h2 class="mb-4">Organizational Details</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header">
-                                    <h5>Team Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="teamName" class="form-label">Team Name</label>
-                                            <input type="text" class="form-control" id="teamName">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="region" class="form-label">Region</label>
-                                            <input type="text" class="form-control" id="region">
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="country" class="form-label">Country</label>
-                                            <input type="text" class="form-control" id="country">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="mentorName" class="form-label">Mentor Name</label>
-                                            <input type="text" class="form-control" id="mentorName">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card section-card">
-                                <div class="section-header">
-                                    <h5>Contact Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <h6>Headquarters Contact</h6>
-                                            <div class="mb-2">
-                                                <label class="form-label">Name</label>
-                                                <input type="text" class="form-control" id="hqName">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control" id="hqEmail">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Phone</label>
-                                                <input type="tel" class="form-control" id="hqPhone">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Position</label>
-                                                <input type="text" class="form-control" id="hqPosition">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Operations Contact</h6>
-                                            <div class="mb-2">
-                                                <label class="form-label">Name</label>
-                                                <input type="text" class="form-control" id="opsName">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control" id="opsEmail">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Phone</label>
-                                                <input type="tel" class="form-control" id="opsPhone">
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label">Position</label>
-                                                <input type="text" class="form-control" id="opsPosition">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card section-card">
-                                <div class="section-header">
-                                    <h5>Progress Overview</h5>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-bordered">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Section</th>
-                                                <th>Weight</th>
-                                                <th>Status</th>
-                                                <th>% Completed</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="progressTableBody">
-                                            </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="guiding-principles">
-                            <h2 class="mb-4">Guiding Principles</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header d-flex justify-content-between align-items-center">
-                                    <h5>Guiding Principles Compliance</h5>
-                                    <div class="score-display" id="guidingPrinciplesScore">0% Complete</div>
-                                </div>
-                                
-                                <table class="assessment-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="40%">Standard</th>
-                                            <th width="10%">Score</th>
-                                            <th width="20%">Evidence</th>
-                                            <th width="15%">Gaps</th>
-                                            <th width="15%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="guiding-principles-table-body">
-                                        </tbody>
-                                </table>
-                                
-                                <div class="comments-section">
-                                    <label for="guidingPrinciplesComments" class="form-label">Mentor Comments & Observations</label>
-                                    <textarea class="form-control" id="guidingPrinciplesComments" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="core-standards">
-                            <h2 class="mb-4">Core Standards</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header d-flex justify-content-between align-items-center">
-                                    <h5>Core Standards Compliance</h5>
-                                    <div class="score-display" id="coreStandardsScore">0% Complete</div>
-                                </div>
-                                
-                                <table class="assessment-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="40%">Standard</th>
-                                            <th width="10%">Score</th>
-                                            <th width="20%">Evidence</th>
-                                            <th width="15%">Gaps</th>
-                                            <th width="15%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="core-standards-table-body">
-                                        </tbody>
-                                </table>
-                                
-                                <div class="comments-section">
-                                    <label for="coreStandardsComments" class="form-label">Mentor Comments & Observations</label>
-                                    <textarea class="form-control" id="coreStandardsComments" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="clinical-standards">
-                            <h2 class="mb-4">Clinical Standards</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header d-flex justify-content-between align-items-center">
-                                    <h5>Clinical Standards Compliance</h5>
-                                    <div class="score-display" id="clinicalStandardsScore">0% Complete</div>
-                                </div>
-                                
-                                <table class="assessment-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="40%">Standard</th>
-                                            <th width="10%">Score</th>
-                                            <th width="20%">Evidence</th>
-                                            <th width="15%">Gaps</th>
-                                            <th width="15%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="clinical-standards-table-body">
-                                        </tbody>
-                                </table>
-                                
-                                <div class="comments-section">
-                                    <label for="clinicalStandardsComments" class="form-label">Mentor Comments & Observations</label>
-                                    <textarea class="form-control" id="clinicalStandardsComments" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="logistic-standards">
-                            <h2 class="mb-4">Logistic Standards</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header d-flex justify-content-between align-items-center">
-                                    <h5>Logistic Standards Compliance</h5>
-                                    <div class="score-display" id="logisticStandardsScore">0% Complete</div>
-                                </div>
-                                
-                                <table class="assessment-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="40%">Standard</th>
-                                            <th width="10%">Score</th>
-                                            <th width="20%">Evidence</th>
-                                            <th width="15%">Gaps</th>
-                                            <th width="15%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="logistic-standards-table-body">
-                                        </tbody>
-                                </table>
-                                
-                                <div class="comments-section">
-                                    <label for="logisticStandardsComments" class="form-label">Mentor Comments & Observations</label>
-                                    <textarea class="form-control" id="logisticStandardsComments" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="wash-standards">
-                            <h2 class="mb-4">WASH Standards</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header d-flex justify-content-between align-items-center">
-                                    <h5>WASH Standards Compliance</h5>
-                                    <div class="score-display" id="washStandardsScore">0% Complete</div>
-                                </div>
-                                
-                                <table class="assessment-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="40%">Standard</th>
-                                            <th width="10%">Score</th>
-                                            <th width="20%">Evidence</th>
-                                            <th width="15%">Gaps</th>
-                                            <th width="15%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="wash-standards-table-body">
-                                        </tbody>
-                                </table>
-                                
-                                <div class="comments-section">
-                                    <label for="washStandardsComments" class="form-label">Mentor Comments & Observations</label>
-                                    <textarea class="form-control" id="washStandardsComments" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade" id="summary">
-                            <h2 class="mb-4">Summary & Action Plan</h2>
-                            
-                            <div class="card section-card">
-                                <div class="section-header">
-                                    <h5>Overall Readiness Assessment</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label for="strengths" class="form-label"><strong>Strengths Identified:</strong></label>
-                                        <textarea class="form-control summary-textarea" id="strengths" placeholder="List the top 3-5 strengths identified through the assessment..."></textarea>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="criticalGaps" class="form-label"><strong>Critical Gaps Requiring Immediate Action:</strong></label>
-                                        <textarea class="form-control summary-textarea" id="criticalGaps" placeholder="List the critical gaps that need immediate attention..."></textarea>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Timeline for Addressing Gaps:</strong></label>
-                                        <div class="mb-2">
-                                            <label class="form-label">Immediate (0-1 month):</label>
-                                            <textarea class="form-control summary-textarea" id="immediateActions" placeholder="Actions to be taken immediately..."></textarea>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label">Short-term (1-3 months):</label>
-                                            <textarea class="form-control summary-textarea" id="shortTermActions" placeholder="Actions for the next 1-3 months..."></textarea>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label">Medium-term (3-6 months):</label>
-                                            <textarea class="form-control summary-textarea" id="mediumTermActions" placeholder="Actions for 3-6 months..."></textarea>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Support Required:</strong></label>
-                                        <div class="mb-2">
-                                            <label class="form-label">Technical assistance needed:</label>
-                                            <textarea class="form-control summary-textarea" id="technicalAssistance" placeholder="Describe technical support requirements..."></textarea>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label">Training requirements:</label>
-                                            <textarea class="form-control summary-textarea" id="trainingRequirements" placeholder="List training needs..."></textarea>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label">Resource requirements:</label>
-                                            <textarea class="form-control summary-textarea" id="resourceRequirements" placeholder="Specify resource needs..."></textarea>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="nextSteps" class="form-label"><strong>Next Steps:</strong></label>
-                                        <textarea class="form-control summary-textarea" id="nextSteps" placeholder="1. First priority action&#10;2. Second priority action&#10;3. Third priority action"></textarea>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label for="completionDate" class="form-label">Date of Completion:</label>
-                                            <input type="date" class="form-control" id="completionDate">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="reviewedBy" class="form-label">Reviewed by:</label>
-                                            <input type="text" class="form-control" id="reviewedBy" placeholder="Name and title">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mt-3">
-                                        <label for="mentorAssignment" class="form-label">Mentor Assignment (if applicable):</label>
-                                        <input type="text" class="form-control" id="mentorAssignment" placeholder="Mentor name and contact">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <div>
-                            <button class="btn btn-outline-secondary" id="btn-import-excel">
-                                <i class="fas fa-upload me-2"></i>Import Excel
-                            </button>
-                            <button class="btn btn-outline-secondary" id="btn-export-json">
-                                <i class="fas fa-download me-2"></i>Export JSON
-                            </button>
-                        </div>
-                        <div>
-                            <button class="btn btn-outline-primary me-2" id="btn-save">
-                                <i class="fas fa-save me-2"></i>Save Draft
-                            </button>
-                            <button class="btn btn-outline-info me-2" id="btn-export-excel">
-                                <i class="fas fa-file-excel me-2"></i>Export to Excel
-                            </button>
-                            <button class="btn btn-success" id="btn-submit">
-                                <i class="fas fa-check-circle me-2"></i>Submit Assessment
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-2">
-                <div class="progress-sidebar">
-                    <h5 class="mb-3">Progress Overview</h5>
-                    <div class="progress-bar-container mb-3">
-                        <div class="progress-bar bg-success" id="sidebarProgressBar" style="width: 0%"></div>
-                    </div>
-                    <p class="mb-1">Overall Completion</p>
-                    <h5 class="text-center mb-4" id="sidebarProgressText">0%</h5>
-                    
-                    <table class="progress-sidebar-table">
-                        <thead>
-                            <tr>
-                                <th>Section</th>
-                                <th>Status</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-                        <tbody id="progressSidebarBody">
-                            </tbody>
-                    </table>
+                    <div class="tab-content">${tabPanes}</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
     <script>
-        const weights = JSON.parse('${JSON.stringify(weights)}');
-        const customSections = JSON.parse('${JSON.stringify(customSections)}');
-
-        // Data storage
-        let assessmentData = {
-            teamInfo: {},
-            scores: {},
-            evidence: {},
-            gaps: {},
-            actions: {},
-            comments: {},
-            summary: {}
-        };
-
-        const staticSections = {
-            'guiding-principles': [
-                { id: 'safe-care', text: 'Safe Care - Written statement on behalf the organization' },
-                { id: 'equitable-care', text: 'Equitable Care - Written statement on behalf the organization' },
-                { id: 'ethical-care', text: 'Ethical Care - Written statement on behalf the organization' },
-                { id: 'accountable-response', text: 'Accountable Response - Written statement on behalf the organization' },
-                { id: 'appropriate-response', text: 'Appropriate Response - Written statement on behalf the organization' },
-                { id: 'coordinated-response', text: 'Coordinated Response - Written statement on behalf the organization' }
-            ],
-            'core-standards': [
-                { id: 'admin-management', text: 'Administration & Organizational Management' },
-                { id: 'human-resources', text: 'Human Resources' },
-                { id: 'professional-licensing', text: 'Professional Licensing & Conduct' },
-                { id: 'training-teams', text: 'Training of Teams' },
-                { id: 'coordination-emts', text: 'Coordination of EMTs' },
-                { id: 'records-reporting', text: 'Records and Reporting' }
-            ]
-        };
-
-        // Initialize from localStorage if available
-        function initializeData() {
-            const saved = localStorage.getItem('hidSCTAssessmentCustom');
-            if (saved) {
-                assessmentData = JSON.parse(saved);
-                loadSavedData();
-            }
-            populateSections();
-            updateProgress();
-        }
-
-        function populateSections() {
-            Object.keys(staticSections).forEach(section => {
-                const tableBody = document.getElementById(section + '-table-body');
-                staticSections[section].forEach(item => {
-                    tableBody.innerHTML += generateTableRow(section, item.id, item.text);
-                });
-            });
-
-            Object.keys(customSections).forEach(section => {
-                const tableBody = document.getElementById(section + '-table-body');
-                customSections[section].forEach(text => {
-                    const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    tableBody.innerHTML += generateTableRow(section, id, text);
-                });
-            });
-        }
-
-        function generateTableRow(section, id, text) {
-            return \`
-                <tr>
-                    <td>\${text}</td>
-                    <td>
-                        <select class="form-select score-select" data-section="\${section}" data-item="\${id}">
-                            <option value="">-</option>
-                            <option value="0">0 - Not started</option>
-                            <option value="1">1 - Initial</option>
-                            <option value="2">2 - In progress</option>
-                            <option value="3">3 - Completed</option>
-                            <option value="NA">N/A</option>
-                        </select>
-                    </td>
-                    <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                    <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                    <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                </tr>
-            \`;
-        }
-
-        // Load saved data into form
-        function loadSavedData() {
-            // Load team info
-            if (assessmentData.teamInfo) {
-                Object.keys(assessmentData.teamInfo).forEach(key => {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.value = assessmentData.teamInfo[key];
-                    }
-                });
-            }
-
-            // Load scores and related data
-            document.querySelectorAll('.score-select').forEach(select => {
-                const key = \`\${select.dataset.section}-\${select.dataset.item}\`;
-                if (assessmentData.scores[key]) {
-                    select.value = assessmentData.scores[key];
-                    updateScoreBadge(select);
-                }
-                
-                const row = select.closest('tr');
-                if (row) {
-                    const evidenceInput = row.querySelector('.evidence-input');
-                    const gapsInput = row.querySelector('.gaps-input');
-                    const actionInput = row.querySelector('.action-input');
-
-                    if (evidenceInput && assessmentData.evidence[key]) {
-                        evidenceInput.value = assessmentData.evidence[key];
-                    }
-                    if (gapsInput && assessmentData.gaps[key]) {
-                        gapsInput.value = assessmentData.gaps[key];
-                    }
-                    if (actionInput && assessmentData.actions[key]) {
-                        actionInput.value = assessmentData.actions[key];
-                    }
-                }
-            });
-
-            // Load comments
-            if (assessmentData.comments) {
-                Object.keys(assessmentData.comments).forEach(key => {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.value = assessmentData.comments[key];
-                    }
-                });
-            }
-
-            // Load summary
-            if (assessmentData.summary) {
-                Object.keys(assessmentData.summary).forEach(key => {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.value = assessmentData.summary[key];
-                    }
-                });
-            }
-        }
-
-        // Save progress
-        function saveProgress() {
-            // Save team info
-            assessmentData.teamInfo = {
-                teamName: document.getElementById('teamName').value,
-                region: document.getElementById('region').value,
-                country: document.getElementById('country').value,
-                mentorName: document.getElementById('mentorName').value,
-                hqName: document.getElementById('hqName').value,
-                hqEmail: document.getElementById('hqEmail').value,
-                hqPhone: document.getElementById('hqPhone').value,
-                hqPosition: document.getElementById('hqPosition').value,
-                opsName: document.getElementById('opsName').value,
-                opsEmail: document.getElementById('opsEmail').value,
-                opsPhone: document.getElementById('opsPhone').value,
-                opsPosition: document.getElementById('opsPosition').value
-            };
-
-            // Save scores and related data
-            assessmentData.scores = {};
-            assessmentData.evidence = {};
-            assessmentData.gaps = {};
-            assessmentData.actions = {};
-
-            document.querySelectorAll('.score-select').forEach(select => {
-                const key = \`\${select.dataset.section}-\${select.dataset.item}\`;
-                const row = select.closest('tr');
-                
-                if (select.value) {
-                    assessmentData.scores[key] = select.value;
-                }
-
-                const evidenceInput = row.querySelector('.evidence-input');
-                const gapsInput = row.querySelector('.gaps-input');
-                const actionInput = row.querySelector('.action-input');
-
-                if (evidenceInput) {
-                    assessmentData.evidence[key] = evidenceInput.value;
-                }
-                if (gapsInput) {
-                    assessmentData.gaps[key] = gapsInput.value;
-                }
-                if (actionInput) {
-                    assessmentData.actions[key] = actionInput.value;
-                }
-            });
-
-            // Save comments
-            assessmentData.comments = {
-                guidingPrinciplesComments: document.getElementById('guidingPrinciplesComments').value,
-                coreStandardsComments: document.getElementById('coreStandardsComments').value,
-                clinicalStandardsComments: document.getElementById('clinicalStandardsComments').value,
-                logisticStandardsComments: document.getElementById('logisticStandardsComments').value,
-                washStandardsComments: document.getElementById('washStandardsComments').value
-            };
-
-            // Save summary
-            assessmentData.summary = {
-                strengths: document.getElementById('strengths').value,
-                criticalGaps: document.getElementById('criticalGaps').value,
-                immediateActions: document.getElementById('immediateActions').value,
-                shortTermActions: document.getElementById('shortTermActions').value,
-                mediumTermActions: document.getElementById('mediumTermActions').value,
-                technicalAssistance: document.getElementById('technicalAssistance').value,
-                trainingRequirements: document.getElementById('trainingRequirements').value,
-                resourceRequirements: document.getElementById('resourceRequirements').value,
-                nextSteps: document.getElementById('nextSteps').value,
-                completionDate: document.getElementById('completionDate').value,
-                reviewedBy: document.getElementById('reviewedBy').value,
-                mentorAssignment: document.getElementById('mentorAssignment').value
-            };
-
-            localStorage.setItem('hidSCTAssessmentCustom', JSON.stringify(assessmentData));
-            
-            showNotification('Progress saved successfully!');
-            updateProgress();
-        }
-
-        // Show notification
-        function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // Update score badge
-        function updateScoreBadge(select) {
-            const value = select.value;
-            select.className = 'form-select score-select';
-            if (value !== '' && value !== 'NA') {
-                select.classList.add(\`score-\${value}\`);
-            }
-        }
-
-        // Calculate scores and update progress
-        function updateProgress() {
-            let totalWeightedCompleted = 0;
-            let totalWeight = 0;
-            let completedSectionsCount = 0;
-
-            const sectionProgress = {};
-
-            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
-
-            allSections.forEach(section => {
-                let totalItems = 0;
-                let scoredItems = 0;
-                let sectionScore = 0;
-                let maxSectionScore = 0;
-                
-                document.querySelectorAll(\`[data-section="\${section}"]\`).forEach(select => {
-                    totalItems++;
-                    if (select.value && select.value !== '') {
-                        scoredItems++;
-                        if (select.value !== 'NA') {
-                            sectionScore += parseInt(select.value);
-                            maxSectionScore += 3;
-                        }
-                    }
-                });
-                
-                sectionProgress[section] = {
-                    totalItems,
-                    scoredItems,
-                    score: sectionScore,
-                    maxScore: maxSectionScore,
-                    weight: weights[section]
-                };
-            });
-
-            Object.keys(sectionProgress).forEach(section => {
-                const progress = sectionProgress[section];
-                let percentage = 0;
-                
-                if (progress.maxScore > 0) {
-                    percentage = Math.round((progress.score / progress.maxScore) * 100);
-                }
-
-                if (progress.totalItems > 0 && progress.scoredItems === progress.totalItems) {
-                    completedSectionsCount++;
-                }
-
-                const weightedCompleted = (progress.weight * percentage) / 100;
-                totalWeightedCompleted += weightedCompleted;
-                totalWeight += progress.weight;
-
-                const scoreElement = document.getElementById(\`\${section}Score\`);
-                if (scoreElement) {
-                    scoreElement.textContent = \`\${percentage}% Complete\`;
-                }
-            });
-
-            const overallProgress = totalWeight > 0 ? Math.round(totalWeightedCompleted) : 0;
-            
-            document.getElementById('overallProgressBar').style.width = \`\${overallProgress}%\`;
-            document.getElementById('overallProgressText').textContent = \`\${overallProgress}%\`;
-            document.getElementById('sidebarProgressBar').style.width = \`\${overallProgress}%\`;
-            document.getElementById('sidebarProgressText').textContent = \`\${overallProgress}%\`;
-            
-            document.getElementById('completedSections').textContent = \`\${completedSectionsCount}/8\`;
-            document.getElementById('overallScore').textContent = \`\${overallProgress}%\`;
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
-
-            // Update progress table
-            const progressTableBody = document.getElementById('progressTableBody');
-            progressTableBody.innerHTML = '';
-            
-            allSections.forEach(s => {
-                const progress = sectionProgress[s];
-                let completed = 0;
-                
-                if (progress.maxScore > 0) {
-                    completed = Math.round((progress.score / progress.maxScore) * 100);
-                }
-                
-                const status = completed === 0 ? 'Not Started' : 
-                              completed < 100 ? 'In Progress' : 'Completed';
-                const badgeClass = status === 'Completed' ? 'bg-success' : 
-                                 status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
-                
-                progressTableBody.innerHTML += \`
-                    <tr>
-                        <td>\${s.replace('-', ' ').toUpperCase()}</td>
-                        <td>\${progress.weight}%</td>
-                        <td><span class="badge \${badgeClass}">\${status}</span></td>
-                        <td>\${completed}%</td>
-                    </tr>
-                \`;
-            });
-            
-            progressTableBody.innerHTML += \`
-                <tr class="table-primary fw-bold">
-                    <td>TOTAL</td>
-                    <td>\${totalWeight}%</td>
-                    <td></td>
-                    <td>\${overallProgress}%</td>
-                </tr>
-            \`;
-            
-            // Update progress sidebar
-            const progressSidebarBody = document.getElementById('progressSidebarBody');
-            progressSidebarBody.innerHTML = '';
-            
-            allSections.forEach(s => {
-                const progress = sectionProgress[s];
-                let completed = 0;
-                
-                if (progress.maxScore > 0) {
-                    completed = Math.round((progress.score / progress.maxScore) * 100);
-                }
-                
-                const status = completed === 0 ? 'Not Started' : 
-                              completed < 100 ? 'In Progress' : 'Completed';
-                const badgeClass = status === 'Completed' ? 'bg-success' : 
-                                 status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
-                
-                progressSidebarBody.innerHTML += \`
-                    <tr>
-                        <td>\${s.split('-')[0].toUpperCase()}</td>
-                        <td><span class="badge \${badgeClass}">\${status}</span></td>
-                        <td>\${completed}%</td>
-                    </tr>
-                \`;
-            });
-        }
-
-        // Export to Excel
-        function exportToExcel() {
-            saveProgress();
-            
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            
-            // Sheet 1: Team Information
-            const teamInfoData = [
-                ['Team Information', ''],
-                ['Team Name', assessmentData.teamInfo.teamName || ''],
-                ['Region', assessmentData.teamInfo.region || ''],
-                ['Country', assessmentData.teamInfo.country || ''],
-                ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
-                [''],
-                ['Headquarters Contact', ''],
-                ['Name', assessmentData.teamInfo.hqName || ''],
-                ['Email', assessmentData.teamInfo.hqEmail || ''],
-                ['Phone', assessmentData.teamInfo.hqPhone || ''],
-                ['Position', assessmentData.teamInfo.hqPosition || ''],
-                [''],
-                ['Operations Contact', ''],
-                ['Name', assessmentData.teamInfo.opsName || ''],
-                ['Email', assessmentData.teamInfo.opsEmail || ''],
-                ['Phone', assessmentData.teamInfo.opsPhone || ''],
-                ['Position', assessmentData.teamInfo.opsPosition || '']
-            ];
-            const teamInfoWs = XLSX.utils.aoa_to_sheet(teamInfoData);
-            XLSX.utils.book_append_sheet(wb, teamInfoWs, 'Team Info');
-
-            // Sheet 2: Progress Overview
-            const progressOverviewData = [
-                ['Section', 'Weight', 'Status', '% Completed']
-            ];
-            
-            const sectionProgress = calculateSectionProgress();
-            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
-            
-            allSections.forEach(s => {
-                const progress = sectionProgress[s];
-                let completed = 0;
-                
-                if (progress.maxScore > 0) {
-                    completed = Math.round((progress.score / progress.maxScore) * 100);
-                }
-                
-                const status = completed === 0 ? 'Not Started' : 
-                              completed < 100 ? 'In Progress' : 'Completed';
-                
-                progressOverviewData.push([s.replace('-', ' ').toUpperCase(), weights[s] + '%', status, completed + '%']);
-            });
-            
-            const progressOverviewWs = XLSX.utils.aoa_to_sheet(progressOverviewData);
-            XLSX.utils.book_append_sheet(wb, progressOverviewWs, 'Progress Overview');
-
-            // Sheet 3: Assessment Data
-            const data = [];
-            data.push(['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments']);
-            
-            document.querySelectorAll('.score-select').forEach(select => {
-                const row = select.closest('tr');
-                const standardText = row.cells[0].textContent.trim();
-                const section = select.dataset.section;
-                const key = \`\${section}-\${select.dataset.item}\`;
-                
-                const pillar = section === 'guiding-principles' ? 'Guiding Principles' :
-                              section === 'core-standards' ? 'Core Standards' :
-                              section === 'clinical-standards' ? 'Clinical Standards' :
-                              section === 'logistic-standards' ? 'Logistic Standards' :
-                              section === 'wash-standards' ? 'WASH Standards' : 'Other';
-                
-                const evidenceInput = row.querySelector('.evidence-input');
-                const gapsInput = row.querySelector('.gaps-input');
-                const actionInput = row.querySelector('.action-input');
-                
-                data.push([
-                    key,
-                    pillar,
-                    standardText,
-                    select.value || '',
-                    evidenceInput ? evidenceInput.value : '',
-                    gapsInput ? gapsInput.value : '',
-                    actionInput ? actionInput.value : '',
-                    assessmentData.comments[\`\${section}Comments\`] || ''
-                ]);
-            });
-            
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, 'HID SCT Assessment');
-
-            // Sheet 4: Summary
-            const summaryData = [
-                ['Summary Section', 'Content'],
-                ['Strengths Identified', assessmentData.summary.strengths || ''],
-                ['Critical Gaps', assessmentData.summary.criticalGaps || ''],
-                ['Immediate Actions (0-1 month)', assessmentData.summary.immediateActions || ''],
-                ['Short-term Actions (1-3 months)', assessmentData.summary.shortTermActions || ''],
-                ['Medium-term Actions (3-6 months)', assessmentData.summary.mediumTermActions || ''],
-                ['Technical Assistance Needed', assessmentData.summary.technicalAssistance || ''],
-                ['Training Requirements', assessmentData.summary.trainingRequirements || ''],
-                ['Resource Requirements', assessmentData.summary.resourceRequirements || ''],
-                ['Next Steps', assessmentData.summary.nextSteps || ''],
-                ['Completion Date', assessmentData.summary.completionDate || ''],
-                ['Reviewed By', assessmentData.summary.reviewedBy || ''],
-                ['Mentor Assignment', assessmentData.summary.mentorAssignment || '']
-            ];
-            
-            const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
-            
-            // Export the workbook
-            XLSX.writeFile(wb, \`HID_SCT_Assessment_\${new Date().toISOString().split('T')[0]}.xlsx\`);
-            showNotification('Data exported to Excel successfully!');
-        }
-
-        // Function to calculate section progress (similar to updateProgress but without UI updates)
-        function calculateSectionProgress() {
-            const sectionProgress = {};
-            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
-
-            allSections.forEach(section => {
-                let totalItems = 0;
-                let scoredItems = 0;
-                let sectionScore = 0;
-                let maxSectionScore = 0;
-                
-                document.querySelectorAll(\`[data-section="\${section}"]\`).forEach(select => {
-                    totalItems++;
-                    if (select.value && select.value !== '') {
-                        scoredItems++;
-                        if (select.value !== 'NA') {
-                            sectionScore += parseInt(select.value);
-                            maxSectionScore += 3;
-                        }
-                    }
-                });
-                
-                sectionProgress[section] = {
-                    totalItems,
-                    scoredItems,
-                    score: sectionScore,
-                    maxScore: maxSectionScore
-                };
-            });
-            return sectionProgress;
-        }
-
-        // Export to JSON
-        function exportToJSON() {
-            saveProgress();
-            
-            const dataStr = JSON.stringify(assessmentData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = \`HID_SCT_Assessment_\${new Date().toISOString().split('T')[0]}.json\`;
-            link.click();
-            
-            URL.revokeObjectURL(url);
-            showNotification('Data exported to JSON successfully!');
-        }
-
-        // Import from Excel
-        function importFromExcel(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // Reset assessment data
-                    assessmentData = {
-                        teamInfo: {},
-                        scores: {},
-                        evidence: {},
-                        gaps: {},
-                        actions: {},
-                        comments: {},
-                        summary: {}
-                    };
-                    
-                    // Import Team Info
-                    if (workbook.Sheets['Team Info']) {
-                        const teamInfoSheet = workbook.Sheets['Team Info'];
-                        const teamInfoData = XLSX.utils.sheet_to_json(teamInfoSheet, { header: 1 });
-                        
-                        // Extract team info from the structured data
-                        assessmentData.teamInfo = {
-                            teamName: teamInfoData[1] ? teamInfoData[1][1] || '' : '',
-                            region: teamInfoData[2] ? teamInfoData[2][1] || '' : '',
-                            country: teamInfoData[3] ? teamInfoData[3][1] || '' : '',
-                            mentorName: teamInfoData[4] ? teamInfoData[4][1] || '' : '',
-                            hqName: teamInfoData[7] ? teamInfoData[7][1] || '' : '',
-                            hqEmail: teamInfoData[8] ? teamInfoData[8][1] || '' : '',
-                            hqPhone: teamInfoData[9] ? teamInfoData[9][1] || '' : '',
-                            hqPosition: teamInfoData[10] ? teamInfoData[10][1] || '' : '',
-                            opsName: teamInfoData[13] ? teamInfoData[13][1] || '' : '',
-                            opsEmail: teamInfoData[14] ? teamInfoData[14][1] || '' : '',
-                            opsPhone: teamInfoData[15] ? teamInfoData[15][1] || '' : '',
-                            opsPosition: teamInfoData[16] ? teamInfoData[16][1] || '' : ''
-                        };
-                    }
-                    
-                    // Import Assessment Data
-                    if (workbook.Sheets['HID SCT Assessment']) {
-                        const assessmentSheet = workbook.Sheets['HID SCT Assessment'];
-                        const assessmentDataArray = XLSX.utils.sheet_to_json(assessmentSheet, { header: 1 });
-                        
-                        // Skip header row
-                        for (let i = 1; i < assessmentDataArray.length; i++) {
-                            const row = assessmentDataArray[i];
-                            if (row.length >= 8) {
-                                const standardId = row[0];
-                                const score = row[3];
-                                const evidence = row[4];
-                                const gaps = row[5];
-                                const actions = row[6];
-                                const comments = row[7];
-                                
-                                assessmentData.scores[standardId] = score;
-                                assessmentData.evidence[standardId] = evidence;
-                                assessmentData.gaps[standardId] = gaps;
-                                assessmentData.actions[standardId] = actions;
-                                
-                                // Extract section from standardId for comments
-                                const section = standardId.split('-').slice(0, -1).join('-');
-                                if (section && comments) {
-                                    assessmentData.comments[\`\${section}Comments\`] = comments;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Import Summary
-                    if (workbook.Sheets['Summary']) {
-                        const summarySheet = workbook.Sheets['Summary'];
-                        const summaryDataArray = XLSX.utils.sheet_to_json(summarySheet, { header: 1 });
-                        
-                        assessmentData.summary = {
-                            strengths: summaryDataArray[1] ? summaryDataArray[1][1] || '' : '',
-                            criticalGaps: summaryDataArray[2] ? summaryDataArray[2][1] || '' : '',
-                            immediateActions: summaryDataArray[3] ? summaryDataArray[3][1] || '' : '',
-                            shortTermActions: summaryDataArray[4] ? summaryDataArray[4][1] || '' : '',
-                            mediumTermActions: summaryDataArray[5] ? summaryDataArray[5][1] || '' : '',
-                            technicalAssistance: summaryDataArray[6] ? summaryDataArray[6][1] || '' : '',
-                            trainingRequirements: summaryDataArray[7] ? summaryDataArray[7][1] || '' : '',
-                            resourceRequirements: summaryDataArray[8] ? summaryDataArray[8][1] || '' : '',
-                            nextSteps: summaryDataArray[9] ? summaryDataArray[9][1] || '' : '',
-                            completionDate: summaryDataArray[10] ? summaryDataArray[10][1] || '' : '',
-                            reviewedBy: summaryDataArray[11] ? summaryDataArray[11][1] || '' : '',
-                            mentorAssignment: summaryDataArray[12] ? summaryDataArray[12][1] || '' : ''
-                        };
-                    }
-                    
-                    // Save to localStorage and update UI
-                    localStorage.setItem('hidSCTAssessmentCustom', JSON.stringify(assessmentData));
-                    loadSavedData();
-                    updateProgress();
-                    showNotification('Data imported successfully!');
-                    
-                    // Reset file input
-                    document.getElementById('fileInput').value = '';
-                } catch (error) {
-                    console.error('Error importing Excel file:', error);
-                    showNotification('Error importing Excel file. Please check the file format.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Initialize event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeData();
-            
-            document.querySelectorAll('input, textarea, select').forEach(element => {
-                element.addEventListener('change', saveProgress);
-            });
-            
-            document.getElementById('completionDate').value = new Date().toISOString().split('T')[0];
-            
-            document.getElementById('btn-save').addEventListener('click', saveProgress);
-            document.getElementById('btn-export-json').addEventListener('click', exportToJSON);
-            document.getElementById('btn-export-excel').addEventListener('click', exportToExcel);
-            document.getElementById('btn-submit').addEventListener('click', function() {
-                saveProgress();
-                showNotification('Assessment submitted successfully!');
-            });
-            
-            document.getElementById('btn-import-excel').addEventListener('click', function() {
-                document.getElementById('fileInput').click();
-            });
-            document.getElementById('fileInput').addEventListener('change', importFromExcel);
-            
-            const triggerTabList = document.querySelectorAll('.nav-link');
-            triggerTabList.forEach(triggerEl => {
-                triggerEl.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    const target = this.getAttribute('href');
-                    
-                    triggerTabList.forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-pane').forEach(pane => {
-                        pane.classList.remove('show', 'active');
-                    });
-                    document.querySelector(target).classList.add('show', 'active');
-                });
-            });
-        });
-    </script>
+        const weights = ${JSON.stringify(Object.fromEntries(Object.entries(finalConfig).map(([k, v]) => [k, v.weight])))};
+        // Add assessment logic script here (calculation, saving, etc.)
+    <\/script>
 </body>
-</html>
-            `;
-            const blob = new Blob([template], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'hid-sct-assessment-custom.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
+</html>`;
 
-        document.querySelectorAll('.add-item').forEach(button => {
-            button.addEventListener('click', () => {
-                createNewSubItem(button.dataset.section);
-            });
-        });
-
-        document.querySelectorAll('.remove-item').forEach(button => {
-            button.addEventListener('click', () => {
-                if (confirm('¿Estás seguro de que quieres eliminar esta subsección?')) {
-                    button.closest('.subsection-item').remove();
-                }
-            });
-        });
-
-        document.querySelectorAll('.weight-input').forEach(input => {
-            input.addEventListener('input', updateWeightSum);
-        });
-
-        document.getElementById('btn-make').addEventListener('click', generateHTML);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateWeightSum();
-        });
+        // 3. Create and download the file
+        const blob = new Blob([template], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'custom-assessment-tool.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    document.addEventListener('DOMContentLoaded', renderMakerUI);
     </script>
 </body>
 </html>
