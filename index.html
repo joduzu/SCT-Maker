@@ -3,7 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HID SCT Self-Assessment Grid - Editable</title>
+    <title>Creador de Herramientas de Evaluación HID SCT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7f9;
+            padding: 40px;
+        }
+        .maker-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        .maker-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section-config-card {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .subsection-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .subsection-item input {
+            flex-grow: 1;
+        }
+        .subsection-item button {
+            margin-left: 10px;
+        }
+        .weight-input {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="maker-container">
+        <div class="maker-header">
+            <h2>🛠️ Creador de Herramientas de Evaluación HID SCT</h2>
+            <p class="text-muted">Personaliza la estructura y los pesos de tu herramienta de evaluación. Luego, genera un archivo HTML listo para usar.</p>
+        </div>
+
+        <div class="card section-config-card">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Asignar Pesos de Sección (%)</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="weight-guiding-principles" class="form-label">Principios Rectores</label>
+                        <input type="number" class="form-control weight-input" id="weight-guiding-principles" value="2" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="weight-core-standards" class="form-label">Estándares Centrales</label>
+                        <input type="number" class="form-control weight-input" id="weight-core-standards" value="18" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="weight-clinical-standards" class="form-label">Estándares Clínicos</label>
+                        <input type="number" class="form-control weight-input" id="weight-clinical-standards" value="20" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="weight-logistic-standards" class="form-label">Estándares Logísticos</label>
+                        <input type="number" class="form-control weight-input" id="weight-logistic-standards" value="10" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="weight-wash-standards" class="form-label">Estándares WASH</label>
+                        <input type="number" class="form-control weight-input" id="weight-wash-standards" value="10" min="0">
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3" id="weight-sum-alert">
+                    Suma total del peso: <span id="weight-sum">60</span>%.
+                </div>
+            </div>
+        </div>
+
+        <div id="sections-container">
+            <div class="card section-config-card">
+                <div class="card-body">
+                    <h5 class="card-title">Estándares Clínicos</h5>
+                    <div id="subsections-clinical-standards">
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Screening - SCTs/EMTs have established screening systems">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Triage - SCTs/EMTs have established triage systems">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Treatment - SCT/EMT provides a systematic treatment plan">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Obstetric & Newborn Care">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-success mt-3 add-item" data-section="clinical-standards">
+                        <i class="fas fa-plus me-2"></i>Añadir Subsección
+                    </button>
+                </div>
+            </div>
+
+            <div class="card section-config-card">
+                <div class="card-body">
+                    <h5 class="card-title">Estándares Logísticos</h5>
+                    <div id="subsections-logistic-standards">
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Power and Fuel - SCTs/EMTs must ensure sufficient power supply">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Communications - SCTs/EMTs must have communication capabilities">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Transportation & Fleet">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Warehouse Management">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-success mt-3 add-item" data-section="logistic-standards">
+                        <i class="fas fa-plus me-2"></i>Añadir Subsección
+                    </button>
+                </div>
+            </div>
+
+            <div class="card section-config-card">
+                <div class="card-body">
+                    <h5 class="card-title">Estándares WASH</h5>
+                    <div id="subsections-wash-standards">
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Water Supply - SCTs/EMTs must ensure sufficient safe drinking water">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Hygiene - SCTs/EMTs must ensure safe hygiene measures">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Environmental Cleaning">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="subsection-item">
+                            <input type="text" class="form-control" value="Healthcare Waste Management">
+                            <button class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-success mt-3 add-item" data-section="wash-standards">
+                        <i class="fas fa-plus me-2"></i>Añadir Subsección
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button class="btn btn-primary btn-lg" id="btn-make">
+                <i class="fas fa-magic me-2"></i>Generar Herramienta HTML
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const sectionsConfig = {
+            'guiding-principles': { weight: 2 },
+            'core-standards': { weight: 18 },
+            'clinical-standards': { weight: 20 },
+            'logistic-standards': { weight: 10 },
+            'wash-standards': { weight: 10 }
+        };
+
+        const staticSections = {
+            'guiding-principles': [
+                'Safe Care - Written statement on behalf the organization',
+                'Equitable Care - Written statement on behalf the organization',
+                'Ethical Care - Written statement on behalf the organization',
+                'Accountable Response - Written statement on behalf the organization',
+                'Appropriate Response - Written statement on behalf the organization',
+                'Coordinated Response - Written statement on behalf the organization'
+            ],
+            'core-standards': [
+                'Administration & Organizational Management',
+                'Human Resources',
+                'Professional Licensing & Conduct',
+                'Training of Teams',
+                'Coordination of EMTs',
+                'Records and Reporting'
+            ]
+        };
+
+        function updateWeightSum() {
+            let sum = 0;
+            document.querySelectorAll('.weight-input').forEach(input => {
+                sum += parseInt(input.value) || 0;
+            });
+            document.getElementById('weight-sum').textContent = sum;
+            if (sum !== 100) {
+                document.getElementById('weight-sum-alert').classList.add('alert-danger');
+                document.getElementById('weight-sum-alert').classList.remove('alert-info');
+            } else {
+                document.getElementById('weight-sum-alert').classList.add('alert-info');
+                document.getElementById('weight-sum-alert').classList.remove('alert-danger');
+            }
+        }
+
+        function createNewSubItem(section) {
+            const container = document.getElementById(`subsections-${section}`);
+            const randomId = Math.random().toString(36).substring(2, 9);
+            const newItem = document.createElement('div');
+            newItem.className = 'subsection-item';
+            newItem.innerHTML = `
+                <input type="text" class="form-control" placeholder="Nombre de la nueva subsección">
+                <button class="btn btn-danger btn-sm remove-item">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newItem);
+
+            newItem.querySelector('.remove-item').addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que quieres eliminar esta subsección?')) {
+                    newItem.remove();
+                }
+            });
+        }
+
+        function generateHTML() {
+            const weights = {};
+            document.querySelectorAll('.weight-input').forEach(input => {
+                weights[input.id.replace('weight-', '')] = parseInt(input.value) || 0;
+            });
+            
+            const customSections = {
+                'clinical-standards': [],
+                'logistic-standards': [],
+                'wash-standards': []
+            };
+
+            document.querySelectorAll('#subsections-clinical-standards .subsection-item input').forEach(input => {
+                customSections['clinical-standards'].push(input.value);
+            });
+            document.querySelectorAll('#subsections-logistic-standards .subsection-item input').forEach(input => {
+                customSections['logistic-standards'].push(input.value);
+            });
+            document.querySelectorAll('#subsections-wash-standards .subsection-item input').forEach(input => {
+                customSections['wash-standards'].push(input.value);
+            });
+
+            const template = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HID SCT Self-Assessment Grid - Customized</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -513,104 +799,8 @@
                                             <th width="15%">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody data-section="guiding-principles">
-                                        <tr>
-                                            <td>Safe Care - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="safe-care">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Equitable Care - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="equitable-care">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Ethical Care - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="ethical-care">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Accountable Response - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="accountable-response">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Appropriate Response - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="appropriate-response">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Coordinated Response - Written statement on behalf the organization</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="guiding-principles" data-item="coordinated-response">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="guiding-principles-table-body">
+                                        </tbody>
                                 </table>
                                 
                                 <div class="comments-section">
@@ -639,104 +829,8 @@
                                             <th width="15%">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody data-section="core-standards">
-                                        <tr>
-                                            <td>Administration & Organizational Management</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="admin-management">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Human Resources</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="human-resources">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Professional Licensing & Conduct</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="professional-licensing">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Training of Teams</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="training-teams">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Coordination of EMTs</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="coordination-emts">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Records and Reporting</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="core-standards" data-item="records-reporting">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="core-standards-table-body">
+                                        </tbody>
                                 </table>
                                 
                                 <div class="comments-section">
@@ -763,83 +857,12 @@
                                             <th width="20%">Evidence</th>
                                             <th width="15%">Gaps</th>
                                             <th width="15%">Actions</th>
-                                            <th width="5%"></th>
                                         </tr>
                                     </thead>
-                                    <tbody data-section="clinical-standards">
-                                        <tr>
-                                            <td>Screening - SCTs/EMTs have established screening systems</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="clinical-standards" data-item="screening">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Triage - SCTs/EMTs have established triage systems</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="clinical-standards" data-item="triage">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Treatment - SCT/EMT provides a systematic treatment plan</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="clinical-standards" data-item="treatment">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Obstetric & Newborn Care</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="clinical-standards" data-item="obstetric-care">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="clinical-standards-table-body">
+                                        </tbody>
                                 </table>
-                                <button class="btn btn-outline-success mt-2 add-row" data-section="clinical-standards">
-                                    <i class="fas fa-plus me-2"></i>Añadir Subsección
-                                </button>
+                                
                                 <div class="comments-section">
                                     <label for="clinicalStandardsComments" class="form-label">Mentor Comments & Observations</label>
                                     <textarea class="form-control" id="clinicalStandardsComments" rows="3"></textarea>
@@ -864,83 +887,12 @@
                                             <th width="20%">Evidence</th>
                                             <th width="15%">Gaps</th>
                                             <th width="15%">Actions</th>
-                                            <th width="5%"></th>
                                         </tr>
                                     </thead>
-                                    <tbody data-section="logistic-standards">
-                                        <tr>
-                                            <td>Power and Fuel - SCTs/EMTs must ensure sufficient power supply</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="logistic-standards" data-item="power-fuel">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Communications - SCTs/EMTs must have communication capabilities</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="logistic-standards" data-item="communications">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Transportation & Fleet</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="logistic-standards" data-item="transportation">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Warehouse Management</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="logistic-standards" data-item="warehouse">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="logistic-standards-table-body">
+                                        </tbody>
                                 </table>
-                                <button class="btn btn-outline-success mt-2 add-row" data-section="logistic-standards">
-                                    <i class="fas fa-plus me-2"></i>Añadir Subsección
-                                </button>
+                                
                                 <div class="comments-section">
                                     <label for="logisticStandardsComments" class="form-label">Mentor Comments & Observations</label>
                                     <textarea class="form-control" id="logisticStandardsComments" rows="3"></textarea>
@@ -965,83 +917,12 @@
                                             <th width="20%">Evidence</th>
                                             <th width="15%">Gaps</th>
                                             <th width="15%">Actions</th>
-                                            <th width="5%"></th>
                                         </tr>
                                     </thead>
-                                    <tbody data-section="wash-standards">
-                                        <tr>
-                                            <td>Water Supply - SCTs/EMTs must ensure sufficient safe drinking water</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="wash-standards" data-item="water-supply">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Hygiene - SCTs/EMTs must ensure safe hygiene measures</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="wash-standards" data-item="hygiene">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Environmental Cleaning</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="wash-standards" data-item="cleaning">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Healthcare Waste Management</td>
-                                            <td>
-                                                <select class="form-select score-select" data-section="wash-standards" data-item="waste-management">
-                                                    <option value="">-</option>
-                                                    <option value="0">0 - Not started</option>
-                                                    <option value="1">1 - Initial</option>
-                                                    <option value="2">2 - In progress</option>
-                                                    <option value="3">3 - Completed</option>
-                                                    <option value="NA">N/A</option>
-                                                </select>
-                                            </td>
-                                            <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                                            <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                                            <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                                        </tr>
-                                    </tbody>
+                                    <tbody id="wash-standards-table-body">
+                                        </tbody>
                                 </table>
-                                <button class="btn btn-outline-success mt-2 add-row" data-section="wash-standards">
-                                    <i class="fas fa-plus me-2"></i>Añadir Subsección
-                                </button>
+                                
                                 <div class="comments-section">
                                     <label for="washStandardsComments" class="form-label">Mentor Comments & Observations</label>
                                     <textarea class="form-control" id="washStandardsComments" rows="3"></textarea>
@@ -1177,6 +1058,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const weights = JSON.parse('${JSON.stringify(weights)}');
+        const customSections = JSON.parse('${JSON.stringify(customSections)}');
+
         // Data storage
         let assessmentData = {
             teamInfo: {},
@@ -1188,14 +1072,72 @@
             summary: {}
         };
 
+        const staticSections = {
+            'guiding-principles': [
+                { id: 'safe-care', text: 'Safe Care - Written statement on behalf the organization' },
+                { id: 'equitable-care', text: 'Equitable Care - Written statement on behalf the organization' },
+                { id: 'ethical-care', text: 'Ethical Care - Written statement on behalf the organization' },
+                { id: 'accountable-response', text: 'Accountable Response - Written statement on behalf the organization' },
+                { id: 'appropriate-response', text: 'Appropriate Response - Written statement on behalf the organization' },
+                { id: 'coordinated-response', text: 'Coordinated Response - Written statement on behalf the organization' }
+            ],
+            'core-standards': [
+                { id: 'admin-management', text: 'Administration & Organizational Management' },
+                { id: 'human-resources', text: 'Human Resources' },
+                { id: 'professional-licensing', text: 'Professional Licensing & Conduct' },
+                { id: 'training-teams', text: 'Training of Teams' },
+                { id: 'coordination-emts', text: 'Coordination of EMTs' },
+                { id: 'records-reporting', text: 'Records and Reporting' }
+            ]
+        };
+
         // Initialize from localStorage if available
         function initializeData() {
-            const saved = localStorage.getItem('hidSCTAssessment');
+            const saved = localStorage.getItem('hidSCTAssessmentCustom');
             if (saved) {
                 assessmentData = JSON.parse(saved);
                 loadSavedData();
             }
+            populateSections();
             updateProgress();
+        }
+
+        function populateSections() {
+            Object.keys(staticSections).forEach(section => {
+                const tableBody = document.getElementById(section + '-table-body');
+                staticSections[section].forEach(item => {
+                    tableBody.innerHTML += generateTableRow(section, item.id, item.text);
+                });
+            });
+
+            Object.keys(customSections).forEach(section => {
+                const tableBody = document.getElementById(section + '-table-body');
+                customSections[section].forEach(text => {
+                    const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    tableBody.innerHTML += generateTableRow(section, id, text);
+                });
+            });
+        }
+
+        function generateTableRow(section, id, text) {
+            return \`
+                <tr>
+                    <td>\${text}</td>
+                    <td>
+                        <select class="form-select score-select" data-section="\${section}" data-item="\${id}">
+                            <option value="">-</option>
+                            <option value="0">0 - Not started</option>
+                            <option value="1">1 - Initial</option>
+                            <option value="2">2 - In progress</option>
+                            <option value="3">3 - Completed</option>
+                            <option value="NA">N/A</option>
+                        </select>
+                    </td>
+                    <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
+                    <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
+                    <td><textarea class="form-control action-input" rows="2"></textarea></td>
+                </tr>
+            \`;
         }
 
         // Load saved data into form
@@ -1212,7 +1154,7 @@
 
             // Load scores and related data
             document.querySelectorAll('.score-select').forEach(select => {
-                const key = `${select.dataset.section}-${select.dataset.item}`;
+                const key = \`\${select.dataset.section}-\${select.dataset.item}\`;
                 if (assessmentData.scores[key]) {
                     select.value = assessmentData.scores[key];
                     updateScoreBadge(select);
@@ -1223,7 +1165,6 @@
                     const evidenceInput = row.querySelector('.evidence-input');
                     const gapsInput = row.querySelector('.gaps-input');
                     const actionInput = row.querySelector('.action-input');
-                    const standardInput = row.querySelector('.standard-input');
 
                     if (evidenceInput && assessmentData.evidence[key]) {
                         evidenceInput.value = assessmentData.evidence[key];
@@ -1233,9 +1174,6 @@
                     }
                     if (actionInput && assessmentData.actions[key]) {
                         actionInput.value = assessmentData.actions[key];
-                    }
-                    if (standardInput && assessmentData.standard[key]) {
-                        standardInput.value = assessmentData.standard[key];
                     }
                 }
             });
@@ -1284,10 +1222,9 @@
             assessmentData.evidence = {};
             assessmentData.gaps = {};
             assessmentData.actions = {};
-            assessmentData.standard = {};
 
             document.querySelectorAll('.score-select').forEach(select => {
-                const key = `${select.dataset.section}-${select.dataset.item}`;
+                const key = \`\${select.dataset.section}-\${select.dataset.item}\`;
                 const row = select.closest('tr');
                 
                 if (select.value) {
@@ -1297,7 +1234,6 @@
                 const evidenceInput = row.querySelector('.evidence-input');
                 const gapsInput = row.querySelector('.gaps-input');
                 const actionInput = row.querySelector('.action-input');
-                const standardTextarea = row.querySelector('.standard-input');
 
                 if (evidenceInput) {
                     assessmentData.evidence[key] = evidenceInput.value;
@@ -1307,9 +1243,6 @@
                 }
                 if (actionInput) {
                     assessmentData.actions[key] = actionInput.value;
-                }
-                if (standardTextarea) {
-                    assessmentData.standard[key] = standardTextarea.value;
                 }
             });
 
@@ -1338,7 +1271,7 @@
                 mentorAssignment: document.getElementById('mentorAssignment').value
             };
 
-            localStorage.setItem('hidSCTAssessment', JSON.stringify(assessmentData));
+            localStorage.setItem('hidSCTAssessmentCustom', JSON.stringify(assessmentData));
             
             showNotification('Progress saved successfully!');
             updateProgress();
@@ -1362,44 +1295,46 @@
             const value = select.value;
             select.className = 'form-select score-select';
             if (value !== '' && value !== 'NA') {
-                select.classList.add(`score-${value}`);
+                select.classList.add(\`score-\${value}\`);
             }
         }
 
         // Calculate scores and update progress
         function updateProgress() {
-            let totalScore = 0;
-            let maxPossibleScore = 0;
+            let totalWeightedCompleted = 0;
+            let totalWeight = 0;
             let completedSectionsCount = 0;
-            
-            const sectionProgress = {
-                'guiding-principles': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0, weight: 2 },
-                'core-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0, weight: 18 },
-                'clinical-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0, weight: 20 },
-                'logistic-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0, weight: 10 },
-                'wash-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0, weight: 10 }
-            };
 
-            document.querySelectorAll('.score-select').forEach(select => {
-                const section = select.dataset.section;
-                if (sectionProgress[section]) {
-                    sectionProgress[section].totalItems++;
-                    
+            const sectionProgress = {};
+
+            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
+
+            allSections.forEach(section => {
+                let totalItems = 0;
+                let scoredItems = 0;
+                let sectionScore = 0;
+                let maxSectionScore = 0;
+                
+                document.querySelectorAll(\`[data-section="\${section}"]\`).forEach(select => {
+                    totalItems++;
                     if (select.value && select.value !== '') {
-                        sectionProgress[section].scoredItems++;
-                        
+                        scoredItems++;
                         if (select.value !== 'NA') {
-                            const score = parseInt(select.value);
-                            sectionProgress[section].score += score;
-                            sectionProgress[section].maxScore += 3;
+                            sectionScore += parseInt(select.value);
+                            maxSectionScore += 3;
                         }
                     }
-                }
+                });
+                
+                sectionProgress[section] = {
+                    totalItems,
+                    scoredItems,
+                    score: sectionScore,
+                    maxScore: maxSectionScore,
+                    weight: weights[section]
+                };
             });
 
-            const totalWeight = Object.values(sectionProgress).reduce((sum, s) => sum + s.weight, 0);
-
-            // Update section scores and calculate weighted overall score
             Object.keys(sectionProgress).forEach(section => {
                 const progress = sectionProgress[section];
                 let percentage = 0;
@@ -1411,86 +1346,70 @@
                 if (progress.totalItems > 0 && progress.scoredItems === progress.totalItems) {
                     completedSectionsCount++;
                 }
-                
-                totalScore += progress.score;
-                maxPossibleScore += progress.maxScore;
 
-                const scoreElement = document.getElementById(`${section}Score`);
+                const weightedCompleted = (progress.weight * percentage) / 100;
+                totalWeightedCompleted += weightedCompleted;
+                totalWeight += progress.weight;
+
+                const scoreElement = document.getElementById(\`\${section}Score\`);
                 if (scoreElement) {
-                    scoreElement.textContent = `${percentage}% Complete`;
+                    scoreElement.textContent = \`\${percentage}% Complete\`;
                 }
             });
 
-            // Update overall progress
-            const overallProgress = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
+            const overallProgress = totalWeight > 0 ? Math.round(totalWeightedCompleted) : 0;
             
-            document.getElementById('overallProgressBar').style.width = `${overallProgress}%`;
-            document.getElementById('overallProgressText').textContent = `${overallProgress}%`;
-            document.getElementById('sidebarProgressBar').style.width = `${overallProgress}%`;
-            document.getElementById('sidebarProgressText').textContent = `${overallProgress}%`;
+            document.getElementById('overallProgressBar').style.width = \`\${overallProgress}%\`;
+            document.getElementById('overallProgressText').textContent = \`\${overallProgress}%\`;
+            document.getElementById('sidebarProgressBar').style.width = \`\${overallProgress}%\`;
+            document.getElementById('sidebarProgressText').textContent = \`\${overallProgress}%\`;
             
-            document.getElementById('completedSections').textContent = `${completedSectionsCount}/5`;
-            document.getElementById('overallScore').textContent = `${overallProgress}%`;
+            document.getElementById('completedSections').textContent = \`\${completedSectionsCount}/8\`;
+            document.getElementById('overallScore').textContent = \`\${overallProgress}%\`;
             document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
 
             // Update progress table
             const progressTableBody = document.getElementById('progressTableBody');
             progressTableBody.innerHTML = '';
             
-            const sectionsWithWeight = [
-                { name: 'GUIDING PRINCIPLES', weight: 2, section: 'guiding-principles' },
-                { name: 'CORE STANDARDS', weight: 18, section: 'core-standards' },
-                { name: 'CLINICAL STANDARDS', weight: 20, section: 'clinical-standards' },
-                { name: 'LOGISTIC STANDARDS', weight: 10, section: 'logistic-standards' },
-                { name: 'WASH STANDARDS', weight: 10, section: 'wash-standards' }
-            ];
-            
-            let totalWeightedCompleted = 0;
-            
-            sectionsWithWeight.forEach(s => {
-                const progress = sectionProgress[s.section];
+            allSections.forEach(s => {
+                const progress = sectionProgress[s];
                 let completed = 0;
                 
                 if (progress.maxScore > 0) {
                     completed = Math.round((progress.score / progress.maxScore) * 100);
                 }
                 
-                const weight = s.weight;
-                const completedWeight = (weight * completed) / 100;
-                
-                totalWeightedCompleted += completedWeight;
-                
                 const status = completed === 0 ? 'Not Started' : 
                               completed < 100 ? 'In Progress' : 'Completed';
                 const badgeClass = status === 'Completed' ? 'bg-success' : 
                                  status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
                 
-                progressTableBody.innerHTML += `
+                progressTableBody.innerHTML += \`
                     <tr>
-                        <td>${s.name}</td>
-                        <td>${weight}%</td>
-                        <td><span class="badge ${badgeClass}">${status}</span></td>
-                        <td>${completed}%</td>
+                        <td>\${s.replace('-', ' ').toUpperCase()}</td>
+                        <td>\${progress.weight}%</td>
+                        <td><span class="badge \${badgeClass}">\${status}</span></td>
+                        <td>\${completed}%</td>
                     </tr>
-                `;
+                \`;
             });
             
-            const finalWeightedScore = Math.round((totalWeightedCompleted / totalWeight) * 100);
-            progressTableBody.innerHTML += `
+            progressTableBody.innerHTML += \`
                 <tr class="table-primary fw-bold">
                     <td>TOTAL</td>
-                    <td>${totalWeight}%</td>
+                    <td>\${totalWeight}%</td>
                     <td></td>
-                    <td>${finalWeightedScore}%</td>
+                    <td>\${overallProgress}%</td>
                 </tr>
-            `;
+            \`;
             
             // Update progress sidebar
             const progressSidebarBody = document.getElementById('progressSidebarBody');
             progressSidebarBody.innerHTML = '';
             
-            sectionsWithWeight.forEach(s => {
-                const progress = sectionProgress[s.section];
+            allSections.forEach(s => {
+                const progress = sectionProgress[s];
                 let completed = 0;
                 
                 if (progress.maxScore > 0) {
@@ -1502,13 +1421,13 @@
                 const badgeClass = status === 'Completed' ? 'bg-success' : 
                                  status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
                 
-                progressSidebarBody.innerHTML += `
+                progressSidebarBody.innerHTML += \`
                     <tr>
-                        <td>${s.name.split(' ')[0]}</td>
-                        <td><span class="badge ${badgeClass}">${status}</span></td>
-                        <td>${completed}%</td>
+                        <td>\${s.split('-')[0].toUpperCase()}</td>
+                        <td><span class="badge \${badgeClass}">\${status}</span></td>
+                        <td>\${completed}%</td>
                     </tr>
-                `;
+                \`;
             });
         }
 
@@ -1548,16 +1467,10 @@
             ];
             
             const sectionProgress = calculateSectionProgress();
-            const sections = [
-                { name: 'GUIDING PRINCIPLES', weight: 2, section: 'guiding-principles' },
-                { name: 'CORE STANDARDS', weight: 18, section: 'core-standards' },
-                { name: 'CLINICAL STANDARDS', weight: 20, section: 'clinical-standards' },
-                { name: 'LOGISTIC STANDARDS', weight: 10, section: 'logistic-standards' },
-                { name: 'WASH STANDARDS', weight: 10, section: 'wash-standards' }
-            ];
+            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
             
-            sections.forEach(s => {
-                const progress = sectionProgress[s.section];
+            allSections.forEach(s => {
+                const progress = sectionProgress[s];
                 let completed = 0;
                 
                 if (progress.maxScore > 0) {
@@ -1567,7 +1480,7 @@
                 const status = completed === 0 ? 'Not Started' : 
                               completed < 100 ? 'In Progress' : 'Completed';
                 
-                progressOverviewData.push([s.name, s.weight + '%', status, completed + '%']);
+                progressOverviewData.push([s.replace('-', ' ').toUpperCase(), weights[s] + '%', status, completed + '%']);
             });
             
             const progressOverviewWs = XLSX.utils.aoa_to_sheet(progressOverviewData);
@@ -1579,10 +1492,9 @@
             
             document.querySelectorAll('.score-select').forEach(select => {
                 const row = select.closest('tr');
-                const standardCell = row.cells[0];
-                const standardText = standardCell.querySelector('textarea') ? standardCell.querySelector('textarea').value : standardCell.textContent.trim();
+                const standardText = row.cells[0].textContent.trim();
                 const section = select.dataset.section;
-                const key = `${select.dataset.section}-${select.dataset.item}`;
+                const key = \`\${section}-\${select.dataset.item}\`;
                 
                 const pillar = section === 'guiding-principles' ? 'Guiding Principles' :
                               section === 'core-standards' ? 'Core Standards' :
@@ -1602,7 +1514,7 @@
                     evidenceInput ? evidenceInput.value : '',
                     gapsInput ? gapsInput.value : '',
                     actionInput ? actionInput.value : '',
-                    assessmentData.comments[`${section}Comments`] || ''
+                    assessmentData.comments[\`\${section}Comments\`] || ''
                 ]);
             });
             
@@ -1630,37 +1542,39 @@
             XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
             
             // Export the workbook
-            XLSX.writeFile(wb, `HID_SCT_Assessment_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(wb, \`HID_SCT_Assessment_\${new Date().toISOString().split('T')[0]}.xlsx\`);
             showNotification('Data exported to Excel successfully!');
         }
 
         // Function to calculate section progress (similar to updateProgress but without UI updates)
         function calculateSectionProgress() {
-            const sectionProgress = {
-                'guiding-principles': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0 },
-                'core-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0 },
-                'clinical-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0 },
-                'logistic-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0 },
-                'wash-standards': { totalItems: 0, scoredItems: 0, score: 0, maxScore: 0 }
-            };
+            const sectionProgress = {};
+            const allSections = ['guiding-principles', 'core-standards', 'clinical-standards', 'logistic-standards', 'wash-standards'];
 
-            document.querySelectorAll('.score-select').forEach(select => {
-                const section = select.dataset.section;
-                if (sectionProgress[section]) {
-                    sectionProgress[section].totalItems++;
-                    
+            allSections.forEach(section => {
+                let totalItems = 0;
+                let scoredItems = 0;
+                let sectionScore = 0;
+                let maxSectionScore = 0;
+                
+                document.querySelectorAll(\`[data-section="\${section}"]\`).forEach(select => {
+                    totalItems++;
                     if (select.value && select.value !== '') {
-                        sectionProgress[section].scoredItems++;
-                        
+                        scoredItems++;
                         if (select.value !== 'NA') {
-                            const score = parseInt(select.value);
-                            sectionProgress[section].score += score;
-                            sectionProgress[section].maxScore += 3;
+                            sectionScore += parseInt(select.value);
+                            maxSectionScore += 3;
                         }
                     }
-                }
+                });
+                
+                sectionProgress[section] = {
+                    totalItems,
+                    scoredItems,
+                    score: sectionScore,
+                    maxScore: maxSectionScore
+                };
             });
-
             return sectionProgress;
         }
 
@@ -1674,7 +1588,7 @@
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `HID_SCT_Assessment_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = \`HID_SCT_Assessment_\${new Date().toISOString().split('T')[0]}.json\`;
             link.click();
             
             URL.revokeObjectURL(url);
@@ -1700,8 +1614,7 @@
                         gaps: {},
                         actions: {},
                         comments: {},
-                        summary: {},
-                        standard: {}
+                        summary: {}
                     };
                     
                     // Import Team Info
@@ -1736,7 +1649,6 @@
                             const row = assessmentDataArray[i];
                             if (row.length >= 8) {
                                 const standardId = row[0];
-                                const standardStatement = row[2];
                                 const score = row[3];
                                 const evidence = row[4];
                                 const gaps = row[5];
@@ -1744,7 +1656,6 @@
                                 const comments = row[7];
                                 
                                 assessmentData.scores[standardId] = score;
-                                assessmentData.standard[standardId] = standardStatement;
                                 assessmentData.evidence[standardId] = evidence;
                                 assessmentData.gaps[standardId] = gaps;
                                 assessmentData.actions[standardId] = actions;
@@ -1752,7 +1663,7 @@
                                 // Extract section from standardId for comments
                                 const section = standardId.split('-').slice(0, -1).join('-');
                                 if (section && comments) {
-                                    assessmentData.comments[`${section}Comments`] = comments;
+                                    assessmentData.comments[\`\${section}Comments\`] = comments;
                                 }
                             }
                         }
@@ -1780,8 +1691,7 @@
                     }
                     
                     // Save to localStorage and update UI
-                    localStorage.setItem('hidSCTAssessment', JSON.stringify(assessmentData));
-                    renderDynamicRows(); // Render dynamic rows from imported data
+                    localStorage.setItem('hidSCTAssessmentCustom', JSON.stringify(assessmentData));
                     loadSavedData();
                     updateProgress();
                     showNotification('Data imported successfully!');
@@ -1796,158 +1706,16 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function createNewRow(section) {
-            const tableBody = document.querySelector(`tbody[data-section="${section}"]`);
-            if (!tableBody) return;
-            
-            const randomId = Math.random().toString(36).substring(2, 9);
-            const newItemId = `${section}-${randomId}`;
-
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td><textarea class="form-control standard-input" rows="2" placeholder="Describe el nuevo estándar"></textarea></td>
-                <td>
-                    <select class="form-select score-select" data-section="${section}" data-item="${newItemId}">
-                        <option value="">-</option>
-                        <option value="0">0 - Not started</option>
-                        <option value="1">1 - Initial</option>
-                        <option value="2">2 - In progress</option>
-                        <option value="3">3 - Completed</option>
-                        <option value="NA">N/A</option>
-                    </select>
-                </td>
-                <td><textarea class="form-control evidence-input" rows="2"></textarea></td>
-                <td><textarea class="form-control gaps-input" rows="2"></textarea></td>
-                <td><textarea class="form-control action-input" rows="2"></textarea></td>
-                <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-            `;
-
-            tableBody.appendChild(newRow);
-
-            newRow.querySelector('.score-select').addEventListener('change', function() {
-                updateScoreBadge(this);
-                saveProgress();
-            });
-            newRow.querySelector('.remove-row').addEventListener('click', function() {
-                if (confirm('¿Estás seguro de que quieres eliminar esta fila?')) {
-                    newRow.remove();
-                    delete assessmentData.scores[newItemId];
-                    delete assessmentData.evidence[newItemId];
-                    delete assessmentData.gaps[newItemId];
-                    delete assessmentData.actions[newItemId];
-                    delete assessmentData.standard[newItemId];
-                    saveProgress();
-                }
-            });
-
-            newRow.querySelectorAll('input, textarea, select').forEach(element => {
-                element.addEventListener('change', saveProgress);
-            });
-        }
-
-        function renderDynamicRows() {
-            const sections = ['clinical-standards', 'logistic-standards', 'wash-standards'];
-            sections.forEach(section => {
-                const tableBody = document.querySelector(`tbody[data-section="${section}"]`);
-                if (!tableBody) return;
-
-                // Clear existing dynamic rows
-                const existingDynamicRows = tableBody.querySelectorAll('tr');
-                existingDynamicRows.forEach(row => {
-                    const standardInput = row.querySelector('.standard-input');
-                    if(standardInput) {
-                        row.remove();
-                    }
-                });
-
-                // Get dynamic items from loaded data
-                const dynamicItems = Object.keys(assessmentData.scores).filter(key => key.startsWith(section) && !isStaticItem(key));
-                
-                dynamicItems.forEach(itemKey => {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td><textarea class="form-control standard-input" rows="2" placeholder="Describe el nuevo estándar">${assessmentData.standard[itemKey] || ''}</textarea></td>
-                        <td>
-                            <select class="form-select score-select" data-section="${section}" data-item="${itemKey}">
-                                <option value="">-</option>
-                                <option value="0">0 - Not started</option>
-                                <option value="1">1 - Initial</option>
-                                <option value="2">2 - In progress</option>
-                                <option value="3">3 - Completed</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </td>
-                        <td><textarea class="form-control evidence-input" rows="2">${assessmentData.evidence[itemKey] || ''}</textarea></td>
-                        <td><textarea class="form-control gaps-input" rows="2">${assessmentData.gaps[itemKey] || ''}</textarea></td>
-                        <td><textarea class="form-control action-input" rows="2">${assessmentData.actions[itemKey] || ''}</textarea></td>
-                        <td><button class="btn btn-sm btn-danger remove-row"><i class="fas fa-trash"></i></button></td>
-                    `;
-                    tableBody.appendChild(newRow);
-                    
-                    const scoreSelect = newRow.querySelector('.score-select');
-                    if (assessmentData.scores[itemKey]) {
-                        scoreSelect.value = assessmentData.scores[itemKey];
-                    }
-
-                    newRow.querySelector('.score-select').addEventListener('change', function() {
-                        updateScoreBadge(this);
-                        saveProgress();
-                    });
-                    newRow.querySelector('.remove-row').addEventListener('click', function() {
-                        if (confirm('¿Estás seguro de que quieres eliminar esta fila?')) {
-                            newRow.remove();
-                            delete assessmentData.scores[itemKey];
-                            delete assessmentData.evidence[itemKey];
-                            delete assessmentData.gaps[itemKey];
-                            delete assessmentData.actions[itemKey];
-                            delete assessmentData.standard[itemKey];
-                            saveProgress();
-                        }
-                    });
-                    newRow.querySelectorAll('input, textarea, select').forEach(element => {
-                        element.addEventListener('change', saveProgress);
-                    });
-                });
-            });
-        }
-
-        function isStaticItem(key) {
-            const staticItems = [
-                "guiding-principles-safe-care", "guiding-principles-equitable-care", "guiding-principles-ethical-care", "guiding-principles-accountable-response", "guiding-principles-appropriate-response", "guiding-principles-coordinated-response",
-                "core-standards-admin-management", "core-standards-human-resources", "core-standards-professional-licensing", "core-standards-training-teams", "core-standards-coordination-emts", "core-standards-records-reporting",
-                "clinical-standards-screening", "clinical-standards-triage", "clinical-standards-treatment", "clinical-standards-obstetric-care",
-                "logistic-standards-power-fuel", "logistic-standards-communications", "logistic-standards-transportation", "logistic-standards-warehouse",
-                "wash-standards-water-supply", "wash-standards-hygiene", "wash-standards-cleaning", "wash-standards-waste-management"
-            ];
-            return staticItems.includes(key);
-        }
-
-
         // Initialize event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize data
             initializeData();
             
-            // Add change listeners for scores
-            document.querySelectorAll('.score-select').forEach(select => {
-                select.addEventListener('change', function() {
-                    updateScoreBadge(this);
-                    saveProgress();
-                });
-            });
-            
-            // Add input listeners for text fields
             document.querySelectorAll('input, textarea, select').forEach(element => {
-                element.addEventListener('change', function() {
-                    saveProgress();
-                });
+                element.addEventListener('change', saveProgress);
             });
             
-            // Set today's date as default for assessment date
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('completionDate').value = today;
+            document.getElementById('completionDate').value = new Date().toISOString().split('T')[0];
             
-            // Add event listeners for buttons
             document.getElementById('btn-save').addEventListener('click', saveProgress);
             document.getElementById('btn-export-json').addEventListener('click', exportToJSON);
             document.getElementById('btn-export-excel').addEventListener('click', exportToExcel);
@@ -1956,56 +1724,66 @@
                 showNotification('Assessment submitted successfully!');
             });
             
-            // Import functionality
             document.getElementById('btn-import-excel').addEventListener('click', function() {
                 document.getElementById('fileInput').click();
             });
             document.getElementById('fileInput').addEventListener('change', importFromExcel);
             
-            // Add dynamic row functionality
-            document.querySelectorAll('.add-row').forEach(button => {
-                button.addEventListener('click', function() {
-                    createNewRow(this.dataset.section);
-                });
-            });
-            
-            document.querySelectorAll('.remove-row').forEach(button => {
-                button.addEventListener('click', function() {
-                    if (confirm('¿Estás seguro de que quieres eliminar esta fila?')) {
-                        const row = this.closest('tr');
-                        const scoreSelect = row.querySelector('.score-select');
-                        const key = `${scoreSelect.dataset.section}-${scoreSelect.dataset.item}`;
-
-                        row.remove();
-                        delete assessmentData.scores[key];
-                        delete assessmentData.evidence[key];
-                        delete assessmentData.gaps[key];
-                        delete assessmentData.actions[key];
-                        saveProgress();
-                    }
-                });
-            });
-
-            // Initialize tab functionality
             const triggerTabList = document.querySelectorAll('.nav-link');
             triggerTabList.forEach(triggerEl => {
                 triggerEl.addEventListener('click', function (event) {
                     event.preventDefault();
                     const target = this.getAttribute('href');
                     
-                    // Update active tab
                     triggerTabList.forEach(tab => {
                         tab.classList.remove('active');
                     });
                     this.classList.add('active');
                     
-                    // Show target tab content
                     document.querySelectorAll('.tab-pane').forEach(pane => {
                         pane.classList.remove('show', 'active');
                     });
                     document.querySelector(target).classList.add('show', 'active');
                 });
             });
+        });
+    </script>
+</body>
+</html>
+            `;
+            const blob = new Blob([template], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hid-sct-assessment-custom.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.querySelectorAll('.add-item').forEach(button => {
+            button.addEventListener('click', () => {
+                createNewSubItem(button.dataset.section);
+            });
+        });
+
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', () => {
+                if (confirm('¿Estás seguro de que quieres eliminar esta subsección?')) {
+                    button.closest('.subsection-item').remove();
+                }
+            });
+        });
+
+        document.querySelectorAll('.weight-input').forEach(input => {
+            input.addEventListener('input', updateWeightSum);
+        });
+
+        document.getElementById('btn-make').addEventListener('click', generateHTML);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWeightSum();
         });
     </script>
 </body>
