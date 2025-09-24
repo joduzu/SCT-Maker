@@ -12,7 +12,7 @@
         .maker-container { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 12px; padding: 30px; }
         .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
         .subsection-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .subsection-item input { flex-grow: 1; }
+        .subsection-item input, .subsection-item textarea { flex-grow: 1; }
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
@@ -23,22 +23,7 @@
     <div class="maker-container">
         <div class="maker-header">
             <h2>🛠️ Creador Avanzado de Herramientas de Evaluación</h2>
-            <p class="text-muted">Personaliza cada aspecto de tu herramienta. Al generar, el nuevo HTML incluirá toda la funcionalidad interactiva original.</p>
-        </div>
-
-        <div class="accordion" id="generalSettingsAccordion">
-            <div class="accordion-item"><h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">Configuración General</button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#generalSettingsAccordion">
-                    <div class="accordion-body">
-                        <div class="mb-3">
-                            <label for="main-title" class="form-label">Título Principal de la Herramienta</label>
-                            <input type="text" class="form-control" id="main-title" value="HID SCT Self-Assessment Grid - Customized">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <p class="text-muted">Personaliza cada aspecto de tu herramienta. El HTML generado será 100% funcional e idéntico al original.</p>
         </div>
 
         <div class="card my-4">
@@ -52,18 +37,219 @@
         <div class="accordion" id="sections-accordion"></div>
 
         <div class="d-grid mt-4">
-            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generar Herramienta HTML Funcional</button>
+            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generar Herramienta HTML Completa</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    // Initial configuration object for the maker UI
     const TOOL_CONFIG = {
-        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2>...` },
-        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Technical Standards Definition</h2>...` },
-        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true, content: `<h2 class="mb-4">Organizational Details</h2>...` },
+        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true },
+        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true },
+        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true },
         'guiding-principles': { title: 'GUIDING PRINCIPLES', icon: 'fa-star', hasSubsections: true, weight: 2, enabled: true, subsections: ['Safe Care - Written statement on behalf the organization', 'Equitable Care - Written statement on behalf the organization', 'Ethical Care - Written statement on behalf the organization', 'Accountable Response - Written statement on behalf the organization', 'Appropriate Response - Written statement on behalf the organization', 'Coordinated Response - Written statement on behalf the organization'] },
         'core-standards': { title: 'CORE STANDARDS', icon: 'fa-cogs', hasSubsections: true, weight: 18, enabled: true, subsections: ['Administration & Organizational Management', 'Human Resources', 'Professional Licensing & Conduct', 'Training of Teams', 'Coordination of EMTs', 'Records and Reporting'] },
-        'clinical-standards': {
+        'clinical-standards': { 
+            title: 'CLINICAL STANDARDS', icon: 'fa-stethoscope', hasSubsections: true, weight: 20, enabled: true, 
+            subsections: [
+                '<strong>Length of stay</strong> - Minimum length of stay',
+                '<strong>Team size and configuration</strong> - SCTs should be adequately sized and appropriately configured for their tasking, 1 Community Health Worker (CHW) or equivalent per 25 patients',
+                '<strong>Staff skills</strong> - The AWD outpatient team configuration requires staff who are experienced in outbreak context and are IPC trained',
+                '<strong>Staff qualifications and experience</strong> - Staff must be competent in rapid evaluation of all patients, determining the degree of dehydration, implementing the treatment plan, managing oral rehydration, performing patient registration/record keeping, and initiating referral/transfer for cases needing higher levels of care. They must also be experienced in health promotion and providing basic psychosocial support',
+                '<strong>Services Provided</strong> - Capacity (Minimum) 50 outpatients/day. ORP Places 10 ORP places (seats for rehydration under temporary observation). Opening Hours Daylight hours. Modality of Deployment Self-sustained or coupled to an existing health-care facility',
+                '<strong>Screening</strong> - Assess level of dehydration. Assess indications and provide immediate isolation, if indicated. Recognize indications for and initiate referral',
+                '<strong>Triage</strong> - The focus of triage in the outpatient setting is the rapid assessment of disease severity, primarily the level of dehydration. Treatment emphasizes rapid and appropriate rehydration to prevent death.',
+                '<strong>Stabilization</strong> - Stabilization specifically refers to oral rehydration therapy in the outpatient context',
+                '<strong>Treatment</strong> - Treatment is provided for cases that do not require inpatient care. This includes Oral Rehydration Treatment according to the level of dehydration (Treatment Plan A).',
+                '<strong>Observation</strong> - Provide temporary observation.',
+                '<strong>Referral</strong> - Recognize indications for and initiate referral of patients requiring higher levels of care. They must have clear SOPs on initiating and receiving referrals',
+                '<strong>Isolation</strong> - Assess indications and provide immediate isolation, if indicated. They must maintain temporary isolation capacity',
+                '<strong>Patient Education</strong> - Educate patients on the proper preparation of Oral Rehydration Solution (ORS), and provide basic psychosocial support',
+                '<strong>Distribution</strong> - Distribute ORS sachets and water treatment products'
+            ]
+        },
+        'logistic-standards': { title: 'LOGISTIC STANDARDS', icon: 'fa-truck', hasSubsections: true, weight: 10, enabled: true, subsections: ['Power and Fuel - SCTs/EMTs must ensure sufficient power supply', 'Communications - SCTs/EMTs must have communication capabilities', 'Transportation & Fleet', 'Warehouse Management'] },
+        'wash-standards': { title: 'WASH STANDARDS', icon: 'fa-hand-holding-water', hasSubsections: true, weight: 10, enabled: true, subsections: ['Water Supply - SCTs/EMTs must ensure sufficient safe drinking water', 'Hygiene - SCTs/EMTs must ensure safe hygiene measures', 'Environmental Cleaning', 'Healthcare Waste Management'] },
+        'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true }
+    };
+
+    function renderMakerUI() {
+        const sectionsContainer = document.getElementById('sections-accordion');
+        const weightsContainer = document.getElementById('weights-container');
+        sectionsContainer.innerHTML = ''; weightsContainer.innerHTML = '';
+
+        Object.entries(TOOL_CONFIG).forEach(([key, config]) => {
+            const sectionHTML = `
+                <div class="accordion-item" id="accordion-item-${key}">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${key}">
+                            <div class="section-header-controls w-100">
+                                <span class="me-auto">Configurar: ${config.title}</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input section-enable-switch" type="checkbox" data-key="${key}" ${config.enabled ? 'checked' : ''}>
+                                    <label class="form-check-label">Habilitar</label>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
+                        <div class="accordion-body">
+                            <div class="mb-3">
+                                <label class="form-label">Título de la Sección</label>
+                                <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
+                            </div>
+                            ${config.hasSubsections ?
+                                `<h5>Estándares / Subsecciones (HTML permitido)</h5><div id="subsections-${key}">${
+                                    config.subsections.map(sub => `
+                                        <div class="subsection-item">
+                                            <textarea class="form-control" rows="2">${sub.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                                            <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
+                                        </div>`).join('')
+                                }</div>
+                                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Estándar</button>`
+                                : `<div class="alert alert-light">El contenido de esta sección es fijo y se insertará automáticamente en la herramienta final.</div>`
+                            }
+                        </div>
+                    </div>
+                </div>`;
+            sectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
+
+            if (config.weight > 0) {
+                const weightHTML = `<div class="col-md-4 mb-3" id="weight-div-${key}"><label class="form-label">${config.title}</label><input type="number" class="form-control weight-input" data-key="${key}" value="${config.weight}" min="0" ${!config.enabled ? 'disabled' : ''}></div>`;
+                weightsContainer.insertAdjacentHTML('beforeend', weightHTML);
+            }
+        });
+        updateWeightSum();
+        addEventListeners();
+    }
+    
+    function addEventListeners() {
+        document.querySelectorAll('.add-item').forEach(btn => btn.onclick = e => {
+            const section = e.currentTarget.dataset.section;
+            const container = document.getElementById(`subsections-${section}`);
+            const newItem = document.createElement('div');
+            newItem.className = 'subsection-item';
+            newItem.innerHTML = `<textarea class="form-control" rows="2" placeholder="Nuevo estándar..."></textarea><button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
+            container.appendChild(newItem);
+            newItem.querySelector('.remove-item').onclick = () => newItem.remove();
+        });
+        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => e.currentTarget.closest('.subsection-item').remove());
+        document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
+        document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
+            const key = e.currentTarget.dataset.key;
+            const weightInput = document.querySelector(`.weight-input[data-key="${key}"]`);
+            if (weightInput) weightInput.disabled = !e.currentTarget.checked;
+            document.getElementById(`accordion-item-${key}`).style.opacity = e.currentTarget.checked ? '1' : '0.5';
+            updateWeightSum();
+        });
+        document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function updateWeightSum() {
+        const sum = Array.from(document.querySelectorAll('.weight-input:not(:disabled)')).reduce((acc, input) => acc + (parseInt(input.value) || 0), 0);
+        const alertDiv = document.getElementById('weight-sum-alert');
+        document.getElementById('weight-sum').textContent = sum;
+        alertDiv.classList.toggle('alert-danger', sum !== 100);
+        alertDiv.classList.toggle('alert-info', sum === 100);
+    }
+    
+    function generateHTML() {
+        // 1. Gather all customizations from the maker UI
+        const finalConfig = {};
+        document.querySelectorAll('.section-title-input').forEach(input => {
+            const key = input.dataset.key;
+            finalConfig[key] = {
+                ...TOOL_CONFIG[key],
+                title: input.value,
+                enabled: document.querySelector(`.section-enable-switch[data-key="${key}"]`).checked,
+                weight: parseInt(document.querySelector(`.weight-input[data-key="${key}"]`)?.value || 0)
+            };
+            if (finalConfig[key].hasSubsections) {
+                finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} textarea`)).map(area => area.value);
+            }
+        });
+
+        const enabledSections = Object.entries(finalConfig).filter(([, config]) => config.enabled);
+
+        // 2. Build Sidebar and Tab Panes
+        let sidebarLinks = enabledSections.map(([key, config]) => `
+            <li class="nav-item"><a class="nav-link" href="#${key}" data-bs-toggle="tab"><i class="fas ${config.icon}"></i> ${config.title}</a></li>`).join('');
+
+        let tabPanes = enabledSections.map(([key, config]) => {
+            let content = '';
+            if (config.hasSubsections) {
+                const tableRows = config.subsections.map(sub => {
+                    const subId = sub.replace(/<[^>]*>?/gm, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
+                    return `<tr><td>${sub}</td><td><select class="form-select score-select" data-section="${key}" data-item="${subId}"><option value="">-</option><option value="0">0 - Not started</option><option value="1">1 - Initial</option><option value="2">2 - In progress</option><option value="3">3 - Completed</option><option value="NA">N/A</option></select></td><td><textarea class="form-control evidence-input" rows="2"></textarea></td><td><textarea class="form-control gaps-input" rows="2"></textarea></td><td><textarea class="form-control action-input" rows="2"></textarea></td></tr>`;
+                }).join('');
+                content = `<h2 class="mb-4">${config.title}</h2><div class="card section-card"><div class="section-header d-flex justify-content-between align-items-center"><h5>${config.title} Compliance</h5><div class="score-display" id="${key}Score">0% Complete</div></div><table class="assessment-table"><thead><tr><th width="40%">Standard</th><th width="10%">Score</th><th width="20%">Evidence</th><th width="15%">Gaps</th><th width="15%">Actions</th></tr></thead><tbody>${tableRows}</tbody></table><div class="comments-section"><label for="${key}Comments" class="form-label">Mentor Comments & Observations</label><textarea class="form-control" id="${key}Comments" rows="3"></textarea></div></div>`;
+            } else {
+                content = document.getElementById(`template-${key}`).innerHTML;
+            }
+            return `<div class="tab-pane fade" id="${key}">${content}</div>`;
+        }).join('');
+
+        sidebarLinks = sidebarLinks.replace('class="nav-link"', 'class="nav-link active"');
+        tabPanes = tabPanes.replace('class="tab-pane fade"', 'class="tab-pane fade show active"');
+
+        const weightsData = enabledSections
+            .filter(([,c]) => c.weight > 0)
+            .map(([k,c]) => ({ name: c.title.toUpperCase(), weight: c.weight, section: k }));
+
+        const fullHTML = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HID SCT Self-Assessment Grid - Customized</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>
+    <style>:root{--primary:#0d6efd;--secondary:#6c757d;--success:#198754;--info:#0dcaf0;--warning:#ffc107;--danger:#dc3545;--light:#f8f9fa;--dark:#212529}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f5f7f9;padding:20px 0}.app-container{max-width:1400px;margin:0 auto;background:white;box-shadow:0 0 15px rgba(0,0,0,.1);border-radius:8px;overflow:hidden}.sidebar{background-color:#2c3e50;color:white;height:100vh;position:sticky;top:0;padding-top:20px;overflow-y:auto}.sidebar .nav-link{color:rgba(255,255,255,.8);border-left:3px solid transparent;padding:10px 15px;margin:5px 0;transition:all .3s}.sidebar .nav-link:hover,.sidebar .nav-link.active{color:white;background-color:rgba(255,255,255,.1);border-left-color:var(--info)}.sidebar .nav-link i{margin-right:10px;width:20px;text-align:center}.main-content{padding:20px;max-height:100vh;overflow-y:auto}.progress-sidebar{background-color:#f8f9fa;height:100vh;position:sticky;top:0;padding:20px 15px;overflow-y:auto;border-left:1px solid #e9ecef}.progress-bar-container{background-color:#e9ecef;border-radius:5px;margin-bottom:20px;height:30px}.progress-bar{height:100%;border-radius:5px;transition:width .5s ease}.section-card{margin-bottom:20px;box-shadow:0 4px 6px rgba(0,0,0,.1);border:none;border-radius:8px}.section-header{background-color:#f8f9fa;padding:15px;border-bottom:1px solid #e9ecef;border-radius:8px 8px 0 0}.comments-section{background-color:#f8f9fa;padding:15px;border-radius:0 0 8px 8px;border-top:1px solid #e9ecef}.overview-card{text-align:center;padding:20px;border-radius:8px;margin-bottom:20px;box-shadow:0 4px 6px rgba(0,0,0,.1)}.overview-card .card-value{font-size:2rem;font-weight:bold;margin:10px 0}.score-display{font-size:1.2rem;font-weight:bold;color:var(--primary)}.assessment-table{width:100%;border-collapse:collapse;margin-bottom:20px}.assessment-table th,.assessment-table td{border:1px solid #dee2e6;padding:12px;text-align:left;vertical-align:middle}.assessment-table th{background-color:#f8f9fa;font-weight:600}.score-0{background:#fee2e2;color:#dc2626}.score-1{background:#fed7aa;color:#ea580c}.score-2{background:#fef3c7;color:#ca8a04}.score-3{background:#d1fae5;color:#059669}.notification{position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#4ade80 0%,#22c55e 100%);color:white;padding:15px 25px;border-radius:8px;box-shadow:0 5px 20px rgba(0,0,0,.2);z-index:1000;animation:slideIn .3s ease}.progress-sidebar-table{width:100%;font-size:.85rem}.progress-sidebar-table th,.progress-sidebar-table td{padding:8px 5px;border-bottom:1px solid #dee2e6}.progress-sidebar-table th{font-weight:600}.progress-sidebar-table tr:last-child td{border-bottom:none}@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes fadeOut{from{opacity:1}to{opacity:0}}.summary-textarea{min-height:100px;resize:vertical}.file-input{display:none}@media (max-width:992px){.progress-sidebar{display:none}.main-content{max-height:none}}@media (max-width:768px){.sidebar{height:auto;position:relative}.assessment-table{font-size:.9rem;display:block;overflow-x:auto}.assessment-table th,.assessment-table td{padding:8px;white-space:nowrap}}<\/style>
+<\/head>
+<body>
+    <div class="app-container"><div class="row g-0">
+        <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
+        <div class="col-lg-8"><div class="main-content"><div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div></div></div>
+        <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
+    </div></div>
+    <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
+    <script>
+    const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
+    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
+    function initializeData(){const e=localStorage.getItem("hidSCTAssessment");e&&(assessmentData=JSON.parse(e),loadSavedData()),updateProgress()}
+    function loadSavedData(){if(assessmentData.teamInfo&&Object.keys(assessmentData.teamInfo).forEach(e=>{const t=document.getElementById(e);t&&(t.value=assessmentData.teamInfo[e])}),document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section+"-"+e.dataset.item;if(assessmentData.scores[t]){e.value=assessmentData.scores[t],updateScoreBadge(e);const s=e.closest("tr");s&&(s.querySelector(".evidence-input").value=assessmentData.evidence[t]||"",s.querySelector(".gaps-input").value=assessmentData.gaps[t]||"",s.querySelector(".action-input").value=assessmentData.actions[t]||"")}}),assessmentData.comments&&Object.keys(assessmentData.comments).forEach(e=>{const t=document.getElementById(e);t&&(t.value=assessmentData.comments[e])}),assessmentData.summary){const e=assessmentData.summary;Object.keys(e).forEach(t=>{const s=document.getElementById(t);s&&(s.value=e[t])})}}
+    function saveProgress(){assessmentData.teamInfo={teamName:document.getElementById("teamName")?.value,region:document.getElementById("region")?.value,country:document.getElementById("country")?.value,mentorName:document.getElementById("mentorName")?.value,hqName:document.getElementById("hqName")?.value,hqEmail:document.getElementById("hqEmail")?.value,hqPhone:document.getElementById("hqPhone")?.value,hqPosition:document.getElementById("hqPosition")?.value,opsName:document.getElementById("opsName")?.value,opsEmail:document.getElementById("opsEmail")?.value,opsPhone:document.getElementById("opsPhone")?.value,opsPosition:document.getElementById("opsPosition")?.value},assessmentData.scores={},assessmentData.evidence={},assessmentData.gaps={},assessmentData.actions={},document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section+"-"+e.dataset.item,s=e.closest("tr");e.value&&(assessmentData.scores[t]=e.value);const a=s.querySelector(".evidence-input"),o=s.querySelector(".gaps-input"),n=s.querySelector(".action-input");a&&(assessmentData.evidence[t]=a.value),o&&(assessmentData.gaps[t]=o.value),n&&(assessmentData.actions[t]=n.value)}),assessmentData.comments={},SECTIONS_WITH_WEIGHT.forEach(e=>{const t=document.getElementById(e.section+"Comments");t&&(assessmentData.comments[e.section+"Comments"]=t.value)}),assessmentData.summary={strengths:document.getElementById("strengths")?.value,criticalGaps:document.getElementById("criticalGaps")?.value,immediateActions:document.getElementById("immediateActions")?.value,shortTermActions:document.getElementById("shortTermActions")?.value,mediumTermActions:document.getElementById("mediumTermActions")?.value,technicalAssistance:document.getElementById("technicalAssistance")?.value,trainingRequirements:document.getElementById("trainingRequirements")?.value,resourceRequirements:document.getElementById("resourceRequirements")?.value,nextSteps:document.getElementById("nextSteps")?.value,completionDate:document.getElementById("completionDate")?.value,reviewedBy:document.getElementById("reviewedBy")?.value,mentorAssignment:document.getElementById("mentorAssignment")?.value},localStorage.setItem("hidSCTAssessment",JSON.stringify(assessmentData)),showNotification("Progress saved successfully!"),updateProgress()}
+    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+    function updateScoreBadge(e){const t=e.value;e.className="form-select score-select",""!==t&&"NA"!==t&&e.classList.add("score-"+t)}
+    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c.innerHTML="",d.innerHTML="";let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`,d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`});const m=r>0?Math.round(l/r*100):0;c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`}
+    function exportToExcel(){saveProgress();const e=XLSX.utils.book_new(),t=[["Team Information",""],["Team Name",assessmentData.teamInfo.teamName||""],["Region",assessmentData.teamInfo.region||""],["Country",assessmentData.teamInfo.country||""],["Mentor Name",assessmentData.teamInfo.mentorName||""],[""],["Headquarters Contact",""],["Name",assessmentData.teamInfo.hqName||""],["Email",assessmentData.teamInfo.hqEmail||""],["Phone",assessmentData.teamInfo.hqPhone||""],["Position",assessmentData.teamInfo.hqPosition||""],[""],["Operations Contact",""],["Name",assessmentData.teamInfo.opsName||""],["Email",assessmentData.teamInfo.opsEmail||""],["Phone",assessmentData.teamInfo.opsPhone||""],["Position",assessmentData.teamInfo.opsPosition||""]],s=XLSX.utils.aoa_to_sheet(t);XLSX.utils.book_append_sheet(e,s,"Team Info");const a=[["Standard ID","Pillar","Standard Statement","Score","Evidence","Gaps","Actions","Comments"]];document.querySelectorAll(".score-select").forEach(e=>{const t=e.closest("tr"),s=t.cells[0].innerHTML,o=e.dataset.section,n=e.dataset.section+"-"+e.dataset.item;a.push([n,o,s,e.value||"",t.querySelector(".evidence-input")?.value||"",t.querySelector(".gaps-input")?.value||"",t.querySelector(".action-input")?.value||"",assessmentData.comments[o+"Comments"]||""])});const o=XLSX.utils.aoa_to_sheet(a);XLSX.utils.book_append_sheet(e,o,"HID SCT Assessment"),XLSX.writeFile(e,"HID_SCT_Assessment_"+(new Date).toISOString().split("T")[0]+".xlsx"),showNotification("Data exported to Excel successfully!")}
+    function importFromExcel(e){const t=e.target.files[0];if(!t)return;const s=new FileReader;s.onload=function(e){try{const t=(new Uint8Array(e.target.result),XLSX.read(e.target.result,{type:"binary"}));assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};const s=t.Sheets["HID SCT Assessment"],a=XLSX.utils.sheet_to_json(s);for(const e of a)assessmentData.scores[e["Standard ID"]]=e.Score,assessmentData.evidence[e["Standard ID"]]=e.Evidence,assessmentData.gaps[e["Standard ID"]]=e.Gaps,assessmentData.actions[e["Standard ID"]]=e.Actions;localStorage.setItem("hidSCTAssessment",JSON.stringify(assessmentData)),loadSavedData(),updateProgress(),showNotification("Data imported successfully!")}catch(e){showNotification("Error importing file.")}},s.readAsBinaryString(t)}
+    document.addEventListener("DOMContentLoaded",function(){initializeData(),document.querySelectorAll("input, textarea, select").forEach(e=>{e.addEventListener("change",saveProgress)}),document.getElementById("btn-save").addEventListener("click",saveProgress),document.getElementById("btn-export-json").addEventListener("click",()=>{saveProgress();const e=JSON.stringify(assessmentData,null,2),t=new Blob([e],{type:"application/json"}),s=URL.createObjectURL(t),a=document.createElement("a");a.href=s,a.download="HID_SCT_Assessment_"+(new Date).toISOString().split("T")[0]+".json",a.click(),URL.revokeObjectURL(s)}),document.getElementById("btn-export-excel").addEventListener("click",exportToExcel),document.getElementById("btn-submit").addEventListener("click",()=>{saveProgress(),showNotification("Assessment submitted successfully!")}),document.getElementById("btn-import-excel").addEventListener("click",()=>{document.getElementById("fileInput").click()}),document.getElementById("fileInput").addEventListener("change",importFromExcel);const e=document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');e.forEach(t=>{t.addEventListener("click",function(s){s.preventDefault(),e.forEach(e=>e.classList.remove("active")),t.classList.add("active");const a=t.getAttribute("href");document.querySelectorAll(".tab-pane").forEach(e=>e.classList.remove("show","active")),document.querySelector(a).classList.add("show","active")})})});
+    <\/script>
+<\/body>
+<\/html>
+`;
+        const blob = new Blob([fullHTML], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'custom-assessment-tool.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    document.addEventListener('DOMContentLoaded', renderMakerUI);
+    </script>
+    
+    <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
+    <div id="template-definition" style="display: none;"><h2 class="mb-4">Technical Standards Definition</h2><div class="card section-card"><div class="card-body"><p>HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.</p><p>Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.</p></div></div></div>
+    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><table class="table table-bordered"><thead class="table-light"><tr><th>Section</th><th>Weight</th><th>Status</th><th>% Completed</th></tr></thead><tbody id="progressTableBody"></tbody></table></div></div></div>
+    <div id="template-summary" style="display: none;"><h2 class="mb-4">Summary & Action Plan</h2><div class="card section-card"><div class="section-header"><h5>Overall Readiness Assessment</h5></div><div class="card-body"><div class="mb-3"><label for="strengths" class="form-label"><strong>Strengths Identified:</strong></label><textarea class="form-control summary-textarea" id="strengths" placeholder="List the top 3-5 strengths identified..."></textarea></div><div class="mb-3"><label for="criticalGaps" class="form-label"><strong>Critical Gaps Requiring Immediate Action:</strong></label><textarea class="form-control summary-textarea" id="criticalGaps" placeholder="List the critical gaps that need..."></textarea></div><div class="mb-3"><label class="form-label"><strong>Timeline for Addressing Gaps:</strong></label><div class="mb-2"><label class="form-label">Immediate (0-1 month):</label><textarea class="form-control summary-textarea" id="immediateActions"></textarea></div><div class="mb-2"><label class="form-label">Short-term (1-3 months):</label><textarea class="form-control summary-textarea" id="shortTermActions"></textarea></div><div class="mb-2"><label class="form-label">Medium-term (3-6 months):</label><textarea class="form-control summary-textarea" id="mediumTermActions"></textarea></div></div><div class="mb-3"><label class="form-label"><strong>Support Required:</strong></label><div class="mb-2"><label class="form-label">Technical assistance needed:</label><textarea class="form-control summary-textarea" id="technicalAssistance"></textarea></div><div class="mb-2"><label class="form-label">Training requirements:</label><textarea class="form-control summary-textarea" id="trainingRequirements"></textarea></div><div class="mb-2"><label class="form-label">Resource requirements:</label><textarea class="form-control summary-textarea" id="resourceRequirements"></textarea></div></div><div class="mb-3"><label for="nextSteps" class="form-label"><strong>Next Steps:</strong></label><textarea class="form-control summary-textarea" id="nextSteps" placeholder="1. First priority action..."></textarea></div><div class="row"><div class="col-md-6"><label for="completionDate" class="form-label">Date of Completion:</label><input type="date" class="form-control" id="completionDate"></div><div class="col-md-6"><label for="reviewedBy" class="form-label">Reviewed by:</label><input type="text" class="form-control" id="reviewedBy" placeholder="Name and title"></div></div><div class="mt-3"><label for="mentorAssignment" class="form-label">Mentor Assignment:</label><input type="text" class="form-control" id="mentorAssignment" placeholder="Mentor name and contact"></div></div></div></div>
+
+</body>
+</html>
