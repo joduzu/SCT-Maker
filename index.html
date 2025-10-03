@@ -13,8 +13,10 @@
         .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
         .subsection-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
         .subsection-item .rich-text-editor { flex: 1; }
+
         .section-content-editor { margin-top: 10px; }
         .section-content-editor .editor-content { min-height: 160px; }
+ main
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
@@ -53,9 +55,14 @@
 
     <script>
     const TOOL_CONFIG = {
+
         'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
         'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
         'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
+        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true },
+        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true },
+        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true },
+         main
         'guiding-principles': { title: 'GUIDING PRINCIPLES', icon: 'fa-star', hasSubsections: true, weight: 2, enabled: true, subsections: ['Safe Care - Written statement on behalf the organization', 'Equitable Care - Written statement on behalf the organization', 'Ethical Care - Written statement on behalf the organization', 'Accountable Response - Written statement on behalf the organization', 'Appropriate Response - Written statement on behalf the organization', 'Coordinated Response - Written statement on behalf the organization'] },
         'core-standards': { title: 'CORE STANDARDS', icon: 'fa-cogs', hasSubsections: true, weight: 18, enabled: true, subsections: ['Administration & Organizational Management', 'Human Resources', 'Professional Licensing & Conduct', 'Training of Teams', 'Coordination of EMTs', 'Records and Reporting'] },
         'clinical-standards': { 
@@ -112,7 +119,10 @@
 
     let activeEditor = null;
     let savedRange = null;
+
     const SECTION_CONTENT = {};
+
+ main
 
     function storeSelection(editor) {
         const selection = window.getSelection();
@@ -135,7 +145,11 @@
         editor.focus();
     }
 
+
     function getEditorTemplate(content = '', placeholder = 'Describe el estándar...') {
+
+    function getEditorTemplate(content = '') {
+main
         return `
             <div class="rich-text-editor">
                 <div class="editor-toolbar">
@@ -146,7 +160,11 @@
                     <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertOrderedList" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
                     <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="removeFormat" title="Limpiar formato"><i class="fas fa-eraser"></i></button>
                 </div>
+
                 <div class="editor-content form-control" contenteditable="true" data-placeholder="${placeholder}">${content}</div>
+
+                <div class="editor-content form-control" contenteditable="true" data-placeholder="Describe el estándar...">${content}</div>
+main
             </div>
         `;
     }
