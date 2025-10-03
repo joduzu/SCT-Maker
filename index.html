@@ -11,12 +11,18 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7f9; padding: 40px; }
         .maker-container { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 12px; padding: 30px; }
         .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
-        .subsection-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .subsection-item input, .subsection-item textarea { flex-grow: 1; }
+        .subsection-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
+        .subsection-item .rich-text-editor { flex: 1; }
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
         .section-header-controls { display: flex; align-items: center; gap: 15px; }
+        .rich-text-editor { flex-grow: 1; }
+        .editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .editor-toolbar .btn { padding: 4px 8px; }
+        .editor-content { border: 1px solid #ced4da; border-radius: 8px; min-height: 80px; padding: 10px; background-color: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .editor-content:focus, .editor-content.focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
+        .editor-content.empty::before { content: attr(data-placeholder); color: #6c757d; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -69,10 +75,78 @@
                 '<strong>Distribution</strong> - Distribute ORS sachets and water treatment products'
             ]
         },
-        'logistic-standards': { title: 'LOGISTIC STANDARDS', icon: 'fa-truck', hasSubsections: true, weight: 10, enabled: true, subsections: ['Power and Fuel - SCTs/EMTs must ensure sufficient power supply', 'Communications - SCTs/EMTs must have communication capabilities', 'Transportation & Fleet', 'Warehouse Management'] },
-        'wash-standards': { title: 'WASH STANDARDS', icon: 'fa-hand-holding-water', hasSubsections: true, weight: 10, enabled: true, subsections: ['Water Supply - SCTs/EMTs must ensure sufficient safe drinking water', 'Hygiene - SCTs/EMTs must ensure safe hygiene measures', 'Environmental Cleaning', 'Healthcare Waste Management'] },
+        'logistic-standards': {
+            title: 'LOGISTIC STANDARDS', icon: 'fa-truck', hasSubsections: true, weight: 10, enabled: true,
+            subsections: [
+                'Power and Fuel: EMTs must ensure sufficient, safe, sustainable and context appropriate fuel, power supply and lighting for their facilities, clinical care and support services.',
+                'Communications: EMTs must have the ability to transmit by voice and data to the local and national coordination structures with at least one level of redundancy in case of failure.',
+                'Transportation and fleet: EMTs must effectively coordinate the transportation of equipment and personnel to the scene and throughout the deployment.',
+                'Food: EMTs must provide food requirements for all staff, inpatients and caregivers.',
+                'Warehouse Management: EMTs have warehouse management processes and procedures that address preparedness requirements and an ability to respond in the field to manage consistent availability of supplies.',
+                'Pharmacy supply chain and medical stock Management: EMTs are self-sufficient with enough pharmaceutical, medical consumables and medical equipment to deliver patient care.',
+                'Donation Management: EMTs should have policies in place compliant with national and international standards, for anticipated donation of medical consumables, pharmaceuticals, equipment and/or their entire field facility.',
+                'Safety and security: EMTs must demonstrate due diligence for the safety and security of their personnel and patients during deployment by putting in place management plans and practical measures appropriate to the operational context and communicate plans to those concerned.',
+                'Facility structure, environment & ventilation: EMTs must be able to provide suitable and acceptable facilities for clinical care and staff needs.',
+                'Site assessment and planning: EMTs are able to assess possible site locations and adapt their configuration to local conditions, including the possibility to work within or reinforce existing health facilities.',
+                'Sequential build: EMTs must prioritize the establishment of their facility in a way that areas and services necessary for urgent patient care are established first while the rest of the facility is completed, allowing certain functions to be operational before deployment is fully completed.',
+                'Mobilization: EMTs must be able to mobilize in the shortest possible time ensuring general and institutional interventions to support their operational readiness status.',
+                'Demobilization: EMTs should have plans and procedures for coordinated demobilization that maximizes the time of operation and minimizes disruption, supporting recovery of normal local health services and local environmental impacts.'
+            ]
+        },
+        'wash-standards': {
+            title: 'WASH STANDARDS', icon: 'fa-hand-holding-water', hasSubsections: true, weight: 10, enabled: true,
+            subsections: [
+                'Water Supply: EMTs must ensure that patients, caregivers and staff have sufficient safe drinking water at all times, distributed through appropriate water collection points and facilities, to enable medical, personal hygiene, drinking, cooking, cleaning and laundry activities.',
+                'Hygiene: EMTs should ensure that staff and patients can practice hand hygiene throughout the facility by promoting access to culturally appropriate materials and places for handwashing, as well as adequate access to showers, safe spaces and materials for personal and menstrual hygiene.',
+                'Environmental cleaning: EMT facilities and the immediate environment should always be kept clean and hygienic. EMTs should have documented procedures and appropriate materials for immediate, routine and terminal cleaning to reduce risks of infection.',
+                'Healthcare Waste Management: EMTs are responsible for the safe management and disposal of health waste generated at their facilities. Safe health-care waste management involves multiple steps: minimization, segregation, collection, storage, treatment and final disposal.',
+                'Sanitation: EMTs must ensure that patients, staff and caregivers have accessible, appropriate, safe and sufficient facilities and well-documented procedures in place for management of excreta and grey and storm water to limit disease transmission.',
+                'Vector and Pest Control: EMTs should ensure that patients, staff and caregivers are protected from disease vectors and pests by using appropriate equipment and methods adapted to the local context.',
+                'Dead Body Management: EMTs need to be able to manage dead bodies in a way that is dignified, culturally appropriate, safe and according to public health practices.'
+            ]
+        },
         'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true }
     };
+
+    let activeEditor = null;
+    let savedRange = null;
+
+    function storeSelection(editor) {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        if (editor && editor.contains(range.commonAncestorContainer)) {
+            savedRange = range.cloneRange();
+        }
+    }
+
+    function restoreSelection(editor) {
+        if (!savedRange || !editor || !editor.contains(savedRange.commonAncestorContainer)) {
+            savedRange = null;
+            editor?.focus();
+            return;
+        }
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        editor.focus();
+    }
+
+    function getEditorTemplate(content = '') {
+        return `
+            <div class="rich-text-editor">
+                <div class="editor-toolbar">
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="bold" title="Negrita"><i class="fas fa-bold"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="italic" title="Cursiva"><i class="fas fa-italic"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="underline" title="Subrayado"><i class="fas fa-underline"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertUnorderedList" title="Lista con viñetas"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertOrderedList" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="removeFormat" title="Limpiar formato"><i class="fas fa-eraser"></i></button>
+                </div>
+                <div class="editor-content form-control" contenteditable="true" data-placeholder="Describe el estándar...">${content}</div>
+            </div>
+        `;
+    }
 
     function renderMakerUI() {
         const sectionsContainer = document.getElementById('sections-accordion');
@@ -100,10 +174,10 @@
                                 <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
                             </div>
                             ${config.hasSubsections ?
-                                `<h5>Estándares / Subsecciones (HTML permitido)</h5><div id="subsections-${key}">${
+                                `<h5>Estándares / Subsecciones (HTML y formato permitido)</h5><div id="subsections-${key}">${
                                     config.subsections.map(sub => `
                                         <div class="subsection-item">
-                                            <textarea class="form-control" rows="2">${sub.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                                            ${getEditorTemplate(sub)}
                                             <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
                                         </div>`).join('')
                                 }</div>
@@ -122,6 +196,7 @@
         });
         updateWeightSum();
         addEventListeners();
+        setupRichTextEditors();
     }
     
     function addEventListeners() {
@@ -130,11 +205,30 @@
             const container = document.getElementById(`subsections-${section}`);
             const newItem = document.createElement('div');
             newItem.className = 'subsection-item';
-            newItem.innerHTML = `<textarea class="form-control" rows="2" placeholder="Nuevo estándar..."></textarea><button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
+            newItem.innerHTML = `${getEditorTemplate('')}<button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
             container.appendChild(newItem);
-            newItem.querySelector('.remove-item').onclick = () => newItem.remove();
+            setupRichTextEditors(newItem);
+            const removeBtn = newItem.querySelector('.remove-item');
+            if (removeBtn) {
+                removeBtn.onclick = () => {
+                    if (activeEditor && newItem.contains(activeEditor)) {
+                        activeEditor = null;
+                        savedRange = null;
+                    }
+                    newItem.remove();
+                };
+            }
         });
-        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => e.currentTarget.closest('.subsection-item').remove());
+        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => {
+            const item = e.currentTarget.closest('.subsection-item');
+            if (item) {
+                if (activeEditor && item.contains(activeEditor)) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+                item.remove();
+            }
+        });
         document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
         document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
             const key = e.currentTarget.dataset.key;
@@ -144,6 +238,50 @@
             updateWeightSum();
         });
         document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const editor = btn.closest('.subsection-item').querySelector('.editor-content');
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
     }
 
     function updateWeightSum() {
@@ -166,7 +304,9 @@
                 weight: parseInt(document.querySelector(`.weight-input[data-key="${key}"]`)?.value || 0)
             };
             if (finalConfig[key].hasSubsections) {
-                finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} textarea`)).map(area => area.value);
+                finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} .editor-content`))
+                    .map(editor => editor.innerHTML.trim())
+                    .filter(content => content.length > 0);
             }
         });
 
