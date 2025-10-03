@@ -155,7 +155,9 @@
     function restoreSelection(editor) {
         if (!savedRange || !editor || !editor.contains(savedRange.commonAncestorContainer)) {
             savedRange = null;
-            editor?.focus();
+            if (editor) {
+                editor.focus();
+            }
             return;
         }
         const selection = window.getSelection();
@@ -397,68 +399,13 @@
                     }
                     restoreSelection(editor);
                     document.execCommand(command, false, value);
-                    editor._updatePlaceholder?.();
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
                     storeSelection(editor);
                 }
             };
         });
-    }
-        });
-        updateWeightSum();
-        addEventListeners();
-        setupRichTextEditors();
-
-        const firstItem = sectionsContainer.querySelector('.accordion-item');
-        if (firstItem) {
-            const firstButton = firstItem.querySelector('.accordion-button');
-            const firstCollapse = firstItem.querySelector('.accordion-collapse');
-            if (firstButton && firstCollapse) {
-                firstButton.classList.remove('collapsed');
-                firstButton.setAttribute('aria-expanded', 'true');
-                firstCollapse.classList.add('show');
-            }
-        }
-    }
-    
-    function addEventListeners() {
-        document.querySelectorAll('.add-item').forEach(btn => btn.onclick = e => {
-            const section = e.currentTarget.dataset.section;
-            const container = document.getElementById(`subsections-${section}`);
-            const newItem = document.createElement('div');
-            newItem.className = 'subsection-item';
-            newItem.innerHTML = `${getEditorTemplate('')}<button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
-            container.appendChild(newItem);
-            setupRichTextEditors(newItem);
-            const removeBtn = newItem.querySelector('.remove-item');
-            if (removeBtn) {
-                removeBtn.onclick = () => {
-                    if (activeEditor && newItem.contains(activeEditor)) {
-                        activeEditor = null;
-                        savedRange = null;
-                    }
-                    newItem.remove();
-                };
-            }
-        });
-        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => {
-            const item = e.currentTarget.closest('.subsection-item');
-            if (item) {
-                if (activeEditor && item.contains(activeEditor)) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-                item.remove();
-            }
-        });
-        document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
-        document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
-            const key = e.currentTarget.dataset.key;
-            const weightInput = document.querySelector(`.weight-input[data-key="${key}"]`);
-            if (weightInput) weightInput.disabled = !e.currentTarget.checked;
-            document.getElementById(`accordion-item-${key}`).style.opacity = e.currentTarget.checked ? '1' : '0.5';
-            updateWeightSum();
-        });
-        document.getElementById('btn-make').onclick = generateHTML;
     }
 
     function setupRichTextEditors(root = document) {
@@ -613,7 +560,11 @@
                 ...TOOL_CONFIG[key],
                 title: input.value,
                 enabled: document.querySelector(`.section-enable-switch[data-key="${key}"]`).checked,
-                weight: parseInt(document.querySelector(`.weight-input[data-key="${key}"]`)?.value || 0)
+                weight: (function () {
+                    const weightInput = document.querySelector(`.weight-input[data-key="${key}"]`);
+                    const value = weightInput ? weightInput.value : '0';
+                    return parseInt(value || '0', 10);
+                })()
             };
             if (finalConfig[key].hasSubsections) {
                 finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} .editor-content`))
@@ -1247,6 +1198,16 @@
     const MODALITY_METADATA = ${modalityMetadataJSON};
     const DEFAULT_MODALITY_STATE = ${defaultModalityStateJSON};
     let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
+    function getFieldValue(id){
+        const element = document.getElementById(id);
+        return element ? element.value : '';
+    }
+    function setFieldValue(id, value){
+        const element = document.getElementById(id);
+        if (element){
+            element.value = value;
+        }
+    }
     function initializeData(){
         const stored = localStorage.getItem("hidSCTAssessment");
         if (stored) {
@@ -1327,19 +1288,13 @@
 
         if (assessmentData.comments) {
             Object.keys(assessmentData.comments).forEach(id => {
-                const field = document.getElementById(id);
-                if (field) {
-                    field.value = assessmentData.comments[id];
-                }
+                setFieldValue(id, assessmentData.comments[id]);
             });
         }
 
         if (assessmentData.summary) {
             Object.keys(assessmentData.summary).forEach(id => {
-                const field = document.getElementById(id);
-                if (field) {
-                    field.value = assessmentData.summary[id];
-                }
+                setFieldValue(id, assessmentData.summary[id]);
             });
         }
     }
@@ -1357,18 +1312,18 @@
         });
 
         assessmentData.teamInfo = {
-            teamName: document.getElementById('teamName')?.value,
-            region: document.getElementById('region')?.value,
-            country: document.getElementById('country')?.value,
-            mentorName: document.getElementById('mentorName')?.value,
-            hqName: document.getElementById('hqName')?.value,
-            hqEmail: document.getElementById('hqEmail')?.value,
-            hqPhone: document.getElementById('hqPhone')?.value,
-            hqPosition: document.getElementById('hqPosition')?.value,
-            opsName: document.getElementById('opsName')?.value,
-            opsEmail: document.getElementById('opsEmail')?.value,
-            opsPhone: document.getElementById('opsPhone')?.value,
-            opsPosition: document.getElementById('opsPosition')?.value,
+            teamName: getFieldValue('teamName'),
+            region: getFieldValue('region'),
+            country: getFieldValue('country'),
+            mentorName: getFieldValue('mentorName'),
+            hqName: getFieldValue('hqName'),
+            hqEmail: getFieldValue('hqEmail'),
+            hqPhone: getFieldValue('hqPhone'),
+            hqPosition: getFieldValue('hqPosition'),
+            opsName: getFieldValue('opsName'),
+            opsEmail: getFieldValue('opsEmail'),
+            opsPhone: getFieldValue('opsPhone'),
+            opsPosition: getFieldValue('opsPosition'),
             deploymentModalities: modalityState
         };
 
@@ -1401,18 +1356,18 @@
         });
 
         assessmentData.summary = {
-            strengths: document.getElementById('strengths')?.value,
-            criticalGaps: document.getElementById('criticalGaps')?.value,
-            immediateActions: document.getElementById('immediateActions')?.value,
-            shortTermActions: document.getElementById('shortTermActions')?.value,
-            mediumTermActions: document.getElementById('mediumTermActions')?.value,
-            technicalAssistance: document.getElementById('technicalAssistance')?.value,
-            trainingRequirements: document.getElementById('trainingRequirements')?.value,
-            resourceRequirements: document.getElementById('resourceRequirements')?.value,
-            nextSteps: document.getElementById('nextSteps')?.value,
-            completionDate: document.getElementById('completionDate')?.value,
-            reviewedBy: document.getElementById('reviewedBy')?.value,
-            mentorAssignment: document.getElementById('mentorAssignment')?.value
+            strengths: getFieldValue('strengths'),
+            criticalGaps: getFieldValue('criticalGaps'),
+            immediateActions: getFieldValue('immediateActions'),
+            shortTermActions: getFieldValue('shortTermActions'),
+            mediumTermActions: getFieldValue('mediumTermActions'),
+            technicalAssistance: getFieldValue('technicalAssistance'),
+            trainingRequirements: getFieldValue('trainingRequirements'),
+            resourceRequirements: getFieldValue('resourceRequirements'),
+            nextSteps: getFieldValue('nextSteps'),
+            completionDate: getFieldValue('completionDate'),
+            reviewedBy: getFieldValue('reviewedBy'),
+            mentorAssignment: getFieldValue('mentorAssignment')
         };
 
         localStorage.setItem('hidSCTAssessment', JSON.stringify(assessmentData));
