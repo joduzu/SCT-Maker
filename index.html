@@ -11,6 +11,17 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7f9; padding: 40px; }
         .maker-container { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 12px; padding: 30px; }
         .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
+        .deployment-modalities-card .card-header { display: flex; flex-direction: column; gap: 4px; }
+        .deployment-modalities-options { display: flex; flex-wrap: wrap; gap: 12px; }
+        .modality-option { border: 1px solid #d0d7ff; border-radius: 50px; padding: 10px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s ease; background: #f8f9ff; }
+        .modality-option:hover { box-shadow: 0 6px 16px rgba(99, 102, 241, 0.15); transform: translateY(-2px); }
+        .modality-option input { display: none; }
+        .modality-option .modality-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; }
+        .modality-option .modality-label { font-weight: 600; color: #1f2937; }
+        .modality-option.embedded .modality-icon { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .modality-option.coupled .modality-icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .modality-option.self-sustained .modality-icon { background: linear-gradient(135deg, #16a34a, #22c55e); }
+        .modality-option.selected { border-color: transparent; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(129, 140, 248, 0.08)); }
         .subsection-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
         .subsection-item .rich-text-editor { flex: 1; }
         .section-content-editor { margin-top: 10px; }
@@ -34,6 +45,16 @@
             <p class="text-muted">Personaliza cada aspecto de tu herramienta. El HTML generado será 100% funcional e idéntico al original.</p>
         </div>
 
+        <div class="card my-4 deployment-modalities-card" id="deployment-modalities-card">
+            <div class="card-header">
+                <h5 class="mb-0">Supported Deployment Modalities</h5>
+                <small class="text-muted">Select the deployment profiles your SCT can support.</small>
+            </div>
+            <div class="card-body">
+                <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
+            </div>
+        </div>
+
         <div class="card my-4">
             <div class="card-header"><h5 class="mb-0">Asignar Pesos de Sección (%)</h5></div>
             <div class="card-body">
@@ -52,6 +73,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    const DEPLOYMENT_MODALITIES = [
+        { key: 'embedded', label: 'Embedded', icon: 'fa-hospital', accentClass: 'embedded' },
+        { key: 'coupled', label: 'Coupled', icon: 'fa-link', accentClass: 'coupled' },
+        { key: 'self-sustained', label: 'Self-Sustained', icon: 'fa-campground', accentClass: 'self-sustained' }
+    ];
+
+    let builderSelectedModalities = new Set(DEPLOYMENT_MODALITIES.map(modality => modality.key));
+
     const TOOL_CONFIG = {
         'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
         'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
@@ -135,6 +164,37 @@
         editor.focus();
     }
 
+    function renderDeploymentModalitiesSelector() {
+        const container = document.getElementById('deployment-modalities-options');
+        if (!container) return;
+        container.innerHTML = '';
+        DEPLOYMENT_MODALITIES.forEach(modality => {
+            const isChecked = builderSelectedModalities.has(modality.key);
+            container.insertAdjacentHTML('beforeend', `
+                <label class="modality-option ${modality.accentClass} ${isChecked ? 'selected' : ''}" data-key="${modality.key}">
+                    <input type="checkbox" class="deployment-modality-checkbox" data-key="${modality.key}" ${isChecked ? 'checked' : ''}>
+                    <span class="modality-icon"><i class="fas ${modality.icon}"></i></span>
+                    <span class="modality-label">${modality.label}</span>
+                </label>
+            `);
+        });
+
+        container.querySelectorAll('.deployment-modality-checkbox').forEach(input => {
+            input.onchange = (event) => {
+                const key = event.currentTarget.dataset.key;
+                if (event.currentTarget.checked) {
+                    builderSelectedModalities.add(key);
+                } else {
+                    builderSelectedModalities.delete(key);
+                }
+                const label = event.currentTarget.closest('.modality-option');
+                if (label) {
+                    label.classList.toggle('selected', event.currentTarget.checked);
+                }
+            };
+        });
+    }
+
     function getEditorTemplate(content = '', placeholder = 'Describe el estándar...') {
         return `
             <div class="rich-text-editor">
@@ -151,10 +211,41 @@
         `;
     }
 
+    function buildDeploymentModalitiesCardHTML(selectedKeys = []) {
+        const selectedSet = new Set(selectedKeys);
+        const optionsHTML = DEPLOYMENT_MODALITIES.map(modality => {
+            const isSelected = selectedSet.has(modality.key);
+            return `
+            <div class="form-check modality-pill ${modality.accentClass} ${isSelected ? 'selected' : ''}">
+                <input class="form-check-input deployment-modality-toggle" type="checkbox" id="modality-${modality.key}" data-modality="${modality.key}" ${isSelected ? 'checked' : ''}>
+                <label class="form-check-label" for="modality-${modality.key}">
+                    <span class="modality-pill-icon"><i class="fas ${modality.icon}"></i></span>
+                    <span class="modality-pill-label">${modality.label}</span>
+                </label>
+            </div>
+        `;
+        }).join('');
+
+        return `
+            <div class="card section-card deployment-modalities-card">
+                <div class="section-header">
+                    <h5>Supported deployment modalities</h5>
+                    <p class="text-muted small mb-0">Select the deployment profiles your SCT can support.</p>
+                </div>
+                <div class="card-body">
+                    <div class="deployment-modality-grid">
+                        ${optionsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     function renderMakerUI() {
         const sectionsContainer = document.getElementById('sections-accordion');
         const weightsContainer = document.getElementById('weights-container');
         sectionsContainer.innerHTML = ''; weightsContainer.innerHTML = '';
+        renderDeploymentModalitiesSelector();
 
         Object.entries(TOOL_CONFIG).forEach(([key, config]) => {
             if (config.editableContent && !SECTION_CONTENT[key]) {
@@ -358,6 +449,51 @@
         });
     }
 
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
     function updateWeightSum() {
         const sum = Array.from(document.querySelectorAll('.weight-input:not(:disabled)')).reduce((acc, input) => acc + (parseInt(input.value) || 0), 0);
         const alertDiv = document.getElementById('weight-sum-alert');
@@ -386,6 +522,15 @@
                 const editor = document.querySelector(`#accordion-item-${key} .section-content-editor .editor-content`);
                 finalConfig[key].content = editor ? editor.innerHTML.trim() : '';
             }
+        });
+
+        const selectedModalities = Array.from(document.querySelectorAll('.deployment-modality-checkbox'))
+            .filter(cb => cb.checked)
+            .map(cb => cb.dataset.key);
+        const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
+        const defaultModalityState = {};
+        DEPLOYMENT_MODALITIES.forEach(modality => {
+            defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
         });
 
         const enabledSections = Object.entries(finalConfig).filter(([, config]) => config.enabled);
@@ -456,7 +601,7 @@
                                         <label>Compliance score</label>
                                         <select class="form-select score-select compliance-score" data-section="${key}" data-item="${subId}">
                                             <option value="">-</option>
-                                            <option value="0">0 - Not started</option>
+                                            <option value="0" selected>0 - Not started</option>
                                             <option value="1">1 - Initial</option>
                                             <option value="2">2 - In progress</option>
                                             <option value="3">3 - Completed</option>
@@ -488,7 +633,11 @@
                         </div>
                     </section>`;
             } else if (config.editableContent) {
-                content = config.content || '';
+                let tabContent = config.content || '';
+                if (key === 'org-detail') {
+                    tabContent += deploymentModalitiesCardHTML;
+                }
+                content = tabContent;
             } else {
                 content = document.getElementById(`template-${key}`).innerHTML;
             }
@@ -501,6 +650,9 @@
         const weightsData = enabledSections
             .filter(([,c]) => c.weight > 0)
             .map(([k,c]) => ({ name: c.title.toUpperCase(), weight: c.weight, section: k }));
+
+        const modalityMetadataJSON = JSON.stringify(DEPLOYMENT_MODALITIES);
+        const defaultModalityStateJSON = JSON.stringify(defaultModalityState);
 
         const fullHTML = `
 <!DOCTYPE html>
@@ -605,6 +757,79 @@
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
             border: none;
             border-radius: 12px;
+        }
+
+        .deployment-modalities-card .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: #f8f9ff;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .deployment-modalities-card .card-body {
+            padding: 20px;
+        }
+
+        .deployment-modality-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .modality-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #cbd5f5;
+            transition: all 0.2s ease;
+        }
+
+        .modality-pill.selected {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(59, 130, 246, 0.12));
+            border-color: transparent;
+            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
+        }
+
+        .modality-pill .form-check-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .modality-pill input {
+            display: none;
+        }
+
+        .modality-pill-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .modality-pill.embedded .modality-pill-icon {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .modality-pill.coupled .modality-pill-icon {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+
+        .modality-pill.self-sustained .modality-pill-icon {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
         }
 
         .section-header {
@@ -917,26 +1142,73 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
     <script>
     const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
+    const MODALITY_METADATA = ${modalityMetadataJSON};
+    const DEFAULT_MODALITY_STATE = ${defaultModalityStateJSON};
     let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
-    function initializeData(){const e=localStorage.getItem("hidSCTAssessment");e&&(assessmentData=JSON.parse(e),loadSavedData()),updateProgress()}
-    function loadSavedData(){
-        if (assessmentData.teamInfo) {
-            Object.keys(assessmentData.teamInfo).forEach(field => {
-                const input = document.getElementById(field);
-                if (input) {
-                    input.value = assessmentData.teamInfo[field];
-                }
-            });
+    function initializeData(){
+        const stored = localStorage.getItem("hidSCTAssessment");
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                assessmentData = {
+                    teamInfo: parsed.teamInfo || {},
+                    scores: parsed.scores || {},
+                    evidence: parsed.evidence || {},
+                    gaps: parsed.gaps || {},
+                    actions: parsed.actions || {},
+                    comments: parsed.comments || {},
+                    summary: parsed.summary || {}
+                };
+            } catch (error) {
+                console.warn('Failed to parse saved assessment data', error);
+                assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
+            }
         }
+
+        assessmentData.teamInfo = assessmentData.teamInfo || {};
+        if (!assessmentData.teamInfo.deploymentModalities) {
+            assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
+        }
+
+        loadSavedData();
+        updateProgress();
+    }
+    function loadSavedData(){
+        assessmentData.teamInfo = assessmentData.teamInfo || {};
+        const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
+
+        MODALITY_METADATA.forEach(modality => {
+            const checkbox = document.getElementById(`modality-${modality.key}`);
+            if (checkbox) {
+                const isChecked = !!modalityState[modality.key];
+                checkbox.checked = isChecked;
+                const pill = checkbox.closest('.modality-pill');
+                if (pill) {
+                    pill.classList.toggle('selected', isChecked);
+                }
+            }
+        });
+
+        assessmentData.teamInfo.deploymentModalities = modalityState;
+
+        Object.keys(assessmentData.teamInfo).forEach(field => {
+            if (field === 'deploymentModalities') return;
+            const input = document.getElementById(field);
+            if (input) {
+                input.value = assessmentData.teamInfo[field];
+            }
+        });
 
         document.querySelectorAll('.compliance-card').forEach(card => {
             const select = card.querySelector('.score-select');
             if (!select) return;
             const key = select.dataset.section + '-' + select.dataset.item;
-            if (assessmentData.scores && assessmentData.scores[key]) {
+            if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
                 select.value = assessmentData.scores[key];
-                updateScoreBadge(select);
+            } else {
+                select.value = '0';
             }
+            updateScoreBadge(select);
             const evidenceField = card.querySelector('.evidence-input');
             const gapsField = card.querySelector('.gaps-input');
             const actionField = card.querySelector('.action-input');
@@ -970,6 +1242,18 @@
         }
     }
     function saveProgress(){
+        const modalityState = { ...DEFAULT_MODALITY_STATE };
+        MODALITY_METADATA.forEach(modality => {
+            const checkbox = document.getElementById(`modality-${modality.key}`);
+            if (checkbox) {
+                modalityState[modality.key] = checkbox.checked;
+                const pill = checkbox.closest('.modality-pill');
+                if (pill) {
+                    pill.classList.toggle('selected', checkbox.checked);
+                }
+            }
+        });
+
         assessmentData.teamInfo = {
             teamName: document.getElementById('teamName')?.value,
             region: document.getElementById('region')?.value,
@@ -982,7 +1266,8 @@
             opsName: document.getElementById('opsName')?.value,
             opsEmail: document.getElementById('opsEmail')?.value,
             opsPhone: document.getElementById('opsPhone')?.value,
-            opsPosition: document.getElementById('opsPosition')?.value
+            opsPosition: document.getElementById('opsPosition')?.value,
+            deploymentModalities: modalityState
         };
 
         assessmentData.scores = {};
@@ -1063,6 +1348,12 @@
             ['Phone', assessmentData.teamInfo.opsPhone || ''],
             ['Position', assessmentData.teamInfo.opsPosition || '']
         ];
+        teamInfo.push(['']);
+        teamInfo.push(['Supported Deployment Modalities', '']);
+        MODALITY_METADATA.forEach(modality => {
+            const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
+            teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
+        });
         const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
         XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
 
@@ -1101,7 +1392,48 @@
         XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
         showNotification('Data exported to Excel successfully!');
     }
-    function importFromExcel(e){const t=e.target.files[0];if(!t)return;const s=new FileReader;s.onload=function(e){try{const t=(new Uint8Array(e.target.result),XLSX.read(e.target.result,{type:"binary"}));assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};const s=t.Sheets["HID SCT Assessment"],a=XLSX.utils.sheet_to_json(s);for(const e of a)assessmentData.scores[e["Standard ID"]]=e.Score,assessmentData.evidence[e["Standard ID"]]=e.Evidence,assessmentData.gaps[e["Standard ID"]]=e.Gaps,assessmentData.actions[e["Standard ID"]]=e.Actions;localStorage.setItem("hidSCTAssessment",JSON.stringify(assessmentData)),loadSavedData(),updateProgress(),showNotification("Data imported successfully!")}catch(e){showNotification("Error importing file.")}},s.readAsBinaryString(t)}
+    function importFromExcel(event){
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(loadEvent){
+            try {
+                const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
+                assessmentData = {
+                    teamInfo: { deploymentModalities: { ...DEFAULT_MODALITY_STATE } },
+                    scores: {},
+                    evidence: {},
+                    gaps: {},
+                    actions: {},
+                    comments: {},
+                    summary: {}
+                };
+
+                const sheet = workbook.Sheets["HID SCT Assessment"];
+                if (sheet) {
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    for (const row of rows) {
+                        const id = row["Standard ID"];
+                        if (!id) continue;
+                        assessmentData.scores[id] = row.Score;
+                        assessmentData.evidence[id] = row.Evidence;
+                        assessmentData.gaps[id] = row.Gaps;
+                        assessmentData.actions[id] = row.Actions;
+                    }
+                }
+
+                localStorage.setItem("hidSCTAssessment", JSON.stringify(assessmentData));
+                loadSavedData();
+                updateProgress();
+                showNotification("Data imported successfully!");
+            } catch (error) {
+                console.warn('Error importing file', error);
+                showNotification("Error importing file.");
+            }
+        };
+        reader.readAsBinaryString(file);
+    }
     document.addEventListener("DOMContentLoaded", function () {
         initializeData();
 
@@ -1110,6 +1442,7 @@
         });
 
         document.querySelectorAll('.score-select').forEach(select => {
+            updateScoreBadge(select);
             select.addEventListener('change', function () {
                 updateScoreBadge(select);
             });
