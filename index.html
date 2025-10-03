@@ -403,6 +403,108 @@
             };
         });
     }
+        });
+        updateWeightSum();
+        addEventListeners();
+        setupRichTextEditors();
+
+        const firstItem = sectionsContainer.querySelector('.accordion-item');
+        if (firstItem) {
+            const firstButton = firstItem.querySelector('.accordion-button');
+            const firstCollapse = firstItem.querySelector('.accordion-collapse');
+            if (firstButton && firstCollapse) {
+                firstButton.classList.remove('collapsed');
+                firstButton.setAttribute('aria-expanded', 'true');
+                firstCollapse.classList.add('show');
+            }
+        }
+    }
+    
+    function addEventListeners() {
+        document.querySelectorAll('.add-item').forEach(btn => btn.onclick = e => {
+            const section = e.currentTarget.dataset.section;
+            const container = document.getElementById(`subsections-${section}`);
+            const newItem = document.createElement('div');
+            newItem.className = 'subsection-item';
+            newItem.innerHTML = `${getEditorTemplate('')}<button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
+            container.appendChild(newItem);
+            setupRichTextEditors(newItem);
+            const removeBtn = newItem.querySelector('.remove-item');
+            if (removeBtn) {
+                removeBtn.onclick = () => {
+                    if (activeEditor && newItem.contains(activeEditor)) {
+                        activeEditor = null;
+                        savedRange = null;
+                    }
+                    newItem.remove();
+                };
+            }
+        });
+        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => {
+            const item = e.currentTarget.closest('.subsection-item');
+            if (item) {
+                if (activeEditor && item.contains(activeEditor)) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+                item.remove();
+            }
+        });
+        document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
+        document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
+            const key = e.currentTarget.dataset.key;
+            const weightInput = document.querySelector(`.weight-input[data-key="${key}"]`);
+            if (weightInput) weightInput.disabled = !e.currentTarget.checked;
+            document.getElementById(`accordion-item-${key}`).style.opacity = e.currentTarget.checked ? '1' : '0.5';
+            updateWeightSum();
+        });
+        document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
 
     function setupRichTextEditors(root = document) {
         root.querySelectorAll('.editor-content').forEach(editor => {
@@ -1178,7 +1280,7 @@
         const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
 
         MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById(`modality-${modality.key}`);
+            const checkbox = document.getElementById('modality-' + modality.key);
             if (checkbox) {
                 const isChecked = !!modalityState[modality.key];
                 checkbox.checked = isChecked;
@@ -1244,7 +1346,7 @@
     function saveProgress(){
         const modalityState = { ...DEFAULT_MODALITY_STATE };
         MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById(`modality-${modality.key}`);
+            const checkbox = document.getElementById('modality-' + modality.key);
             if (checkbox) {
                 modalityState[modality.key] = checkbox.checked;
                 const pill = checkbox.closest('.modality-pill');
