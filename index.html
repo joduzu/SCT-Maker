@@ -79,6 +79,462 @@
         { key: 'self-sustained', label: 'Self-Sustained', icon: 'fa-campground', accentClass: 'self-sustained' }
     ];
 
+    const DEPLOYMENT_MODALITY_DETAILS = {
+        'embedded': {
+            'CORE STANDARD': {
+                'Self-sufficiency': {
+                    requirements: [
+                        'Host provides necessary operational support',
+                        'Availability of SCT-specific clinical devices and supplies',
+                        'Appropriateness and accessibility of space for SCT',
+                        'Clear list and provision of necessary supplies by SCT',
+                        'Management of supplies between host and SCT',
+                        'Host provides accommodation for SCT staff',
+                        'Accommodation on site'
+                    ],
+                    mitigation: [
+                        'Ensure agreements detail operational support specifics, including utilities and basic supplies',
+                        'SCT to provide its own specialized equipment and negotiate storage and maintenance with host',
+                        'If inadequate, plan modifications or look for alternative spaces within the facility',
+                        'SCT to maintain an independent supply chain and inventory control',
+                        'Set up a joint management system to track usage and replenishment',
+                        'If not, team to arrange their own accommodation',
+                        'If off-site, organise necessary transport and additional budget'
+                    ]
+                },
+                'Human Resources': {
+                    requirements: [
+                        'Host supports SCT with additional personnel if needed',
+                        'Specialized SCT care staff available',
+                        'Health professionals provided to work alongside SCT'
+                    ],
+                    mitigation: [
+                        'Develop joint staffing plans that include host personnel training and integration',
+                        'Deploy autonomous teams and integrate host staff as feasible',
+                        'Assess capacity and provide additional training if needed'
+                    ]
+                },
+                'Team field management and operations': {
+                    requirements: [
+                        'Agreement on staff roles and integration',
+                        'Staff: Facility provides medical leadership and oversight for SCT target patients',
+                        'SCT staff expected to work daylight hours only'
+                    ],
+                    mitigation: [
+                        'Formalize roles and responsibilities in operational guidelines',
+                        'Collaborate with host to establish a focal point for SCT',
+                        'Adapt staffing and security plans for extended hours if necessary'
+                    ]
+                },
+                'Support national health system and patient referral': {
+                    requirements: [
+                        'Compliance with SCT\'s clinical specialty requirements',
+                        'Identified referral pathway for patients requiring higher levels of care'
+                    ],
+                    mitigation: [
+                        'SCT to conduct pre-deployment site visits to ensure space meets specific needs',
+                        'Establish and clarify referral pathways and protocols for deteriorating patients'
+                    ]
+                },
+                'Coordination': {
+                    requirements: [
+                        'Intensive coordination within host for integration'
+                    ],
+                    mitigation: [
+                        'Establish a dedicated liaison team to handle integration and daily coordination'
+                    ]
+                },
+                'Medical records and reporting': {
+                    requirements: [
+                        'Maintenance and sharing of clinical documentation'
+                    ],
+                    mitigation: [
+                        'Implement shared digital systems for seamless data flow'
+                    ]
+                }
+            },
+            'LOGISTICS': {
+                'Safety and Security': {
+                    requirements: [
+                        'Safety and security risk assessment collaboration',
+                        'Responsibilities for safety and security measures',
+                        'Facility demonstrates due diligence for the safety and security of personnel and patients',
+                        'Evacuation procedures in place',
+                        'Updated safety and security plan'
+                    ],
+                    mitigation: [
+                        'Jointly develop a comprehensive safety and security plan',
+                        'SCT and host to conduct regular safety drills and update emergency response plans',
+                        'Review and enhance security protocols',
+                        'Ensure teams are briefed on evacuation procedures',
+                        'Participate in creating or revising the safety plan to meet current needs'
+                    ]
+                },
+                'Pharmacy supply chain and medical stock management': {
+                    requirements: [
+                        'Oxygen Supply: Facility provides oxygen if required',
+                        'Sterilization: Facility provides sterilization of equipment',
+                        'Ward management: Sufficient beds and bedding for surge in patients',
+                        'Pharmacy drugs: Facility provides access to recommended medicines',
+                        'Diagnostics and Equipment: Facility provides necessary equipment and supplies for pre-emergency level of care',
+                        'SCT is self-sufficient with pharmaceuticals, medical consumables, and medical equipment'
+                    ],
+                    mitigation: [
+                        'Ensure reliable oxygen supply through deployment of cylinders or concentrators',
+                        'Bring sterile supplies and consider portable sterilization solutions if necessary',
+                        'Deploy additional beds and mattresses or source locally',
+                        'Ensure adequate supply if local availability is insufficient',
+                        'SCT provides additional equipment and consumables if necessary',
+                        'Secure additional sources and stockpile critical supplies'
+                    ]
+                },
+                'Power and Fuel': {
+                    requirements: [
+                        'Power and Fuel: Facility provides sufficient, safe, and sustainable fuel and power supply',
+                        'Appropriate lighting within the facility for clinical care and support services'
+                    ],
+                    mitigation: [
+                        'Ensure backup generators are available and fuel supply chains are secure',
+                        'Deploy portable lighting solutions if necessary'
+                    ]
+                },
+                'Communications': {
+                    requirements: [
+                        'Communications: Facility can transmit data and voice communications effectively',
+                        'Redundancy in communications in case of failure'
+                    ],
+                    mitigation: [
+                        'Set up additional communication channels such as satellite phones or radios',
+                        'Establish multiple communication methods to ensure redundancy'
+                    ]
+                },
+                'Transportation and fleet': {
+                    requirements: [
+                        'Facility coordinates transportation of equipment and personnel'
+                    ],
+                    mitigation: [
+                        'Arrange external transport services if necessary'
+                    ]
+                },
+                'Food': {
+                    requirements: [
+                        'Facility provides sufficient food for all staff, inpatients, and caregivers',
+                        'Food available in proximity of the facility'
+                    ],
+                    mitigation: [
+                        'Plan for initial self-sufficiency and establish local supply chains',
+                        'Stockpile essential supplies or negotiate with local providers'
+                    ]
+                },
+                'Warehouse Management': {
+                    requirements: [
+                        'Effective warehouse management processes',
+                        'Secure storage space for deployed equipment and consumables'
+                    ],
+                    mitigation: [
+                        'Develop contingency plans for supply chain disruptions',
+                        'Consider portable secure storage solutions; ensure safety and proper stock management'
+                    ]
+                },
+                'Donation Management': {
+                    requirements: [
+                        'Policies in place for managing donations'
+                    ],
+                    mitigation: [
+                        'Establish guidelines and a system for managing and distributing donations'
+                    ]
+                },
+                'Facility structure, environment & ventilation': {
+                    requirements: [
+                        'Facility is structurally sound',
+                        'Adequate ventilation provided'
+                    ],
+                    mitigation: [
+                        'Engage with the facility to conduct or request a formal structural assessment if needed',
+                        'Implement temporary solutions such as portable air filtration units if needed'
+                    ]
+                },
+                'Site assessment and planning': {
+                    requirements: [
+                        'Site assessed and configured according to local conditions'
+                    ],
+                    mitigation: [
+                        'Reassess and modify site layout to adapt to local conditions as necessary'
+                    ]
+                },
+                'Sequential Build': {
+                    requirements: [
+                        'Essential areas and services prioritized for urgent care during facility setup'
+                    ],
+                    mitigation: [
+                        'Ensure critical services are prioritized and operational first'
+                    ]
+                },
+                'Mobilization': {
+                    requirements: [
+                        'Host can mobilize resources in short time to ensure readiness'
+                    ],
+                    mitigation: [
+                        'Pre-arrange resources and staff for rapid deployment'
+                    ]
+                },
+                'Demobilization': {
+                    requirements: [
+                        'Effective demobilization plans to minimize disruption'
+                    ],
+                    mitigation: [
+                        'Develop comprehensive demobilization strategies that include community engagement'
+                    ]
+                }
+            },
+            'CLINICAL': {
+                'TRIAGE': {
+                    requirements: [
+                        'Clear admission criteria for SCT target patients'
+                    ],
+                    mitigation: [
+                        'Ensure agreement on admission criteria with local health authorities'
+                    ]
+                },
+                'IMAGING': {
+                    requirements: [
+                        'Imaging: Facility provides necessary imaging solutions'
+                    ],
+                    mitigation: [
+                        'Secure alternative imaging solutions if not available'
+                    ]
+                }
+            }
+        },
+        'coupled': {
+            'CORE STANDARD': {
+                'Self-sufficiency': {
+                    requirements: [
+                        'SCT complements host by adding infrastructure and shares some operational support elements (e.g., power, water, waste management)',
+                        'SCT provides all internal infrastructure including equipment, consumables, lighting, etc.',
+                        'SCT provides additional infrastructure on the same site and ensures proper layout and setup',
+                        'SCT independently provides all necessary clinical devices, consumables, and equipment',
+                        'SCT manages its own supplies but coordinates with host for shared support elements',
+                        'SCT arranges its own accommodation',
+                        'SCT arranges transport for off-site accommodation'
+                    ],
+                    mitigation: [
+                        'Formalize shared operational support responsibilities and boundaries in a written agreement',
+                        'Ensure clear agreements on the division of responsibilities for internal infrastructure and shared support elements',
+                        'Ensure portable and adaptable structures are available and can be deployed quickly',
+                        'Ensure a robust logistics plan for continuous supply and replenishment',
+                        'Use technology for real-time tracking and management of supplies',
+                        'Ensure adequate and safe accommodation arrangements are in place',
+                        'Ensure secure and reliable transport arrangements'
+                    ]
+                },
+                'Human Resources': {
+                    requirements: [
+                        'SCT provides its own staff but collaborates with host for some support functions',
+                        'SCT provides its own specialized staff',
+                        'SCT coordinates with host for collaborative care functions'
+                    ],
+                    mitigation: [
+                        'Implement integration protocols for collaborative functions, including training and orientation',
+                        'Ensure seamless integration with host\'s medical leadership',
+                        'Conduct joint training and integration sessions'
+                    ]
+                },
+                'Team field management and operations': {
+                    requirements: [
+                        'Protocols in place for integrating SCT and host staff for shared support services',
+                        'SCT provides specialized staff and coordinates with host for overall medical leadership',
+                        'SCT provides 24/7 staffing as needed'
+                    ],
+                    mitigation: [
+                        'Set up joint training sessions and regular coordination meetings',
+                        'Ensure all required diagnostics and equipment are deployed and functional',
+                        'Ensure adequate training and orientation for all staff'
+                    ]
+                },
+                'Support national health system and patient referral': {
+                    requirements: [
+                        'Facilities provided by SCT are quickly deployable and adaptable for specialized care',
+                        'SCT coordinates with host to ensure effective referral pathways for patients needing higher care'
+                    ],
+                    mitigation: [
+                        'Plan for logistical support in setting up and adapting SCT facilities',
+                        'Refine patient cohorting with local health authorities'
+                    ]
+                },
+                'Coordination': {
+                    requirements: [
+                        'High-level coordination between SCT and host for shared support services'
+                    ],
+                    mitigation: [
+                        'Create a joint task force to oversee integration and address issues as they arise'
+                    ]
+                },
+                'Medical records and reporting': {
+                    requirements: [
+                        'SCT implements its own documentation systems but ensures compatibility with host systems'
+                    ],
+                    mitigation: [
+                        'Regularly review and update communication protocols to ensure efficiency'
+                    ]
+                }
+            },
+            'LOGISTICS': {
+                'Safety and Security': {
+                    requirements: [
+                        'Safety and security responsibilities shared, with SCT ensuring internal security and host managing site security',
+                        'SCT and host collaborate on safety drills and emergency response plans',
+                        'SCT coordinates with host for overall site security',
+                        'SCT coordinates with host on evacuation plans',
+                        'SCT ensures its own safety plans are compatible with host\'s safety protocols'
+                    ],
+                    mitigation: [
+                        'Define and regularly update safety and security protocols and responsibilities',
+                        'Set up a quick-response team and clear escalation paths for dealing with emergencies',
+                        'Ensure comprehensive safety and security plans are in place',
+                        'Ensure clear and effective evacuation protocols are established',
+                        'Ensure safety plans are regularly updated and communicated'
+                    ]
+                },
+                'Pharmacy supply chain and medical stock management': {
+                    requirements: [
+                        'SCT coordinates with host for oxygen supply but provides backup cylinders or concentrators',
+                        'SCT provides its own sterilization solutions and coordinates with host facility',
+                        'SCT provides additional beds and bedding within its area',
+                        'SCT ensures its own supply of necessary medicines',
+                        'SCT independently provides all necessary diagnostics and equipment',
+                        'SCT manages its own pharmaceutical and medical stock supplies'
+                    ],
+                    mitigation: [
+                        'Deploy additional cylinders or concentrators as needed',
+                        'Deploy portable sterilization units as needed',
+                        'Install temporary hygiene facilities if necessary',
+                        'Deploy portable imaging equipment as needed',
+                        'Ensure sustainable sourcing and stockpile critical supplies',
+                        'Ensure sustainable supply chain management'
+                    ]
+                },
+                'Power and Fuel': {
+                    requirements: [
+                        'SCT coordinates with host for power supply but ensures backup generators and fuel supply',
+                        'SCT provides all necessary lighting within its own infrastructure'
+                    ],
+                    mitigation: [
+                        'Ensure proper staffing and security arrangements for extended hours',
+                        'Deploy backup generators and secure fuel supply chains'
+                    ]
+                },
+                'Communications': {
+                    requirements: [
+                        'SCT provides its own communication systems but ensures integration with host systems',
+                        'SCT ensures redundancy in its communication systems'
+                    ],
+                    mitigation: [
+                        'Ensure adequate lighting solutions are deployed',
+                        'Ensure multiple communication methods are available; deploy backup communication systems'
+                    ]
+                },
+                'Transportation and fleet': {
+                    requirements: [
+                        'SCT provides its own transportation solutions'
+                    ],
+                    mitigation: [
+                        'Ensure effective coordination of transportation and logistics'
+                    ]
+                },
+                'Food': {
+                    requirements: [
+                        'SCT ensures its own food supplies for its staff and patients',
+                        'SCT ensures food availability through local suppliers'
+                    ],
+                    mitigation: [
+                        'Ensure sustainable food supply arrangements are in place',
+                        'Negotiate with local providers and stockpile as necessary'
+                    ]
+                },
+                'Warehouse Management': {
+                    requirements: [
+                        'SCT manages its own warehouse and ensures effective supply chain processes',
+                        'SCT provides its own secure storage solutions'
+                    ],
+                    mitigation: [
+                        'Ensure effective supply chain and stock management',
+                        'Deploy portable storage units as needed'
+                    ]
+                },
+                'Donation Management': {
+                    requirements: [
+                        'SCT coordinates donation management'
+                    ],
+                    mitigation: [
+                        'Ensure clear protocols for handling and distribution of donations'
+                    ]
+                },
+                'Facility Structure, Environment & Ventilation': {
+                    requirements: [
+                        'SCT coordinates with host to ensure structural integrity',
+                        'SCT ensures proper ventilation within its infrastructure'
+                    ],
+                    mitigation: [
+                        'Ensure all structures are safe and meet operational requirements',
+                        'Deploy portable ventilation units as necessary'
+                    ]
+                },
+                'Site Assessment and Planning': {
+                    requirements: [
+                        'SCT conducts thorough site assessments'
+                    ],
+                    mitigation: [
+                        'Ensure site configurations meet operational needs'
+                    ]
+                },
+                'Sequential Build': {
+                    requirements: [
+                        'SCT ensures essential services are operational first'
+                    ],
+                    mitigation: [
+                        'Plan and implement sequential build strategies'
+                    ]
+                },
+                'Mobilization': {
+                    requirements: [
+                        'SCT ensures rapid deployment of resources'
+                    ],
+                    mitigation: [
+                        'Plan for quick mobilization and effective resource deployment'
+                    ]
+                },
+                'Demobilization': {
+                    requirements: [
+                        'SCT coordinates demobilization plans'
+                    ],
+                    mitigation: [
+                        'Ensure demobilization strategies are well-planned and executed'
+                    ]
+                }
+            },
+            'CLINICAL': {
+                'TRIAGE': {
+                    requirements: [
+                        'SCT and host agree on admission criteria and coordinate patient management'
+                    ],
+                    mitigation: [
+                        'Ensure adequate stock of bedding and negotiate with local suppliers'
+                    ]
+                },
+                'IMAGING': {
+                    requirements: [
+                        'SCT provides portable imaging solutions within its area'
+                    ],
+                    mitigation: [
+                        'Ensure rapid transfer capabilities are in place'
+                    ]
+                }
+            }
+        },
+        'self-sustained': {}
+    };
+
     let builderSelectedModalities = new Set(DEPLOYMENT_MODALITIES.map(modality => modality.key));
 
     const TOOL_CONFIG = {
@@ -243,6 +699,82 @@
         `;
     }
 
+    function buildDeploymentModalityDetailsHTML(selectedKeys = []) {
+        const selectionSet = new Set(selectedKeys);
+        const escapeHTML = (value = '') => value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const cardsHTML = DEPLOYMENT_MODALITIES.map(modality => {
+            const modalityDetails = DEPLOYMENT_MODALITY_DETAILS[modality.key];
+            let sectionsHTML = '';
+
+            if (modalityDetails && Object.keys(modalityDetails).length > 0) {
+                sectionsHTML = Object.entries(modalityDetails).map(([sectionName, subsections]) => {
+                    const subsectionHTML = Object.entries(subsections || {}).map(([subsectionName, data]) => {
+                        const requirements = (data && data.requirements ? data.requirements : []).map(item => `<li>${escapeHTML(item)}</li>`).join('') || '<li class="text-muted">No requirements provided.</li>';
+                        const mitigations = (data && data.mitigation ? data.mitigation : []).map(item => `<li>${escapeHTML(item)}</li>`).join('') || '<li class="text-muted">No mitigation guidance provided.</li>';
+                        return `
+                            <div class="modality-subsection">
+                                <h6 class="modality-subsection-title">${escapeHTML(subsectionName)}</h6>
+                                <div class="modality-subsection-columns">
+                                    <div>
+                                        <span class="label-pill requirements-pill">Requirements</span>
+                                        <ul class="mb-0">${requirements}</ul>
+                                    </div>
+                                    <div>
+                                        <span class="label-pill mitigation-pill">Mitigation</span>
+                                        <ul class="mb-0">${mitigations}</ul>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="modality-detail-section">
+                            <div class="modality-section-header">
+                                <span class="section-pill">${escapeHTML(sectionName)}</span>
+                            </div>
+                            <div class="modality-section-body">
+                                ${subsectionHTML}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                sectionsHTML = '<p class="text-muted mb-0">Operational detail data not yet defined for this modality.</p>';
+            }
+
+            const isSelected = selectionSet.has(modality.key);
+            return `
+                <div class="card section-card modality-detail-card ${modality.accentClass} ${isSelected ? '' : 'd-none'}" data-modality="${modality.key}">
+                    <div class="card-body">
+                        <div class="modality-card-header">
+                            <div class="modality-card-icon"><i class="fas ${modality.icon}"></i></div>
+                            <div>
+                                <h5 class="mb-1">${escapeHTML(modality.label)} Deployment Profile</h5>
+                                <p class="text-muted mb-0">Key operational requirements and mitigation strategies.</p>
+                            </div>
+                        </div>
+                        <div class="modality-card-content">
+                            ${sectionsHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (!cardsHTML.trim()) {
+            return '';
+        }
+
+        return `<div class="modality-details-container">${cardsHTML}</div>`;
+    }
+
     function renderMakerUI() {
         const sectionsContainer = document.getElementById('sections-accordion');
         const weightsContainer = document.getElementById('weights-container');
@@ -359,6 +891,53 @@
             updateWeightSum();
         });
         document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
     }
 
     function setupRichTextEditors(root = document) {
@@ -581,6 +1160,7 @@
             .filter(cb => cb.checked)
             .map(cb => cb.dataset.key);
         const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
+        const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
         const defaultModalityState = {};
         DEPLOYMENT_MODALITIES.forEach(modality => {
             defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
@@ -688,7 +1268,7 @@
             } else if (config.editableContent) {
                 let tabContent = config.content || '';
                 if (key === 'org-detail') {
-                    tabContent += deploymentModalitiesCardHTML;
+                    tabContent += deploymentModalitiesCardHTML + deploymentModalityDetailsHTML;
                 }
                 content = tabContent;
             } else {
@@ -883,6 +1463,134 @@
 
         .modality-pill.self-sustained .modality-pill-icon {
             background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .modality-details-container {
+            margin-top: 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .modality-detail-card .card-body {
+            padding: 24px;
+        }
+
+        .modality-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .modality-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.3rem;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+        }
+
+        .modality-detail-card.embedded .modality-card-icon {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .modality-detail-card.coupled .modality-card-icon {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+        }
+
+        .modality-detail-card.self-sustained .modality-card-icon {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .modality-detail-card .modality-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .modality-detail-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px 18px;
+        }
+
+        .modality-section-header {
+            margin-bottom: 12px;
+        }
+
+        .section-pill {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+        }
+
+        .modality-subsection {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        }
+
+        .modality-subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .modality-subsection-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .modality-subsection-columns {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .label-pill {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 8px;
+        }
+
+        .requirements-pill {
+            background: rgba(59, 130, 246, 0.15);
+            color: #1d4ed8;
+        }
+
+        .mitigation-pill {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+        }
+
+        .modality-subsection ul {
+            padding-left: 18px;
+        }
+
+        .modality-subsection ul li {
+            margin-bottom: 6px;
+        }
+
+        .modality-subsection ul li:last-child {
+            margin-bottom: 0;
         }
 
         .section-header {
@@ -1179,6 +1887,19 @@
                 align-items: flex-start;
             }
 
+            .modality-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modality-card-icon {
+                margin-bottom: 8px;
+            }
+
+            .modality-subsection-columns {
+                grid-template-columns: 1fr;
+            }
+
             .compliance-score {
                 width: 100%;
             }
@@ -1207,6 +1928,15 @@
         if (element){
             element.value = value;
         }
+    }
+    function toggleModalityDetails(){
+        MODALITY_METADATA.forEach(modality => {
+            const checkbox = document.getElementById('modality-' + modality.key);
+            const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
+            if (card) {
+                card.classList.toggle('d-none', !(checkbox && checkbox.checked));
+            }
+        });
     }
     function initializeData(){
         const stored = localStorage.getItem("hidSCTAssessment");
@@ -1251,6 +1981,8 @@
                 }
             }
         });
+
+        toggleModalityDetails();
 
         assessmentData.teamInfo.deploymentModalities = modalityState;
 
@@ -1310,6 +2042,8 @@
                 }
             }
         });
+
+        toggleModalityDetails();
 
         assessmentData.teamInfo = {
             teamName: getFieldValue('teamName'),
