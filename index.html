@@ -304,6 +304,69 @@
                         'Secure alternative imaging solutions if not available'
                     ]
                 }
+            },
+            'WASH': {
+                'Water Supply': {
+                    requirements: [
+                        'Continuous access to potable water for medical and personal needs',
+                        'Water supply being tested continuously'
+                    ],
+                    mitigation: [
+                        'Consider options such as water purification systems and secure water storage solutions',
+                        'Coordinate with local authorities or WASH clusters for provision if untested'
+                    ]
+                },
+                'Hygiene': {
+                    requirements: [
+                        'Staff and patients can practice hand hygiene adequately',
+                        'Personal hygiene facilities, including showers',
+                        'Host provides laundry service for patients and staff'
+                    ],
+                    mitigation: [
+                        'Provide additional handwashing stations and supplies',
+                        'Install temporary hygiene facilities if necessary'
+                    ]
+                },
+                'Environmental Cleaning': {
+                    requirements: [
+                        'Documented procedures for cleaning to maintain a hygienic environment'
+                    ],
+                    mitigation: [
+                        'Develop and implement standardized cleaning protocols'
+                    ]
+                },
+                'Healthcare Waste Management': {
+                    requirements: [
+                        'Appropriate waste management in place for healthcare waste'
+                    ],
+                    mitigation: [
+                        'Implement safe waste handling and disposal procedures; coordinate with local waste management; SCT may need to bring their own containers and disposal solutions'
+                    ]
+                },
+                'Sanitation': {
+                    requirements: [
+                        'Sufficient and safe sanitation facilities for excreta and grey and storm water management'
+                    ],
+                    mitigation: [
+                        'Deploy portable sanitation units and support the development of faecal sludge and waste water management plans'
+                    ]
+                },
+                'Vector and Pest Control': {
+                    requirements: [
+                        'Effective vector and pest control measures in place'
+                    ],
+                    mitigation: [
+                        'Introduce pest control measures suited to the local environment'
+                    ]
+                },
+                'Dead Body Management': {
+                    requirements: [
+                        'Host manages dead bodies in a safe, dignified, and culturally appropriate manner'
+                    ],
+                    mitigation: [
+                        'Provide training and resources for proper dead body management'
+                    ]
+                }
             }
         },
         'coupled': {
@@ -528,6 +591,70 @@
                     ],
                     mitigation: [
                         'Ensure rapid transfer capabilities are in place'
+                    ]
+                }
+            },
+            'WASH': {
+                'Water Supply': {
+                    requirements: [
+                        'SCT coordinates with host for water supply but provides backup solutions if needed',
+                        'SCT ensures water quality testing and coordinates with host for regular checks'
+                    ],
+                    mitigation: [
+                        'Deploy water purification and storage solutions',
+                        'Implement regular water quality testing protocols'
+                    ]
+                },
+                'Hygiene': {
+                    requirements: [
+                        'SCT provides its own hand hygiene facilities',
+                        'SCT provides its own hygiene facilities within its infrastructure',
+                        'SCT provides its own laundry facilities'
+                    ],
+                    mitigation: [
+                        'Deploy portable handwashing stations as needed',
+                        'Deploy temporary hygiene facilities as necessary',
+                        'Deploy portable laundry units as necessary'
+                    ]
+                },
+                'Environmental Cleaning': {
+                    requirements: [
+                        'SCT ensures additional cleaning protocols'
+                    ],
+                    mitigation: [
+                        'Implement additional environmental cleaning procedures'
+                    ]
+                },
+                'Healthcare Waste Management': {
+                    requirements: [
+                        'SCT coordinates with host for waste treatment but provides backup solutions if needed'
+                    ],
+                    mitigation: [
+                        'Deploy portable waste handling and disposal systems'
+                    ]
+                },
+                'Sanitation': {
+                    requirements: [
+                        'SCT provides additional sanitation solutions but coordinates with host for faecal sludge treatment and or disposal and provides backup solutions if needed'
+                    ],
+                    mitigation: [
+                        'Implement additional sanitation facilities and management plans'
+                    ]
+                },
+                'Vector and Pest Control': {
+                    requirements: [
+                        'SCT ensures additional vector control solutions'
+                    ],
+                    mitigation: [
+                        'Implement comprehensive vector control strategies'
+                    ]
+                },
+                'Dead Body Management': {
+                    requirements: [
+                        'SCT ensures additional dead body management solutions'
+                    ],
+                    mitigation: [
+                        'Deploy resources and training for proper dead body management'
                     ]
                 }
             }
@@ -891,6 +1018,53 @@
             updateWeightSum();
         });
         document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
     }
 
     function setupRichTextEditors(root = document) {
