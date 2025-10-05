@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creador Avanzado de Herramientas de Evaluación HID SCT</title>
+    <title>Advanced HID SCT Assessment Builder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -54,8 +54,8 @@
 <body>
     <div class="maker-container">
         <div class="maker-header">
-            <h2>🛠️ Creador Avanzado de Herramientas de Evaluación</h2>
-            <p class="text-muted">Personaliza cada aspecto de tu herramienta. El HTML generado será 100% funcional e idéntico al original.</p>
+            <h2>🛠️ Advanced Assessment Tool Builder</h2>
+            <p class="text-muted">Customize every aspect of your tool. The generated HTML will be fully functional and match the original layout.</p>
         </div>
 
         <div class="card my-4 deployment-modalities-card" id="deployment-modalities-card">
@@ -69,17 +69,17 @@
         </div>
 
         <div class="card my-4">
-            <div class="card-header"><h5 class="mb-0">Asignar Pesos de Sección (%)</h5></div>
+            <div class="card-header"><h5 class="mb-0">Assign Section Weights (%)</h5></div>
             <div class="card-body">
                 <div class="row" id="weights-container"></div>
-                <div class="alert alert-info mt-3" id="weight-sum-alert">Suma total del peso: <span id="weight-sum">0</span>%. Debe ser 100%.</div>
+                <div class="alert alert-info mt-3" id="weight-sum-alert">Total weight: <span id="weight-sum">0</span>%. It must equal 100%.</div>
             </div>
         </div>
 
         <div class="accordion" id="sections-accordion"></div>
 
         <div class="d-grid mt-4">
-            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generar Herramienta HTML Completa</button>
+            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generate Complete HTML Tool</button>
         </div>
     </div>
 
@@ -1019,16 +1019,16 @@
         updateBuilderModalityEditorsVisibility();
     }
 
-    function getEditorTemplate(content = '', placeholder = 'Describe el estándar...') {
+    function getEditorTemplate(content = '', placeholder = 'Describe the standard...') {
         return `
             <div class="rich-text-editor">
                 <div class="editor-toolbar">
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="bold" title="Negrita"><i class="fas fa-bold"></i></button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="italic" title="Cursiva"><i class="fas fa-italic"></i></button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="underline" title="Subrayado"><i class="fas fa-underline"></i></button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertUnorderedList" title="Lista con viñetas"><i class="fas fa-list-ul"></i></button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertOrderedList" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="removeFormat" title="Limpiar formato"><i class="fas fa-eraser"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="bold" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="italic" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="underline" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertUnorderedList" title="Bulleted list"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertOrderedList" title="Numbered list"><i class="fas fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="removeFormat" title="Clear formatting"><i class="fas fa-eraser"></i></button>
                 </div>
                 <div class="editor-content form-control" contenteditable="true" data-placeholder="${placeholder}">${content}</div>
             </div>
@@ -1149,16 +1149,16 @@
 
             let sectionBody = '';
             if (config.hasSubsections) {
-                sectionBody = `<h5>Estándares / Subsecciones (HTML y formato permitido)</h5>
+                sectionBody = `<h5>Standards / Subsections (HTML supported)</h5>
                 <div id="subsections-${key}" class="subsections-container"></div>
-                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Estándar</button>`;
+                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Add Standard</button>`;
             } else if (config.editableContent) {
-                sectionBody = `<h5>Contenido de la pestaña (HTML y formato permitido)</h5>
+                sectionBody = `<h5>Tab content (HTML supported)</h5>
                 <div class="section-content-editor" data-section="${key}">
-                    ${getEditorTemplate(SECTION_CONTENT[key] || '', 'Edita el contenido de esta pestaña...')}
+                    ${getEditorTemplate(SECTION_CONTENT[key] || '', 'Edit the content for this tab...')}
                 </div>`;
             } else {
-                sectionBody = `<div class="alert alert-light">El contenido de esta sección es fijo y se insertará automáticamente en la herramienta final.</div>`;
+                sectionBody = `<div class="alert alert-light">The content for this section is fixed and will be inserted automatically in the final tool.</div>`;
             }
 
             const sectionHTML = `
@@ -1166,10 +1166,10 @@
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${key}">
                             <div class="section-header-controls w-100">
-                                <span class="me-auto">Configurar: ${config.title}</span>
+                                <span class="me-auto">Configure: ${config.title}</span>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input section-enable-switch" type="checkbox" data-key="${key}" ${config.enabled ? 'checked' : ''}>
-                                    <label class="form-check-label">Habilitar</label>
+                                    <label class="form-check-label">Enable</label>
                                 </div>
                             </div>
                         </button>
@@ -1177,7 +1177,7 @@
                     <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
                         <div class="accordion-body">
                             <div class="mb-3">
-                                <label class="form-label">Título de la Sección</label>
+                                <label class="form-label">Section title</label>
                                 <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
                             </div>
                             ${sectionBody}
@@ -1297,329 +1297,6 @@
                     if (typeof editor._updatePlaceholder === 'function') {
                         editor._updatePlaceholder();
                     }
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    if (typeof editor._updatePlaceholder === 'function') {
-                        editor._updatePlaceholder();
-                    }
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    if (typeof editor._updatePlaceholder === 'function') {
-                        editor._updatePlaceholder();
-                    }
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    if (typeof editor._updatePlaceholder === 'function') {
-                        editor._updatePlaceholder();
-                    }
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    if (typeof editor._updatePlaceholder === 'function') {
-                        editor._updatePlaceholder();
-                    }
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    editor._updatePlaceholder?.();
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    editor._updatePlaceholder?.();
-                    storeSelection(editor);
-                }
-            };
-        });
-    }
-
-    function setupRichTextEditors(root = document) {
-        root.querySelectorAll('.editor-content').forEach(editor => {
-            const updatePlaceholderState = () => {
-                const text = editor.innerText.trim();
-                editor.classList.toggle('empty', text.length === 0);
-            };
-            updatePlaceholderState();
-            editor.addEventListener('input', updatePlaceholderState);
-            editor.addEventListener('focus', () => {
-                activeEditor = editor;
-                editor.classList.add('focus');
-                storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
-                editor.classList.remove('focus');
-                if (activeEditor === editor) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
-            editor.addEventListener('input', () => storeSelection(editor));
-            editor._updatePlaceholder = updatePlaceholderState;
-        });
-        root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
-                e.preventDefault();
-                const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
-                const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    editor._updatePlaceholder?.();
                     storeSelection(editor);
                 }
             };
@@ -1861,7 +1538,7 @@
 
         const fullHTML = `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HID SCT Self-Assessment Grid - Customized</title>
@@ -1941,6 +1618,9 @@
             padding: 24px 18px;
             overflow-y: auto;
             border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
         .progress-bar-container {
@@ -2199,23 +1879,105 @@
             animation: slideIn 0.3s ease;
         }
 
-        .progress-sidebar-table {
-            width: 100%;
-            font-size: 0.85rem;
+        .global-progress-card {
+            background: linear-gradient(145deg, #f5f8ff 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem 1.25rem;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(148, 163, 184, 0.15);
         }
 
-        .progress-sidebar-table th,
-        .progress-sidebar-table td {
-            padding: 8px 5px;
-            border-bottom: 1px solid #e5e7eb;
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: conic-gradient(#4f46e5 0deg, #e2e8f0 0deg 360deg);
         }
 
-        .progress-sidebar-table th {
+        .progress-circle::after {
+            content: '';
+            position: absolute;
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        .progress-circle span {
+            position: absolute;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .section-progress-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-progress-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: #f8fafc;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+        }
+
+        .section-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
             font-weight: 600;
+            color: #1e293b;
         }
 
-        .progress-sidebar-table tr:last-child td {
-            border-bottom: none;
+        .section-progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 0.65rem;
+        }
+
+        .section-progress-bar .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+        }
+
+        .section-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: #475569;
+            gap: 0.5rem;
+        }
+
+        .section-progress-meta .badge {
+            font-size: 0.72rem;
+            padding: 0.35rem 0.6rem;
+        }
+
+        .section-focus-button {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .deployment-note-card {
+            border: 1px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 1rem;
+            background: #eef2ff;
+            color: #1e293b;
         }
 
         .compliance-section {
@@ -2609,7 +2371,25 @@
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
         <div class="col-lg-8"><div class="main-content"><div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div></div></div>
-        <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
+        <div class="col-lg-2">
+            <div class="progress-sidebar">
+                <div class="global-progress-card">
+                    <h6 class="text-uppercase text-muted mb-2">Overall Progress</h6>
+                    <div class="progress-circle" id="globalProgressCircle">
+                        <span id="globalProgressValue">0%</span>
+                    </div>
+                    <p class="small text-muted mb-0 text-center">Weighted across active section standards.</p>
+                </div>
+                <div>
+                    <h6 class="mb-2">Section Breakdown</h6>
+                    <div class="section-progress-list" id="sectionProgressList"></div>
+                </div>
+                <div class="deployment-note-card d-none" id="deploymentNoteCard">
+                    <h6 class="mb-2">Deployment Mode Considerations</h6>
+                    <p class="small mb-0" id="deploymentNoteText"></p>
+                </div>
+            </div>
+        </div>
     </div></div>
     <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
@@ -2627,6 +2407,113 @@
         if (element){
             element.value = value;
         }
+    }
+
+    function isCardActive(card){
+        if (!card || card.classList.contains('d-none')){
+            return false;
+        }
+        if (card.closest('.d-none')){
+            return false;
+        }
+        const style = window.getComputedStyle(card);
+        if (style.display === 'none' || style.visibility === 'hidden'){
+            return false;
+        }
+        if (card.offsetParent === null && style.position !== 'fixed'){
+            return false;
+        }
+        return true;
+    }
+
+    function setCircleProgress(circle, percent){
+        if (!circle){
+            return;
+        }
+        const safePercent = isFinite(percent) ? percent : 0;
+        const clamped = Math.max(0, Math.min(100, Math.round(safePercent)));
+        const angle = clamped * 3.6;
+        circle.style.background = `conic-gradient(#4f46e5 ${angle}deg, #e2e8f0 ${angle}deg 360deg)`;
+        const label = circle.querySelector('span');
+        if (label){
+            label.textContent = `${clamped}%`;
+        }
+    }
+
+    function buildSectionProgressHTML(summaries){
+        if (!Array.isArray(summaries) || summaries.length === 0){
+            return '<p class="text-muted mb-0">Progress data will appear here as scores are recorded.</p>';
+        }
+        return summaries.map(summary => {
+            const percent = Math.max(0, Math.min(100, Math.round(summary.percent || 0)));
+            const pending = Math.max(0, summary.pending || 0);
+            const buttonState = pending === 0 ? 'disabled' : '';
+            return `
+                <div class="section-progress-item">
+                    <div class="section-progress-header">
+                        <span>${summary.name}</span>
+                        <span>${percent}%</span>
+                    </div>
+                    <div class="section-progress-bar">
+                        <div class="bar-fill" style="width:${percent}%"></div>
+                    </div>
+                    <div class="section-progress-meta">
+                        <span><span class="badge bg-success me-1">${summary.completed || 0}</span>Completed</span>
+                        <span><span class="badge bg-secondary me-1">${pending}</span>Pending</span>
+                    </div>
+                    <p class="text-muted small mb-2">Active standards: ${summary.applicable || 0}</p>
+                    <button type="button" class="btn btn-link btn-sm section-focus-button p-0" data-target-section="${summary.key}" ${buttonState}>View pending</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function focusSection(sectionKey){
+        if (!sectionKey){
+            return;
+        }
+        const navLink = document.querySelector('.sidebar .nav-link[href="#' + sectionKey + '"]');
+        if (navLink){
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tab){
+                const tabInstance = bootstrap.Tab.getOrCreateInstance(navLink);
+                tabInstance.show();
+            } else {
+                navLink.click();
+            }
+        }
+        setTimeout(() => {
+            const tabPane = document.getElementById(sectionKey);
+            if (!tabPane){
+                return;
+            }
+            const pendingSelect = tabPane.querySelector('.compliance-card:not(.d-none) .score-select:not([value="3"])');
+            const targetCard = pendingSelect ? pendingSelect.closest('.compliance-card') : tabPane.querySelector('.compliance-card:not(.d-none)');
+            if (targetCard){
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const select = targetCard.querySelector('.score-select');
+                if (select){
+                    select.focus();
+                }
+            }
+        }, 200);
+    }
+
+    function bindSectionFocusButtons(){
+        document.querySelectorAll('.section-focus-button').forEach(button => {
+            button.onclick = event => {
+                event.preventDefault();
+                focusSection(button.dataset.targetSection);
+            };
+        });
+    }
+
+    function getSelectedModalitiesLabels(){
+        return MODALITY_METADATA
+            .filter(modality => {
+                const checkbox = document.getElementById('modality-' + modality.key);
+                return checkbox && checkbox.checked;
+            })
+            .map(modality => modality.label);
     }
     function toggleModalityDetails(){
         MODALITY_METADATA.forEach(modality => {
@@ -2853,7 +2740,128 @@
             select.classList.add('score-' + value);
         }
     }
-    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c.innerHTML="",d.innerHTML="";let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`,d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`});const m=r>0?Math.round(l/r*100):0;c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`}
+    function updateProgress(){
+        const sectionSummaries = [];
+        let totalWeight = 0;
+        let weightedScore = 0;
+        let completedSectionCount = 0;
+
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            const sectionKey = section.section;
+            const weight = Number(section.weight) || 0;
+            const cards = Array.from(document.querySelectorAll('.compliance-card[data-section="' + sectionKey + '"]'));
+            const activeCards = cards.filter(isCardActive);
+            const consideredCards = activeCards.filter(card => {
+                const select = card.querySelector('.score-select');
+                return !(select && select.value === 'NA');
+            });
+            const divisor = consideredCards.length;
+            const weightShare = divisor > 0 ? weight / divisor : 0;
+            let sectionScore = 0;
+            let completedCount = 0;
+
+            consideredCards.forEach(card => {
+                const select = card.querySelector('.score-select');
+                let rawValue = 0;
+                if (select){
+                    const value = select.value;
+                    if (value && value !== 'NA'){
+                        const parsed = parseInt(value, 10);
+                        rawValue = Number.isNaN(parsed) ? 0 : parsed;
+                    }
+                }
+                if (rawValue === 3){
+                    completedCount += 1;
+                }
+                const compliance = rawValue > 0 ? Math.min(Math.max(rawValue, 0), 3) / 3 : 0;
+                sectionScore += weightShare * compliance;
+            });
+
+            const pendingCount = divisor > 0 ? Math.max(divisor - completedCount, 0) : 0;
+            if (divisor > 0 && pendingCount === 0 && completedCount > 0){
+                completedSectionCount += 1;
+            }
+
+            const normalizedPercent = weight > 0 ? Math.max(0, Math.min(100, (sectionScore / weight) * 100)) : 0;
+            totalWeight += weight;
+            weightedScore += sectionScore;
+
+            const pill = document.getElementById(sectionKey + 'Score');
+            if (pill){
+                pill.textContent = `${Math.round(normalizedPercent)}% Complete`;
+            }
+
+            sectionSummaries.push({
+                key: sectionKey,
+                name: section.name,
+                weight,
+                percent: normalizedPercent,
+                completed: completedCount,
+                pending: pendingCount,
+                applicable: divisor,
+                hidden: cards.length - activeCards.length
+            });
+        });
+
+        const overallPercent = totalWeight > 0 ? Math.max(0, Math.min(100, (weightedScore / totalWeight) * 100)) : 0;
+        const roundedOverall = Math.round(overallPercent);
+
+        const overallProgressBar = document.getElementById('overallProgressBar');
+        if (overallProgressBar){
+            overallProgressBar.style.width = `${roundedOverall}%`;
+        }
+        const overallProgressText = document.getElementById('overallProgressText');
+        if (overallProgressText){
+            overallProgressText.textContent = `${roundedOverall}%`;
+        }
+
+        setCircleProgress(document.getElementById('globalProgressCircle'), overallPercent);
+        setCircleProgress(document.getElementById('orgProgressCircle'), overallPercent);
+
+        const sectionList = document.getElementById('sectionProgressList');
+        if (sectionList){
+            sectionList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+        }
+        const orgList = document.getElementById('orgProgressList');
+        if (orgList){
+            orgList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+        }
+
+        bindSectionFocusButtons();
+
+        const selectedModalities = getSelectedModalitiesLabels();
+        const noteCard = document.getElementById('deploymentNoteCard');
+        const noteText = document.getElementById('deploymentNoteText');
+        if (noteCard && noteText){
+            const hiddenSections = sectionSummaries.filter(summary => summary.hidden > 0);
+            if ((selectedModalities.length > 0 && selectedModalities.length < MODALITY_METADATA.length) || hiddenSections.length > 0){
+                noteCard.classList.remove('d-none');
+                const selectionText = selectedModalities.length > 0
+                    ? `Active profiles: ${selectedModalities.join(', ')}.`
+                    : 'No deployment profile currently selected.';
+                const hiddenText = hiddenSections.length > 0
+                    ? ` Hidden standards in: ${hiddenSections.map(item => item.name).join(', ')}.`
+                    : '';
+                noteText.textContent = selectionText + hiddenText;
+            } else {
+                noteCard.classList.add('d-none');
+                noteText.textContent = '';
+            }
+        }
+
+        const completedSectionsElement = document.getElementById('completedSections');
+        if (completedSectionsElement){
+            completedSectionsElement.textContent = `${completedSectionCount}/${SECTIONS_WITH_WEIGHT.length}`;
+        }
+        const overallScoreElement = document.getElementById('overallScore');
+        if (overallScoreElement){
+            overallScoreElement.textContent = `${roundedOverall}%`;
+        }
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+        if (lastUpdatedElement){
+            lastUpdatedElement.textContent = (new Date()).toLocaleDateString();
+        }
+    }
     function exportToExcel(){
         saveProgress();
         const workbook = XLSX.utils.book_new();
@@ -3059,7 +3067,7 @@
     
     <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
     <div id="template-definition" style="display: none;"><h2 class="mb-4">Technical Standards Definition</h2><div class="card section-card"><div class="card-body"><p>HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.</p><p>Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.</p></div></div></div>
-    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><table class="table table-bordered"><thead class="table-light"><tr><th>Section</th><th>Weight</th><th>Status</th><th>% Completed</th></tr></thead><tbody id="progressTableBody"></tbody></table></div></div></div>
+    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><div class="d-flex flex-column flex-md-row align-items-center gap-4"><div class="text-center"><div class="progress-circle" id="orgProgressCircle"><span id="orgProgressValue">0%</span></div><p class="small text-muted mb-0">Weighted completion</p></div><div class="flex-grow-1 w-100"><div class="section-progress-list" id="orgProgressList"></div></div></div></div></div></div>
     <div id="template-summary" style="display: none;"><h2 class="mb-4">Summary & Action Plan</h2><div class="card section-card"><div class="section-header"><h5>Overall Readiness Assessment</h5></div><div class="card-body"><div class="mb-3"><label for="strengths" class="form-label"><strong>Strengths Identified:</strong></label><textarea class="form-control summary-textarea" id="strengths" placeholder="List the top 3-5 strengths identified..."></textarea></div><div class="mb-3"><label for="criticalGaps" class="form-label"><strong>Critical Gaps Requiring Immediate Action:</strong></label><textarea class="form-control summary-textarea" id="criticalGaps" placeholder="List the critical gaps that need..."></textarea></div><div class="mb-3"><label class="form-label"><strong>Timeline for Addressing Gaps:</strong></label><div class="mb-2"><label class="form-label">Immediate (0-1 month):</label><textarea class="form-control summary-textarea" id="immediateActions"></textarea></div><div class="mb-2"><label class="form-label">Short-term (1-3 months):</label><textarea class="form-control summary-textarea" id="shortTermActions"></textarea></div><div class="mb-2"><label class="form-label">Medium-term (3-6 months):</label><textarea class="form-control summary-textarea" id="mediumTermActions"></textarea></div></div><div class="mb-3"><label class="form-label"><strong>Support Required:</strong></label><div class="mb-2"><label class="form-label">Technical assistance needed:</label><textarea class="form-control summary-textarea" id="technicalAssistance"></textarea></div><div class="mb-2"><label class="form-label">Training requirements:</label><textarea class="form-control summary-textarea" id="trainingRequirements"></textarea></div><div class="mb-2"><label class="form-label">Resource requirements:</label><textarea class="form-control summary-textarea" id="resourceRequirements"></textarea></div></div><div class="mb-3"><label for="nextSteps" class="form-label"><strong>Next Steps:</strong></label><textarea class="form-control summary-textarea" id="nextSteps" placeholder="1. First priority action..."></textarea></div><div class="row"><div class="col-md-6"><label for="completionDate" class="form-label">Date of Completion:</label><input type="date" class="form-control" id="completionDate"></div><div class="col-md-6"><label for="reviewedBy" class="form-label">Reviewed by:</label><input type="text" class="form-control" id="reviewedBy" placeholder="Name and title"></div></div><div class="mt-3"><label for="mentorAssignment" class="form-label">Mentor Assignment:</label><input type="text" class="form-control" id="mentorAssignment" placeholder="Mentor name and contact"></div></div></div></div>
 
 </body>
