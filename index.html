@@ -1303,6 +1303,329 @@
         });
     }
 
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    editor._updatePlaceholder?.();
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
     function updateWeightSum() {
         const sum = Array.from(document.querySelectorAll('.weight-input:not(:disabled)')).reduce((acc, input) => acc + (parseInt(input.value) || 0), 0);
         const alertDiv = document.getElementById('weight-sum-alert');
