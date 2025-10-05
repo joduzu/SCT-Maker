@@ -22,8 +22,10 @@
         .modality-option.coupled .modality-icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
         .modality-option.self-sustained .modality-icon { background: linear-gradient(135deg, #16a34a, #22c55e); }
         .modality-option.selected { border-color: transparent; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(129, 140, 248, 0.08)); }
-        .subsection-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
+        .subsection-item { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 16px; border: 1px solid #e9ecef; border-radius: 12px; background: #fff; }
         .subsection-item .rich-text-editor { flex: 1; }
+        .subsection-actions { display: flex; justify-content: flex-end; }
+        .subsection-actions .btn { min-width: 120px; }
         .section-content-editor { margin-top: 10px; }
         .section-content-editor .editor-content { min-height: 160px; }
         .weight-input { width: 100px; }
@@ -36,6 +38,17 @@
         .editor-content { border: 1px solid #ced4da; border-radius: 8px; min-height: 80px; padding: 10px; background-color: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
         .editor-content:focus, .editor-content.focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
         .editor-content.empty::before { content: attr(data-placeholder); color: #6c757d; pointer-events: none; }
+        .builder-deployment-editor { border: 1px solid #dee2f7; border-radius: 10px; background: #f8f9ff; padding: 12px 16px; }
+        .builder-deployment-editor summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1f3a93; }
+        .builder-deployment-editor summary::-webkit-details-marker { display: none; }
+        .builder-deployment-editor .badge { font-size: 0.75rem; letter-spacing: 0.02em; }
+        .builder-deployment-body { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+        .builder-modality-editor { border: 1px dashed #c7d2fe; border-radius: 10px; padding: 12px; background: #ffffff; transition: opacity 0.2s ease; }
+        .builder-modality-editor.inactive { opacity: 0.45; }
+        .builder-modality-editor .badge { font-size: 0.75rem; }
+        .builder-modality-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .builder-modality-columns textarea { min-height: 90px; }
+        .builder-deployment-summary { display: inline-flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -662,6 +675,222 @@
         'self-sustained': {}
     };
 
+    function escapeHTML(value = '') {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function stripHTML(value = '') {
+        return String(value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function normalizeStandardName(value = '') {
+        return stripHTML(value)
+            .toLowerCase()
+            .replace(/&amp;/g, 'and')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    }
+
+    function extractTitleTextFromHTML(html, fallbackIndex = 0) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html || '';
+        const text = (temp.textContent || '').trim();
+        const separators = [':', '–', '-', '—'];
+        let title = text;
+        for (const sep of separators) {
+            const idx = text.indexOf(sep);
+            if (idx > -1) {
+                title = text.slice(0, idx).trim();
+                break;
+            }
+        }
+        if (!title) {
+            title = `Standard ${fallbackIndex + 1}`;
+        }
+        return title;
+    }
+
+    function findModalityDetailSource(modalityKey, sectionKey, standardTitle, source = DEPLOYMENT_MODALITY_DETAILS) {
+        if (!modalityKey || !sectionKey) return null;
+        const modalityData = source[modalityKey];
+        if (!modalityData) return null;
+        const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
+        if (!mappedSection) return null;
+        const sectionData = modalityData[mappedSection];
+        if (!sectionData) return null;
+        const normalizedTitle = normalizeStandardName(standardTitle);
+        let bestMatch = null;
+        for (const [name, details] of Object.entries(sectionData)) {
+            const normalizedName = normalizeStandardName(name);
+            if (!normalizedName) continue;
+            if (normalizedTitle && normalizedName === normalizedTitle) {
+                bestMatch = details;
+                break;
+            }
+            if (!bestMatch && normalizedTitle && (normalizedName.includes(normalizedTitle) || normalizedTitle.includes(normalizedName))) {
+                bestMatch = details;
+            }
+        }
+        return bestMatch;
+    }
+
+    function generateSubsectionKey(sectionKey) {
+        return `${sectionKey}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    const builderDeploymentOverrides = {};
+
+    function ensureDeploymentOverride(sectionKey, itemKey, titleText = '') {
+        if (!builderDeploymentOverrides[sectionKey]) {
+            builderDeploymentOverrides[sectionKey] = {};
+        }
+        if (!builderDeploymentOverrides[sectionKey][itemKey]) {
+            builderDeploymentOverrides[sectionKey][itemKey] = {};
+            DEPLOYMENT_MODALITIES.forEach(modality => {
+                const defaults = findModalityDetailSource(modality.key, sectionKey, titleText) || {};
+                const requirements = Array.isArray(defaults.requirements) ? defaults.requirements.join('\n') : (defaults.requirements || '');
+                const mitigation = Array.isArray(defaults.mitigation) ? defaults.mitigation.join('\n') : (defaults.mitigation || '');
+                builderDeploymentOverrides[sectionKey][itemKey][modality.key] = {
+                    requirements,
+                    mitigation
+                };
+            });
+        }
+        return builderDeploymentOverrides[sectionKey][itemKey];
+    }
+
+    function buildBuilderDeploymentEditor(sectionKey, itemKey, titleText) {
+        const overrides = ensureDeploymentOverride(sectionKey, itemKey, titleText);
+        const modalityEditors = DEPLOYMENT_MODALITIES.map(modality => {
+            const modalityData = overrides[modality.key] || { requirements: '', mitigation: '' };
+            return `
+                <div class="builder-modality-editor" data-modality="${modality.key}">
+                    <div class="builder-modality-header mb-2">
+                        <span class="badge bg-light text-primary"><i class="fas ${modality.icon} me-1"></i>${escapeHTML(modality.label)}</span>
+                    </div>
+                    <div class="builder-modality-columns">
+                        <div>
+                            <label class="form-label">Requirements</label>
+                            <textarea class="form-control deployment-prefill-textarea" data-section="${sectionKey}" data-item-key="${itemKey}" data-modality="${modality.key}" data-field="requirements" rows="3">${escapeHTML(modalityData.requirements || '')}</textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Mitigation</label>
+                            <textarea class="form-control deployment-prefill-textarea" data-section="${sectionKey}" data-item-key="${itemKey}" data-modality="${modality.key}" data-field="mitigation" rows="3">${escapeHTML(modalityData.mitigation || '')}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <details class="builder-deployment-editor" data-section="${sectionKey}" data-item-key="${itemKey}" data-title="${escapeHTML(titleText)}" open>
+                <summary>
+                    <span class="builder-deployment-summary">
+                        <i class="fas fa-clipboard-list text-primary"></i>
+                        <span class="builder-deployment-summary-title">${escapeHTML(titleText)}</span>
+                        <span class="badge bg-light text-secondary">Deployment Prefill</span>
+                    </span>
+                </summary>
+                <div class="builder-deployment-body">
+                    ${modalityEditors}
+                </div>
+            </details>
+        `;
+    }
+
+    function splitStandardContent(html, fallbackIndex = 0) {
+        const raw = String(html || '').trim();
+        const separators = [': ', ' – ', ' - ', ' — ', ':', '–', '-', '—'];
+        let titleHTML = raw;
+        let bodyHTML = raw;
+        for (const sep of separators) {
+            const idx = raw.indexOf(sep);
+            if (idx > -1) {
+                titleHTML = raw.slice(0, idx);
+                bodyHTML = raw.slice(idx + sep.length).trim() || raw;
+                break;
+            }
+        }
+        const titleText = extractTitleTextFromHTML(titleHTML, fallbackIndex);
+        return { titleHTML, bodyHTML, titleText };
+    }
+
+    function setupDeploymentPrefillEditors(root = document) {
+        root.querySelectorAll('.deployment-prefill-textarea').forEach(textarea => {
+            if (textarea.dataset.prefillInitialized === 'true') {
+                return;
+            }
+            textarea.dataset.prefillInitialized = 'true';
+            textarea.addEventListener('input', event => {
+                const field = event.currentTarget.dataset.field;
+                const section = event.currentTarget.dataset.section;
+                const itemKey = event.currentTarget.dataset.itemKey;
+                const modality = event.currentTarget.dataset.modality;
+                if (!field || !section || !itemKey || !modality) {
+                    return;
+                }
+                const wrapper = event.currentTarget.closest('.builder-deployment-editor');
+                const title = wrapper ? (wrapper.dataset.title || '') : '';
+                ensureDeploymentOverride(section, itemKey, title);
+                if (!builderDeploymentOverrides[section][itemKey][modality]) {
+                    builderDeploymentOverrides[section][itemKey][modality] = { requirements: '', mitigation: '' };
+                }
+                builderDeploymentOverrides[section][itemKey][modality][field] = event.currentTarget.value;
+            });
+        });
+    }
+
+    function updateBuilderModalityEditorsVisibility() {
+        document.querySelectorAll('.builder-modality-editor').forEach(editor => {
+            const modality = editor.dataset.modality;
+            if (!modality) return;
+            editor.classList.toggle('inactive', !builderSelectedModalities.has(modality));
+        });
+    }
+
+    function addSubsectionItem(sectionKey, subContent = '', options = {}) {
+        const container = options.container || document.getElementById(`subsections-${sectionKey}`);
+        if (!container) return null;
+        const index = typeof options.index === 'number' ? options.index : container.querySelectorAll('.subsection-item').length;
+        const itemKey = options.itemKey || generateSubsectionKey(sectionKey);
+        const titleText = options.titleText || extractTitleTextFromHTML(subContent, index);
+        ensureDeploymentOverride(sectionKey, itemKey, titleText);
+        const subsectionHTML = `
+            <div class="subsection-item" data-section="${sectionKey}" data-item-key="${itemKey}" data-default-index="${index}" data-title="${escapeHTML(titleText)}">
+                ${getEditorTemplate(subContent)}
+                ${buildBuilderDeploymentEditor(sectionKey, itemKey, titleText)}
+                <div class="subsection-actions">
+                    <button class="btn btn-danger btn-sm remove-item" type="button"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', subsectionHTML);
+        const newItem = container.lastElementChild;
+        setupRichTextEditors(newItem);
+        setupDeploymentPrefillEditors(newItem);
+        updateBuilderModalityEditorsVisibility();
+        const removeBtn = newItem.querySelector('.remove-item');
+        if (removeBtn) {
+            removeBtn.onclick = () => {
+                if (activeEditor && newItem.contains(activeEditor)) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+                const key = newItem.dataset.itemKey;
+                if (builderDeploymentOverrides[sectionKey] && key && builderDeploymentOverrides[sectionKey][key]) {
+                    delete builderDeploymentOverrides[sectionKey][key];
+                }
+                newItem.remove();
+            };
+        }
+        return newItem;
+    }
+
     const SECTION_KEY_TO_MODALITY_SECTION = {
         'core-standards': 'CORE STANDARD',
         'clinical-standards': 'CLINICAL',
@@ -669,7 +898,7 @@
         'wash-standards': 'WASH'
     };
 
-    let builderSelectedModalities = new Set(DEPLOYMENT_MODALITIES.map(modality => modality.key));
+    let builderSelectedModalities = new Set(['embedded', 'coupled']);
 
     const TOOL_CONFIG = {
         'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
@@ -783,8 +1012,11 @@
                 if (label) {
                     label.classList.toggle('selected', event.currentTarget.checked);
                 }
+                updateBuilderModalityEditorsVisibility();
             };
         });
+
+        updateBuilderModalityEditorsVisibility();
     }
 
     function getEditorTemplate(content = '', placeholder = 'Describe el estándar...') {
@@ -835,12 +1067,6 @@
 
     function buildDeploymentModalityDetailsHTML(selectedKeys = []) {
         const selectionSet = new Set(selectedKeys);
-        const escapeHTML = (value = '') => value
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
 
         const cardsHTML = DEPLOYMENT_MODALITIES.map(modality => {
             const modalityDetails = DEPLOYMENT_MODALITY_DETAILS[modality.key];
@@ -923,13 +1149,8 @@
 
             let sectionBody = '';
             if (config.hasSubsections) {
-                sectionBody = `<h5>Estándares / Subsecciones (HTML y formato permitido)</h5><div id="subsections-${key}">${
-                    (config.subsections || []).map(sub => `
-                        <div class="subsection-item">
-                            ${getEditorTemplate(sub)}
-                            <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
-                        </div>`).join('')
-                }</div>
+                sectionBody = `<h5>Estándares / Subsecciones (HTML y formato permitido)</h5>
+                <div id="subsections-${key}" class="subsections-container"></div>
                 <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Estándar</button>`;
             } else if (config.editableContent) {
                 sectionBody = `<h5>Contenido de la pestaña (HTML y formato permitido)</h5>
@@ -965,6 +1186,18 @@
                 </div>`;
             sectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
 
+            if (config.hasSubsections) {
+                const container = document.getElementById(`subsections-${key}`);
+                const subsections = Array.isArray(config.subsections) ? config.subsections : [];
+                subsections.forEach((entry, index) => {
+                    if (entry && typeof entry === 'object' && entry.content !== undefined) {
+                        addSubsectionItem(key, entry.content, { container, index, itemKey: entry.itemKey, titleText: entry.titleText });
+                    } else {
+                        addSubsectionItem(key, entry, { container, index });
+                    }
+                });
+            }
+
             if (config.weight > 0) {
                 const weightHTML = `<div class="col-md-4 mb-3" id="weight-div-${key}"><label class="form-label">${config.title}</label><input type="number" class="form-control weight-input" data-key="${key}" value="${config.weight}" min="0" ${!config.enabled ? 'disabled' : ''}></div>`;
                 weightsContainer.insertAdjacentHTML('beforeend', weightHTML);
@@ -989,32 +1222,7 @@
     function addEventListeners() {
         document.querySelectorAll('.add-item').forEach(btn => btn.onclick = e => {
             const section = e.currentTarget.dataset.section;
-            const container = document.getElementById(`subsections-${section}`);
-            const newItem = document.createElement('div');
-            newItem.className = 'subsection-item';
-            newItem.innerHTML = `${getEditorTemplate('')}<button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
-            container.appendChild(newItem);
-            setupRichTextEditors(newItem);
-            const removeBtn = newItem.querySelector('.remove-item');
-            if (removeBtn) {
-                removeBtn.onclick = () => {
-                    if (activeEditor && newItem.contains(activeEditor)) {
-                        activeEditor = null;
-                        savedRange = null;
-                    }
-                    newItem.remove();
-                };
-            }
-        });
-        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => {
-            const item = e.currentTarget.closest('.subsection-item');
-            if (item) {
-                if (activeEditor && item.contains(activeEditor)) {
-                    activeEditor = null;
-                    savedRange = null;
-                }
-                item.remove();
-            }
+            addSubsectionItem(section, '');
         });
         document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
         document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
@@ -1025,6 +1233,74 @@
             updateWeightSum();
         });
         document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            if (editor.dataset.editorInitialized === 'true') {
+                return;
+            }
+            editor.dataset.editorInitialized = 'true';
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            const handleInput = () => {
+                updatePlaceholderState();
+                storeSelection(editor);
+                const subsectionItem = editor.closest('.subsection-item');
+                if (subsectionItem) {
+                    const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
+                    const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
+                    subsectionItem.dataset.title = newTitle;
+                    const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
+                    if (summaryTitle) {
+                        summaryTitle.textContent = newTitle;
+                    }
+                    const details = subsectionItem.querySelector('.builder-deployment-editor');
+                    if (details) {
+                        details.dataset.title = newTitle;
+                    }
+                }
+            };
+            editor.addEventListener('input', handleInput);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
     }
 
     function setupRichTextEditors(root = document) {
@@ -1374,9 +1650,18 @@
                 })()
             };
             if (finalConfig[key].hasSubsections) {
-                finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} .editor-content`))
-                    .map(editor => editor.innerHTML.trim())
-                    .filter(content => content.length > 0);
+                const items = Array.from(document.querySelectorAll(`#subsections-${key} .subsection-item`));
+                finalConfig[key].subsections = items.map((item, index) => {
+                    const editor = item.querySelector('.editor-content');
+                    const content = editor ? editor.innerHTML.trim() : '';
+                    if (!content) {
+                        return null;
+                    }
+                    const itemKey = item.dataset.itemKey || generateSubsectionKey(key);
+                    const titleText = item.dataset.title || extractTitleTextFromHTML(content, index);
+                    ensureDeploymentOverride(key, itemKey, titleText);
+                    return { content, itemKey, titleText };
+                }).filter(Boolean);
             }
             if (finalConfig[key].editableContent) {
                 const editor = document.querySelector(`#accordion-item-${key} .section-content-editor .editor-content`);
@@ -1421,45 +1706,27 @@
         };
 
         const findModalityDetail = (modalityKey, sectionKey, standardTitle) => {
-            const modalityData = DEPLOYMENT_MODALITY_DETAILS[modalityKey];
-            if (!modalityData) return null;
-            const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
-            if (!mappedSection) return null;
-            const sectionData = modalityData[mappedSection];
-            if (!sectionData) return null;
-            const normalizedTitle = normalizeStandardName(standardTitle);
-            let bestMatch = null;
-            for (const [name, details] of Object.entries(sectionData)) {
-                const normalizedName = normalizeStandardName(name);
-                if (!normalizedName) continue;
-                if (normalizedTitle && normalizedName === normalizedTitle) {
-                    bestMatch = details;
-                    break;
-                }
-                if (normalizedTitle && (normalizedName.includes(normalizedTitle) || normalizedTitle.includes(normalizedName))) {
-                    if (!bestMatch) {
-                        bestMatch = details;
-                    }
-                }
-            }
-            return bestMatch;
+            return findModalityDetailSource(modalityKey, sectionKey, standardTitle);
         };
 
-        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId) => {
+        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId, itemKey) => {
             const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
             if (!mappedSection || !selectedModalities || selectedModalities.length === 0) {
                 return '';
             }
 
+            ensureDeploymentOverride(sectionKey, itemKey, standardTitle);
             const modalityBlocks = selectedModalities.map(modalityKey => {
-                const details = findModalityDetail(modalityKey, sectionKey, standardTitle) || {};
+                const overridesForSection = builderDeploymentOverrides[sectionKey] || {};
+                const overrideRecord = overridesForSection[itemKey] && overridesForSection[itemKey][modalityKey];
+                const details = overrideRecord || findModalityDetail(modalityKey, sectionKey, standardTitle) || {};
                 const meta = getModalityMeta(modalityKey);
-                const requirementsValue = Array.isArray(details.requirements)
-                    ? details.requirements.join('\n')
-                    : (typeof details.requirements === 'string' ? details.requirements : '');
-                const mitigationValue = Array.isArray(details.mitigation)
-                    ? details.mitigation.join('\n')
-                    : (typeof details.mitigation === 'string' ? details.mitigation : '');
+                const requirementsValue = typeof details.requirements === 'string'
+                    ? details.requirements
+                    : Array.isArray(details.requirements) ? details.requirements.join('\n') : '';
+                const mitigationValue = typeof details.mitigation === 'string'
+                    ? details.mitigation
+                    : Array.isArray(details.mitigation) ? details.mitigation.join('\n') : '';
                 return `
                     <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}">
                         <div class="modality-requirement-header">
@@ -1499,42 +1766,30 @@
         let tabPanes = enabledSections.map(([key, config]) => {
             let content = '';
             if (config.hasSubsections) {
-                const subsectionCards = (config.subsections || []).map((sub, index) => {
-                    const separators = [': ', ':', ' – ', ' - ', ' — '];
-                    let separator = '';
-                    let separatorIndex = -1;
-                    for (const sep of separators) {
-                        const idx = sub.indexOf(sep);
-                        if (idx > -1) {
-                            separator = sep;
-                            separatorIndex = idx;
-                            break;
-                        }
-                    }
-                    let titleHTML = sub;
-                    let bodyHTML = sub;
-                    if (separatorIndex > -1) {
-                        titleHTML = sub.slice(0, separatorIndex);
-                        bodyHTML = sub.slice(separatorIndex + separator.length).trim() || sub;
-                    }
-                    const titleText = stripHTML(titleHTML) || `Standard ${index + 1}`;
-                    const baseId = stripHTML(`${titleText}-${index + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-                    const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
-                    const safeTitle = escapeHTML(titleText);
-                    const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId);
-                    return `
-                        <div class="compliance-card" data-section="${key}" data-item="${subId}">
-                            <div class="card-inner">
-                                <div class="card-header">
-                                    <h5 class="subsection-title">${safeTitle}</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="card-description">${bodyHTML}</div>
-                                    ${deploymentBlock}
-                                    <div class="card-fields">
-                                        <div class="field-group">
-                                            <label>Describe evidence</label>
-                                            <textarea class="form-control evidence-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
+        const subsectionCards = (config.subsections || []).map((subEntry, index) => {
+            const entry = (subEntry && typeof subEntry === 'object' && subEntry.content !== undefined)
+                ? subEntry
+                : { content: subEntry };
+            const parsed = splitStandardContent(entry.content || '', index);
+            const titleText = entry.titleText || parsed.titleText || `Standard ${index + 1}`;
+            const baseId = stripHTML(`${titleText}-${index + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
+            const safeTitle = escapeHTML(titleText);
+            const itemKey = entry.itemKey || generateSubsectionKey(key);
+            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId, itemKey);
+            return `
+                <div class="compliance-card" data-section="${key}" data-item="${subId}">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <h5 class="subsection-title">${safeTitle}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-description">${parsed.bodyHTML}</div>
+                            ${deploymentBlock}
+                            <div class="card-fields">
+                                <div class="field-group">
+                                    <label>Describe evidence</label>
+                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
                                         </div>
                                         <div class="field-group">
                                             <label>Gaps</label>
