@@ -662,6 +662,13 @@
         'self-sustained': {}
     };
 
+    const SECTION_KEY_TO_MODALITY_SECTION = {
+        'core-standards': 'CORE STANDARD',
+        'clinical-standards': 'CLINICAL',
+        'logistic-standards': 'LOGISTICS',
+        'wash-standards': 'WASH'
+    };
+
     let builderSelectedModalities = new Set(DEPLOYMENT_MODALITIES.map(modality => modality.key));
 
     const TOOL_CONFIG = {
@@ -1199,6 +1206,53 @@
                     }
                     restoreSelection(editor);
                     document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            editor.addEventListener('input', updatePlaceholderState);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor.addEventListener('input', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
                     editor._updatePlaceholder?.();
                     storeSelection(editor);
                 }
@@ -1355,6 +1409,93 @@
 
         const stripHTML = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
+        const normalizeStandardName = (value = '') => stripHTML(value)
+            .toLowerCase()
+            .replace(/&amp;/g, 'and')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+
+        const getModalityMeta = (key) => {
+            const meta = DEPLOYMENT_MODALITIES.find(modality => modality.key === key);
+            return meta || { key, label: key, icon: 'fa-clipboard', accentClass: '' };
+        };
+
+        const findModalityDetail = (modalityKey, sectionKey, standardTitle) => {
+            const modalityData = DEPLOYMENT_MODALITY_DETAILS[modalityKey];
+            if (!modalityData) return null;
+            const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
+            if (!mappedSection) return null;
+            const sectionData = modalityData[mappedSection];
+            if (!sectionData) return null;
+            const normalizedTitle = normalizeStandardName(standardTitle);
+            let bestMatch = null;
+            for (const [name, details] of Object.entries(sectionData)) {
+                const normalizedName = normalizeStandardName(name);
+                if (!normalizedName) continue;
+                if (normalizedTitle && normalizedName === normalizedTitle) {
+                    bestMatch = details;
+                    break;
+                }
+                if (normalizedTitle && (normalizedName.includes(normalizedTitle) || normalizedTitle.includes(normalizedName))) {
+                    if (!bestMatch) {
+                        bestMatch = details;
+                    }
+                }
+            }
+            return bestMatch;
+        };
+
+        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId) => {
+            const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
+            if (!mappedSection || !selectedModalities || selectedModalities.length === 0) {
+                return '';
+            }
+
+            const modalityBlocks = selectedModalities.map(modalityKey => {
+                const details = findModalityDetail(modalityKey, sectionKey, standardTitle) || {};
+                const meta = getModalityMeta(modalityKey);
+                const requirementsValue = Array.isArray(details.requirements)
+                    ? details.requirements.join('\n')
+                    : (typeof details.requirements === 'string' ? details.requirements : '');
+                const mitigationValue = Array.isArray(details.mitigation)
+                    ? details.mitigation.join('\n')
+                    : (typeof details.mitigation === 'string' ? details.mitigation : '');
+                return `
+                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}">
+                        <div class="modality-requirement-header">
+                            <span class="modality-badge"><i class="fas ${meta.icon || 'fa-clipboard'}"></i> ${escapeHTML(meta.label)} Mode</span>
+                        </div>
+                        <div class="modality-requirement-columns">
+                            <div>
+                                <label>Requirements</label>
+                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
+                            </div>
+                            <div>
+                                <label>Mitigations</label>
+                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (!modalityBlocks) {
+                return '';
+            }
+
+            return `
+                <div class="deployment-requirements-card">
+                    <div class="deployment-requirements-header">
+                        <span class="deployment-requirements-title"><i class="fas fa-clipboard-check"></i> Deployment Requirements</span>
+                        <small class="text-muted">Adjust operational expectations for each supported modality.</small>
+                    </div>
+                    <div class="deployment-requirements-body">
+                        ${modalityBlocks}
+                    </div>
+                </div>
+            `;
+        };
+
         let tabPanes = enabledSections.map(([key, config]) => {
             let content = '';
             if (config.hasSubsections) {
@@ -1380,6 +1521,7 @@
                     const baseId = stripHTML(`${titleText}-${index + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
                     const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
                     const safeTitle = escapeHTML(titleText);
+                    const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId);
                     return `
                         <div class="compliance-card" data-section="${key}" data-item="${subId}">
                             <div class="card-inner">
@@ -1388,6 +1530,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="card-description">${bodyHTML}</div>
+                                    ${deploymentBlock}
                                     <div class="card-fields">
                                         <div class="field-group">
                                             <label>Describe evidence</label>
@@ -1909,6 +2052,119 @@
             line-height: 1.6;
         }
 
+        .deployment-requirements-card {
+            background: linear-gradient(145deg, rgba(219, 234, 254, 0.4), rgba(224, 231, 255, 0.8));
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 1.2rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .deployment-requirements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .deployment-requirements-title {
+            font-weight: 700;
+            color: #1d4ed8;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .deployment-requirements-title i {
+            font-size: 1.1rem;
+        }
+
+        .deployment-requirements-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modality-requirement-block {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e0e7ff;
+            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.12);
+            padding: 1rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .modality-requirement-block:hover {
+            box-shadow: 0 16px 32px rgba(59, 130, 246, 0.18);
+        }
+
+        .modality-requirement-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .modality-badge {
+            background: rgba(59, 130, 246, 0.18);
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 0.4rem 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .modality-requirement-block.embedded .modality-badge {
+            background: rgba(37, 99, 235, 0.16);
+            color: #1d4ed8;
+        }
+
+        .modality-requirement-block.coupled .modality-badge {
+            background: rgba(245, 158, 11, 0.22);
+            color: #92400e;
+        }
+
+        .modality-requirement-block.self-sustained .modality-badge {
+            background: rgba(22, 163, 74, 0.18);
+            color: #065f46;
+        }
+
+        .modality-requirement-columns {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .modality-requirement-columns label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .deployment-textarea {
+            border-radius: 12px;
+            border: 1px solid #cbd5f5;
+            background: #f8faff;
+            min-height: 110px;
+            resize: vertical;
+            padding: 0.75rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .deployment-textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.18);
+            background: #ffffff;
+        }
+
         .card-fields {
             display: grid;
             gap: 1rem;
@@ -2074,6 +2330,20 @@
                 grid-template-columns: 1fr;
             }
 
+            .deployment-requirements-header {
+                align-items: flex-start;
+                gap: 0.5rem;
+                flex-direction: column;
+            }
+
+            .modality-requirement-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .modality-requirement-block {
+                padding: 0.85rem;
+            }
+
             .compliance-score {
                 width: 100%;
             }
@@ -2092,7 +2362,7 @@
     const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
     const MODALITY_METADATA = ${modalityMetadataJSON};
     const DEFAULT_MODALITY_STATE = ${defaultModalityStateJSON};
-    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
+    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
     function getFieldValue(id){
         const element = document.getElementById(id);
         return element ? element.value : '';
@@ -2110,6 +2380,9 @@
             if (card) {
                 card.classList.toggle('d-none', !(checkbox && checkbox.checked));
             }
+            document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
+                block.classList.toggle('d-none', !(checkbox && checkbox.checked));
+            });
         });
     }
     function initializeData(){
@@ -2124,11 +2397,12 @@
                     gaps: parsed.gaps || {},
                     actions: parsed.actions || {},
                     comments: parsed.comments || {},
-                    summary: parsed.summary || {}
+                    summary: parsed.summary || {},
+                    deploymentRequirements: parsed.deploymentRequirements || {}
                 };
             } catch (error) {
                 console.warn('Failed to parse saved assessment data', error);
-                assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
+                assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
             }
         }
 
@@ -2159,6 +2433,7 @@
         toggleModalityDetails();
 
         assessmentData.teamInfo.deploymentModalities = modalityState;
+        assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
 
         Object.keys(assessmentData.teamInfo).forEach(field => {
             if (field === 'deploymentModalities') return;
@@ -2190,6 +2465,20 @@
             if (actionField) {
                 actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
             }
+        });
+
+        const deploymentData = assessmentData.deploymentRequirements || {};
+        document.querySelectorAll('.modality-requirement-block').forEach(block => {
+            const section = block.dataset.section;
+            const item = block.dataset.item;
+            const modality = block.dataset.modality;
+            const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
+            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                const field = textarea.dataset.field;
+                if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
+                    textarea.value = stored[field];
+                }
+            });
         });
 
         if (assessmentData.comments) {
@@ -2239,6 +2528,7 @@
         assessmentData.evidence = {};
         assessmentData.gaps = {};
         assessmentData.actions = {};
+        assessmentData.deploymentRequirements = {};
 
         document.querySelectorAll('.compliance-card').forEach(card => {
             const select = card.querySelector('.score-select');
@@ -2253,6 +2543,24 @@
             if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
             if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
             if (actionField) assessmentData.actions[key] = actionField.value || '';
+        });
+
+        document.querySelectorAll('.modality-requirement-block').forEach(block => {
+            const section = block.dataset.section;
+            const item = block.dataset.item;
+            const modality = block.dataset.modality;
+            if (!assessmentData.deploymentRequirements[section]) {
+                assessmentData.deploymentRequirements[section] = {};
+            }
+            if (!assessmentData.deploymentRequirements[section][item]) {
+                assessmentData.deploymentRequirements[section][item] = {};
+            }
+            const record = {};
+            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                const field = textarea.dataset.field;
+                record[field] = textarea.value || '';
+            });
+            assessmentData.deploymentRequirements[section][item][modality] = record;
         });
 
         assessmentData.comments = {};
@@ -2322,12 +2630,13 @@
         const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
         XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
 
-        const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments']];
+        const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
         document.querySelectorAll('.compliance-card').forEach(card => {
             const select = card.querySelector('.score-select');
             if (!select) return;
             const sectionKey = select.dataset.section;
-            const itemKey = sectionKey + '-' + select.dataset.item;
+            const itemId = select.dataset.item;
+            const itemKey = sectionKey + '-' + itemId;
             const titleElement = card.querySelector('.subsection-title');
             const descElement = card.querySelector('.card-description');
             const title = titleElement ? titleElement.textContent.trim() : '';
@@ -2339,6 +2648,28 @@
             const evidence = evidenceField ? evidenceField.value : '';
             const gaps = gapsField ? gapsField.value : '';
             const actions = actionField ? actionField.value : '';
+            let deploymentRequirementsText = '';
+            let deploymentMitigationsText = '';
+            const deploymentRecord = assessmentData.deploymentRequirements &&
+                assessmentData.deploymentRequirements[sectionKey] &&
+                assessmentData.deploymentRequirements[sectionKey][itemId];
+            if (deploymentRecord) {
+                const requirementParts = [];
+                const mitigationParts = [];
+                Object.keys(deploymentRecord).forEach(modalityKey => {
+                    const entry = deploymentRecord[modalityKey] || {};
+                    const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
+                    const label = meta ? meta.label : modalityKey;
+                    if (entry.requirements && entry.requirements.trim() !== '') {
+                        requirementParts.push(label + ': ' + entry.requirements.trim());
+                    }
+                    if (entry.mitigation && entry.mitigation.trim() !== '') {
+                        mitigationParts.push(label + ': ' + entry.mitigation.trim());
+                    }
+                });
+                deploymentRequirementsText = requirementParts.join('\n\n');
+                deploymentMitigationsText = mitigationParts.join('\n\n');
+            }
             assessmentRows.push([
                 itemKey,
                 sectionKey,
@@ -2347,7 +2678,9 @@
                 evidence,
                 gaps,
                 actions,
-                (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || ''
+                (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
+                deploymentRequirementsText,
+                deploymentMitigationsText
             ]);
         });
 
@@ -2372,7 +2705,8 @@
                     gaps: {},
                     actions: {},
                     comments: {},
-                    summary: {}
+                    summary: {},
+                    deploymentRequirements: {}
                 };
 
                 const sheet = workbook.Sheets["HID SCT Assessment"];
