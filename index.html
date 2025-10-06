@@ -2436,6 +2436,48 @@
                 }
             }
 
+            function normalizeImportedScore(value){
+                if (value === null || value === undefined){
+                    return null;
+                }
+                if (typeof value === 'number' && Number.isFinite(value)){
+                    if (value >= 0 && value <= 3){
+                        return String(Math.round(value));
+                    }
+                    return null;
+                }
+                const text = String(value).trim();
+                if (!text){
+                    return null;
+                }
+                const upper = text.toUpperCase();
+                if (upper === 'NA' || upper === 'N/A'){
+                    return 'NA';
+                }
+                const lower = text.toLowerCase();
+                if (lower.includes('not') && lower.includes('start')){
+                    return '0';
+                }
+                if (lower.includes('initial')){
+                    return '1';
+                }
+                if (lower.includes('progress')){
+                    return '2';
+                }
+                if (lower.includes('complete')){
+                    return '3';
+                }
+                const numeric = parseFloat(text);
+                if (!Number.isNaN(numeric) && numeric >= 0 && numeric <= 3){
+                    return String(Math.round(numeric));
+                }
+                const digitMatch = text.match(/([0-3])/);
+                if (digitMatch){
+                    return digitMatch[1];
+                }
+                return null;
+            }
+
             function isCardActive(card){
                 if (!card || card.classList.contains('d-none')){
                     return false;
@@ -2988,8 +3030,124 @@
                 reader.onload = function(loadEvent){
                     try {
                         const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
+
+                        const parsedTeamInfo = {
+                            teamName: '',
+                            region: '',
+                            country: '',
+                            mentorName: '',
+                            hqName: '',
+                            hqEmail: '',
+                            hqPhone: '',
+                            hqPosition: '',
+                            opsName: '',
+                            opsEmail: '',
+                            opsPhone: '',
+                            opsPosition: '',
+                            deploymentModalities: { ...DEFAULT_MODALITY_STATE }
+                        };
+
+                        const teamSheet = workbook.Sheets["Team Info"];
+                        if (teamSheet) {
+                            const rows = XLSX.utils.sheet_to_json(teamSheet, { header: 1, raw: false });
+                            let contactSection = null;
+                            let inModalitySection = false;
+
+                            rows.forEach(row => {
+                                if (!Array.isArray(row) || row.length === 0){
+                                    return;
+                                }
+                                const rawLabel = row[0];
+                                const rawValue = row.length > 1 ? row[1] : '';
+                                const label = rawLabel ? String(rawLabel).trim() : '';
+                                if (!label){
+                                    return;
+                                }
+                                const normalizedLabel = label.toLowerCase();
+                                if (normalizedLabel === 'team information'){
+                                    contactSection = null;
+                                    inModalitySection = false;
+                                    return;
+                                }
+                                if (normalizedLabel === 'headquarters contact'){
+                                    contactSection = 'hq';
+                                    return;
+                                }
+                                if (normalizedLabel === 'operations contact'){
+                                    contactSection = 'ops';
+                                    return;
+                                }
+                                if (normalizedLabel === 'supported deployment modalities'){
+                                    inModalitySection = true;
+                                    contactSection = null;
+                                    return;
+                                }
+                                const value = rawValue === undefined || rawValue === null ? '' : String(rawValue).trim();
+                                if (inModalitySection){
+                                    const modalityMeta = MODALITY_METADATA.find(modality => modality.label.toLowerCase() === normalizedLabel);
+                                    if (modalityMeta){
+                                        const normalizedValue = value.toLowerCase();
+                                        const isSupported = normalizedValue ?
+                                            (normalizedValue.startsWith('y') || normalizedValue === '1' || normalizedValue === 'true')
+                                            : false;
+                                        parsedTeamInfo.deploymentModalities[modalityMeta.key] = isSupported;
+                                    }
+                                    return;
+                                }
+
+                                switch (normalizedLabel){
+                                    case 'team name':
+                                        parsedTeamInfo.teamName = value;
+                                        return;
+                                    case 'region':
+                                        parsedTeamInfo.region = value;
+                                        return;
+                                    case 'country':
+                                        parsedTeamInfo.country = value;
+                                        return;
+                                    case 'mentor name':
+                                        parsedTeamInfo.mentorName = value;
+                                        return;
+                                }
+
+                                if (contactSection === 'hq'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.hqName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.hqEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.hqPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.hqPosition = value;
+                                            return;
+                                    }
+                                }
+
+                                if (contactSection === 'ops'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.opsName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.opsEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.opsPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.opsPosition = value;
+                                            return;
+                                    }
+                                }
+                            });
+                        }
+
                         assessmentData = {
-                            teamInfo: { deploymentModalities: { ...DEFAULT_MODALITY_STATE } },
+                            teamInfo: parsedTeamInfo,
                             scores: {},
                             evidence: {},
                             gaps: {},
@@ -3005,10 +3163,32 @@
                             for (const row of rows) {
                                 const id = row["Standard ID"];
                                 if (!id) continue;
-                                assessmentData.scores[id] = row.Score;
-                                assessmentData.evidence[id] = row.Evidence;
-                                assessmentData.gaps[id] = row.Gaps;
-                                assessmentData.actions[id] = row.Actions;
+
+                                const normalizedScore = normalizeImportedScore(row.Score);
+                                if (normalizedScore !== null){
+                                    assessmentData.scores[id] = normalizedScore;
+                                }
+
+                                if (row.Evidence !== undefined && row.Evidence !== null){
+                                    assessmentData.evidence[id] = String(row.Evidence);
+                                }
+                                if (row.Gaps !== undefined && row.Gaps !== null){
+                                    assessmentData.gaps[id] = String(row.Gaps);
+                                }
+                                if (row.Actions !== undefined && row.Actions !== null){
+                                    assessmentData.actions[id] = String(row.Actions);
+                                }
+
+                                const sectionKey = row.Pillar;
+                                if (sectionKey){
+                                    const commentKey = sectionKey + 'Comments';
+                                    if (row.Comments !== undefined && row.Comments !== null){
+                                        const commentText = String(row.Comments).trim();
+                                        if (commentText && (!assessmentData.comments[commentKey] || !assessmentData.comments[commentKey].trim())){
+                                            assessmentData.comments[commentKey] = commentText;
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -3022,6 +3202,7 @@
                     }
                 };
                 reader.readAsBinaryString(file);
+                event.target.value = '';
             }
             document.addEventListener("DOMContentLoaded", function () {
                 initializeData();
