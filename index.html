@@ -1533,8 +1533,17 @@
             .filter(([,c]) => c.weight > 0)
             .map(([k,c]) => ({ name: c.title.toUpperCase(), weight: c.weight, section: k }));
 
+        const weightsDataJSON = JSON.stringify(weightsData);
         const modalityMetadataJSON = JSON.stringify(DEPLOYMENT_MODALITIES);
         const defaultModalityStateJSON = JSON.stringify(defaultModalityState);
+
+        const scriptTemplateElement = document.getElementById('generated-tool-script-template');
+        const scriptTemplate = scriptTemplateElement ? scriptTemplateElement.textContent : '';
+        const populatedScript = scriptTemplate
+            .replace(/__SECTIONS_WITH_WEIGHT__/g, weightsDataJSON)
+            .replace(/__MODALITY_METADATA__/g, modalityMetadataJSON)
+            .replace(/__DEFAULT_MODALITY_STATE__/g, defaultModalityStateJSON);
+        const escapedScript = populatedScript.replace(/<\/script>/g, '<\/script>');
 
         const fullHTML = `
 <!DOCTYPE html>
@@ -2365,8 +2374,8 @@
                 width: 100%;
             }
         }
-    <\/style>
-<\/head>
+    </style>
+</head>
 <body>
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
@@ -2393,663 +2402,9 @@
     </div></div>
     <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
-    <script>
-    const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
-    const MODALITY_METADATA = ${modalityMetadataJSON};
-    const DEFAULT_MODALITY_STATE = ${defaultModalityStateJSON};
-    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
-    function getFieldValue(id){
-        const element = document.getElementById(id);
-        return element ? element.value : '';
-    }
-    function setFieldValue(id, value){
-        const element = document.getElementById(id);
-        if (element){
-            element.value = value;
-        }
-    }
-
-    function isCardActive(card){
-        if (!card || card.classList.contains('d-none')){
-            return false;
-        }
-        if (card.closest('.d-none')){
-            return false;
-        }
-        const style = window.getComputedStyle(card);
-        if (style.display === 'none' || style.visibility === 'hidden'){
-            return false;
-        }
-        if (card.offsetParent === null && style.position !== 'fixed'){
-            return false;
-        }
-        return true;
-    }
-
-    function setCircleProgress(circle, percent){
-        if (!circle){
-            return;
-        }
-        const safePercent = isFinite(percent) ? percent : 0;
-        const clamped = Math.max(0, Math.min(100, Math.round(safePercent)));
-        const angle = clamped * 3.6;
-        circle.style.background = `conic-gradient(#4f46e5 ${angle}deg, #e2e8f0 ${angle}deg 360deg)`;
-        const label = circle.querySelector('span');
-        if (label){
-            label.textContent = `${clamped}%`;
-        }
-    }
-
-    function buildSectionProgressHTML(summaries){
-        if (!Array.isArray(summaries) || summaries.length === 0){
-            return '<p class="text-muted mb-0">Progress data will appear here as scores are recorded.</p>';
-        }
-        return summaries.map(summary => {
-            const percent = Math.max(0, Math.min(100, Math.round(summary.percent || 0)));
-            const pending = Math.max(0, summary.pending || 0);
-            const buttonState = pending === 0 ? 'disabled' : '';
-            return `
-                <div class="section-progress-item">
-                    <div class="section-progress-header">
-                        <span>${summary.name}</span>
-                        <span>${percent}%</span>
-                    </div>
-                    <div class="section-progress-bar">
-                        <div class="bar-fill" style="width:${percent}%"></div>
-                    </div>
-                    <div class="section-progress-meta">
-                        <span><span class="badge bg-success me-1">${summary.completed || 0}</span>Completed</span>
-                        <span><span class="badge bg-secondary me-1">${pending}</span>Pending</span>
-                    </div>
-                    <p class="text-muted small mb-2">Active standards: ${summary.applicable || 0}</p>
-                    <button type="button" class="btn btn-link btn-sm section-focus-button p-0" data-target-section="${summary.key}" ${buttonState}>View pending</button>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function focusSection(sectionKey){
-        if (!sectionKey){
-            return;
-        }
-        const navLink = document.querySelector('.sidebar .nav-link[href="#' + sectionKey + '"]');
-        if (navLink){
-            if (typeof bootstrap !== 'undefined' && bootstrap.Tab){
-                const tabInstance = bootstrap.Tab.getOrCreateInstance(navLink);
-                tabInstance.show();
-            } else {
-                navLink.click();
-            }
-        }
-        setTimeout(() => {
-            const tabPane = document.getElementById(sectionKey);
-            if (!tabPane){
-                return;
-            }
-            const pendingSelect = tabPane.querySelector('.compliance-card:not(.d-none) .score-select:not([value="3"])');
-            const targetCard = pendingSelect ? pendingSelect.closest('.compliance-card') : tabPane.querySelector('.compliance-card:not(.d-none)');
-            if (targetCard){
-                targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                const select = targetCard.querySelector('.score-select');
-                if (select){
-                    select.focus();
-                }
-            }
-        }, 200);
-    }
-
-    function bindSectionFocusButtons(){
-        document.querySelectorAll('.section-focus-button').forEach(button => {
-            button.onclick = event => {
-                event.preventDefault();
-                focusSection(button.dataset.targetSection);
-            };
-        });
-    }
-
-    function getSelectedModalitiesLabels(){
-        return MODALITY_METADATA
-            .filter(modality => {
-                const checkbox = document.getElementById('modality-' + modality.key);
-                return checkbox && checkbox.checked;
-            })
-            .map(modality => modality.label);
-    }
-    function toggleModalityDetails(){
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
-            if (card) {
-                card.classList.toggle('d-none', !(checkbox && checkbox.checked));
-            }
-            document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
-                block.classList.toggle('d-none', !(checkbox && checkbox.checked));
-            });
-        });
-    }
-    function initializeData(){
-        const stored = localStorage.getItem("hidSCTAssessment");
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                assessmentData = {
-                    teamInfo: parsed.teamInfo || {},
-                    scores: parsed.scores || {},
-                    evidence: parsed.evidence || {},
-                    gaps: parsed.gaps || {},
-                    actions: parsed.actions || {},
-                    comments: parsed.comments || {},
-                    summary: parsed.summary || {},
-                    deploymentRequirements: parsed.deploymentRequirements || {}
-                };
-            } catch (error) {
-                console.warn('Failed to parse saved assessment data', error);
-                assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
-            }
-        }
-
-        assessmentData.teamInfo = assessmentData.teamInfo || {};
-        if (!assessmentData.teamInfo.deploymentModalities) {
-            assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
-        }
-
-        loadSavedData();
-        updateProgress();
-    }
-    function loadSavedData(){
-        assessmentData.teamInfo = assessmentData.teamInfo || {};
-        const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
-
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            if (checkbox) {
-                const isChecked = !!modalityState[modality.key];
-                checkbox.checked = isChecked;
-                const pill = checkbox.closest('.modality-pill');
-                if (pill) {
-                    pill.classList.toggle('selected', isChecked);
-                }
-            }
-        });
-
-        toggleModalityDetails();
-
-        assessmentData.teamInfo.deploymentModalities = modalityState;
-        assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
-
-        Object.keys(assessmentData.teamInfo).forEach(field => {
-            if (field === 'deploymentModalities') return;
-            const input = document.getElementById(field);
-            if (input) {
-                input.value = assessmentData.teamInfo[field];
-            }
-        });
-
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
-                select.value = assessmentData.scores[key];
-            } else {
-                select.value = '0';
-            }
-            updateScoreBadge(select);
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            if (evidenceField) {
-                evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
-            }
-            if (gapsField) {
-                gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
-            }
-            if (actionField) {
-                actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
-            }
-        });
-
-        const deploymentData = assessmentData.deploymentRequirements || {};
-        document.querySelectorAll('.modality-requirement-block').forEach(block => {
-            const section = block.dataset.section;
-            const item = block.dataset.item;
-            const modality = block.dataset.modality;
-            const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
-            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
-                const field = textarea.dataset.field;
-                if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
-                    textarea.value = stored[field];
-                }
-            });
-        });
-
-        if (assessmentData.comments) {
-            Object.keys(assessmentData.comments).forEach(id => {
-                setFieldValue(id, assessmentData.comments[id]);
-            });
-        }
-
-        if (assessmentData.summary) {
-            Object.keys(assessmentData.summary).forEach(id => {
-                setFieldValue(id, assessmentData.summary[id]);
-            });
-        }
-    }
-    function saveProgress(){
-        const modalityState = { ...DEFAULT_MODALITY_STATE };
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            if (checkbox) {
-                modalityState[modality.key] = checkbox.checked;
-                const pill = checkbox.closest('.modality-pill');
-                if (pill) {
-                    pill.classList.toggle('selected', checkbox.checked);
-                }
-            }
-        });
-
-        toggleModalityDetails();
-
-        assessmentData.teamInfo = {
-            teamName: getFieldValue('teamName'),
-            region: getFieldValue('region'),
-            country: getFieldValue('country'),
-            mentorName: getFieldValue('mentorName'),
-            hqName: getFieldValue('hqName'),
-            hqEmail: getFieldValue('hqEmail'),
-            hqPhone: getFieldValue('hqPhone'),
-            hqPosition: getFieldValue('hqPosition'),
-            opsName: getFieldValue('opsName'),
-            opsEmail: getFieldValue('opsEmail'),
-            opsPhone: getFieldValue('opsPhone'),
-            opsPosition: getFieldValue('opsPosition'),
-            deploymentModalities: modalityState
-        };
-
-        assessmentData.scores = {};
-        assessmentData.evidence = {};
-        assessmentData.gaps = {};
-        assessmentData.actions = {};
-        assessmentData.deploymentRequirements = {};
-
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (select.value) {
-                assessmentData.scores[key] = select.value;
-            }
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
-            if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
-            if (actionField) assessmentData.actions[key] = actionField.value || '';
-        });
-
-        document.querySelectorAll('.modality-requirement-block').forEach(block => {
-            const section = block.dataset.section;
-            const item = block.dataset.item;
-            const modality = block.dataset.modality;
-            if (!assessmentData.deploymentRequirements[section]) {
-                assessmentData.deploymentRequirements[section] = {};
-            }
-            if (!assessmentData.deploymentRequirements[section][item]) {
-                assessmentData.deploymentRequirements[section][item] = {};
-            }
-            const record = {};
-            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
-                const field = textarea.dataset.field;
-                record[field] = textarea.value || '';
-            });
-            assessmentData.deploymentRequirements[section][item][modality] = record;
-        });
-
-        assessmentData.comments = {};
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const commentField = document.getElementById(section.section + 'Comments');
-            if (commentField) {
-                assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
-            }
-        });
-
-        assessmentData.summary = {
-            strengths: getFieldValue('strengths'),
-            criticalGaps: getFieldValue('criticalGaps'),
-            immediateActions: getFieldValue('immediateActions'),
-            shortTermActions: getFieldValue('shortTermActions'),
-            mediumTermActions: getFieldValue('mediumTermActions'),
-            technicalAssistance: getFieldValue('technicalAssistance'),
-            trainingRequirements: getFieldValue('trainingRequirements'),
-            resourceRequirements: getFieldValue('resourceRequirements'),
-            nextSteps: getFieldValue('nextSteps'),
-            completionDate: getFieldValue('completionDate'),
-            reviewedBy: getFieldValue('reviewedBy'),
-            mentorAssignment: getFieldValue('mentorAssignment')
-        };
-
-        localStorage.setItem('hidSCTAssessment', JSON.stringify(assessmentData));
-        showNotification('Progress saved successfully!');
-        updateProgress();
-    }
-    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
-    function updateScoreBadge(select){
-        const value = select.value;
-        select.className = 'form-select score-select compliance-score';
-        if (value !== '' && value !== 'NA') {
-            select.classList.add('score-' + value);
-        }
-    }
-    function updateProgress(){
-        const sectionSummaries = [];
-        let totalWeight = 0;
-        let weightedScore = 0;
-        let completedSectionCount = 0;
-
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const sectionKey = section.section;
-            const weight = Number(section.weight) || 0;
-            const cards = Array.from(document.querySelectorAll('.compliance-card[data-section="' + sectionKey + '"]'));
-            const activeCards = cards.filter(isCardActive);
-            const consideredCards = activeCards.filter(card => {
-                const select = card.querySelector('.score-select');
-                return !(select && select.value === 'NA');
-            });
-            const divisor = consideredCards.length;
-            const weightShare = divisor > 0 ? weight / divisor : 0;
-            let sectionScore = 0;
-            let completedCount = 0;
-
-            consideredCards.forEach(card => {
-                const select = card.querySelector('.score-select');
-                let rawValue = 0;
-                if (select){
-                    const value = select.value;
-                    if (value && value !== 'NA'){
-                        const parsed = parseInt(value, 10);
-                        rawValue = Number.isNaN(parsed) ? 0 : parsed;
-                    }
-                }
-                if (rawValue === 3){
-                    completedCount += 1;
-                }
-                const compliance = rawValue > 0 ? Math.min(Math.max(rawValue, 0), 3) / 3 : 0;
-                sectionScore += weightShare * compliance;
-            });
-
-            const pendingCount = divisor > 0 ? Math.max(divisor - completedCount, 0) : 0;
-            if (divisor > 0 && pendingCount === 0 && completedCount > 0){
-                completedSectionCount += 1;
-            }
-
-            const normalizedPercent = weight > 0 ? Math.max(0, Math.min(100, (sectionScore / weight) * 100)) : 0;
-            totalWeight += weight;
-            weightedScore += sectionScore;
-
-            const pill = document.getElementById(sectionKey + 'Score');
-            if (pill){
-                pill.textContent = `${Math.round(normalizedPercent)}% Complete`;
-            }
-
-            sectionSummaries.push({
-                key: sectionKey,
-                name: section.name,
-                weight,
-                percent: normalizedPercent,
-                completed: completedCount,
-                pending: pendingCount,
-                applicable: divisor,
-                hidden: cards.length - activeCards.length
-            });
-        });
-
-        const overallPercent = totalWeight > 0 ? Math.max(0, Math.min(100, (weightedScore / totalWeight) * 100)) : 0;
-        const roundedOverall = Math.round(overallPercent);
-
-        const overallProgressBar = document.getElementById('overallProgressBar');
-        if (overallProgressBar){
-            overallProgressBar.style.width = `${roundedOverall}%`;
-        }
-        const overallProgressText = document.getElementById('overallProgressText');
-        if (overallProgressText){
-            overallProgressText.textContent = `${roundedOverall}%`;
-        }
-
-        setCircleProgress(document.getElementById('globalProgressCircle'), overallPercent);
-        setCircleProgress(document.getElementById('orgProgressCircle'), overallPercent);
-
-        const sectionList = document.getElementById('sectionProgressList');
-        if (sectionList){
-            sectionList.innerHTML = buildSectionProgressHTML(sectionSummaries);
-        }
-        const orgList = document.getElementById('orgProgressList');
-        if (orgList){
-            orgList.innerHTML = buildSectionProgressHTML(sectionSummaries);
-        }
-
-        bindSectionFocusButtons();
-
-        const selectedModalities = getSelectedModalitiesLabels();
-        const noteCard = document.getElementById('deploymentNoteCard');
-        const noteText = document.getElementById('deploymentNoteText');
-        if (noteCard && noteText){
-            const hiddenSections = sectionSummaries.filter(summary => summary.hidden > 0);
-            if ((selectedModalities.length > 0 && selectedModalities.length < MODALITY_METADATA.length) || hiddenSections.length > 0){
-                noteCard.classList.remove('d-none');
-                const selectionText = selectedModalities.length > 0
-                    ? `Active profiles: ${selectedModalities.join(', ')}.`
-                    : 'No deployment profile currently selected.';
-                const hiddenText = hiddenSections.length > 0
-                    ? ` Hidden standards in: ${hiddenSections.map(item => item.name).join(', ')}.`
-                    : '';
-                noteText.textContent = selectionText + hiddenText;
-            } else {
-                noteCard.classList.add('d-none');
-                noteText.textContent = '';
-            }
-        }
-
-        const completedSectionsElement = document.getElementById('completedSections');
-        if (completedSectionsElement){
-            completedSectionsElement.textContent = `${completedSectionCount}/${SECTIONS_WITH_WEIGHT.length}`;
-        }
-        const overallScoreElement = document.getElementById('overallScore');
-        if (overallScoreElement){
-            overallScoreElement.textContent = `${roundedOverall}%`;
-        }
-        const lastUpdatedElement = document.getElementById('lastUpdated');
-        if (lastUpdatedElement){
-            lastUpdatedElement.textContent = (new Date()).toLocaleDateString();
-        }
-    }
-    function exportToExcel(){
-        saveProgress();
-        const workbook = XLSX.utils.book_new();
-        const teamInfo = [
-            ['Team Information', ''],
-            ['Team Name', assessmentData.teamInfo.teamName || ''],
-            ['Region', assessmentData.teamInfo.region || ''],
-            ['Country', assessmentData.teamInfo.country || ''],
-            ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
-            [''],
-            ['Headquarters Contact', ''],
-            ['Name', assessmentData.teamInfo.hqName || ''],
-            ['Email', assessmentData.teamInfo.hqEmail || ''],
-            ['Phone', assessmentData.teamInfo.hqPhone || ''],
-            ['Position', assessmentData.teamInfo.hqPosition || ''],
-            [''],
-            ['Operations Contact', ''],
-            ['Name', assessmentData.teamInfo.opsName || ''],
-            ['Email', assessmentData.teamInfo.opsEmail || ''],
-            ['Phone', assessmentData.teamInfo.opsPhone || ''],
-            ['Position', assessmentData.teamInfo.opsPosition || '']
-        ];
-        teamInfo.push(['']);
-        teamInfo.push(['Supported Deployment Modalities', '']);
-        MODALITY_METADATA.forEach(modality => {
-            const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
-            teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
-        });
-        const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
-        XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
-
-        const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const sectionKey = select.dataset.section;
-            const itemId = select.dataset.item;
-            const itemKey = sectionKey + '-' + itemId;
-            const titleElement = card.querySelector('.subsection-title');
-            const descElement = card.querySelector('.card-description');
-            const title = titleElement ? titleElement.textContent.trim() : '';
-            const description = descElement ? descElement.textContent.trim() : '';
-            const statement = description ? title + ' — ' + description : title;
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            const evidence = evidenceField ? evidenceField.value : '';
-            const gaps = gapsField ? gapsField.value : '';
-            const actions = actionField ? actionField.value : '';
-            let deploymentRequirementsText = '';
-            let deploymentMitigationsText = '';
-            const deploymentRecord = assessmentData.deploymentRequirements &&
-                assessmentData.deploymentRequirements[sectionKey] &&
-                assessmentData.deploymentRequirements[sectionKey][itemId];
-            if (deploymentRecord) {
-                const requirementParts = [];
-                const mitigationParts = [];
-                Object.keys(deploymentRecord).forEach(modalityKey => {
-                    const entry = deploymentRecord[modalityKey] || {};
-                    const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
-                    const label = meta ? meta.label : modalityKey;
-                    if (entry.requirements && entry.requirements.trim() !== '') {
-                        requirementParts.push(label + ': ' + entry.requirements.trim());
-                    }
-                    if (entry.mitigation && entry.mitigation.trim() !== '') {
-                        mitigationParts.push(label + ': ' + entry.mitigation.trim());
-                    }
-                });
-                deploymentRequirementsText = requirementParts.join('\n\n');
-                deploymentMitigationsText = mitigationParts.join('\n\n');
-            }
-            assessmentRows.push([
-                itemKey,
-                sectionKey,
-                statement,
-                select.value || '',
-                evidence,
-                gaps,
-                actions,
-                (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
-                deploymentRequirementsText,
-                deploymentMitigationsText
-            ]);
-        });
-
-        const assessmentSheet = XLSX.utils.aoa_to_sheet(assessmentRows);
-        XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
-        const dateSuffix = (new Date).toISOString().split('T')[0];
-        XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
-        showNotification('Data exported to Excel successfully!');
-    }
-    function importFromExcel(event){
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(loadEvent){
-            try {
-                const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
-                assessmentData = {
-                    teamInfo: { deploymentModalities: { ...DEFAULT_MODALITY_STATE } },
-                    scores: {},
-                    evidence: {},
-                    gaps: {},
-                    actions: {},
-                    comments: {},
-                    summary: {},
-                    deploymentRequirements: {}
-                };
-
-                const sheet = workbook.Sheets["HID SCT Assessment"];
-                if (sheet) {
-                    const rows = XLSX.utils.sheet_to_json(sheet);
-                    for (const row of rows) {
-                        const id = row["Standard ID"];
-                        if (!id) continue;
-                        assessmentData.scores[id] = row.Score;
-                        assessmentData.evidence[id] = row.Evidence;
-                        assessmentData.gaps[id] = row.Gaps;
-                        assessmentData.actions[id] = row.Actions;
-                    }
-                }
-
-                localStorage.setItem("hidSCTAssessment", JSON.stringify(assessmentData));
-                loadSavedData();
-                updateProgress();
-                showNotification("Data imported successfully!");
-            } catch (error) {
-                console.warn('Error importing file', error);
-                showNotification("Error importing file.");
-            }
-        };
-        reader.readAsBinaryString(file);
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-        initializeData();
-
-        document.querySelectorAll("input, textarea, select").forEach(element => {
-            element.addEventListener("change", saveProgress);
-        });
-
-        document.querySelectorAll('.score-select').forEach(select => {
-            updateScoreBadge(select);
-            select.addEventListener('change', function () {
-                updateScoreBadge(select);
-            });
-        });
-
-        document.getElementById("btn-save").addEventListener("click", saveProgress);
-        document.getElementById("btn-export-json").addEventListener("click", () => {
-            saveProgress();
-            const json = JSON.stringify(assessmentData, null, 2);
-            const blob = new Blob([json], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "HID_SCT_Assessment_" + (new Date).toISOString().split("T")[0] + ".json";
-            link.click();
-            URL.revokeObjectURL(url);
-        });
-
-        document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
-        document.getElementById("btn-submit").addEventListener("click", () => {
-            saveProgress();
-            showNotification("Assessment submitted successfully!");
-        });
-
-        document.getElementById("btn-import-excel").addEventListener("click", () => {
-            document.getElementById("fileInput").click();
-        });
-
-        document.getElementById("fileInput").addEventListener("change", importFromExcel);
-
-        const navLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
-        navLinks.forEach(link => {
-            link.addEventListener("click", function (event) {
-                event.preventDefault();
-                navLinks.forEach(item => item.classList.remove("active"));
-                link.classList.add("active");
-                const target = link.getAttribute("href");
-                document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
-                document.querySelector(target).classList.add("show", "active");
-            });
-        });
-    });
-    <\/script>
-<\/body>
-<\/html>
+    <script>${escapedScript}<\/script>
+</body>
+</html>
 `;
         const blob = new Blob([fullHTML], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
@@ -3065,6 +2420,661 @@
     document.addEventListener('DOMContentLoaded', renderMakerUI);
     </script>
     
+    <script type="text/template" id="generated-tool-script-template">
+            const SECTIONS_WITH_WEIGHT = __SECTIONS_WITH_WEIGHT__;
+            const MODALITY_METADATA = __MODALITY_METADATA__;
+            const DEFAULT_MODALITY_STATE = __DEFAULT_MODALITY_STATE__;
+            let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+            function getFieldValue(id){
+                const element = document.getElementById(id);
+                return element ? element.value : '';
+            }
+            function setFieldValue(id, value){
+                const element = document.getElementById(id);
+                if (element){
+                    element.value = value;
+                }
+            }
+
+            function isCardActive(card){
+                if (!card || card.classList.contains('d-none')){
+                    return false;
+                }
+                if (card.closest('.d-none')){
+                    return false;
+                }
+                const style = window.getComputedStyle(card);
+                if (style.display === 'none' || style.visibility === 'hidden'){
+                    return false;
+                }
+                if (card.offsetParent === null && style.position !== 'fixed'){
+                    return false;
+                }
+                return true;
+            }
+
+            function setCircleProgress(circle, percent){
+                if (!circle){
+                    return;
+                }
+                const safePercent = isFinite(percent) ? percent : 0;
+                const clamped = Math.max(0, Math.min(100, Math.round(safePercent)));
+                const angle = clamped * 3.6;
+                circle.style.background = `conic-gradient(#4f46e5 ${angle}deg, #e2e8f0 ${angle}deg 360deg)`;
+                const label = circle.querySelector('span');
+                if (label){
+                    label.textContent = `${clamped}%`;
+                }
+            }
+
+            function buildSectionProgressHTML(summaries){
+                if (!Array.isArray(summaries) || summaries.length === 0){
+                    return '<p class="text-muted mb-0">Progress data will appear here as scores are recorded.</p>';
+                }
+                return summaries.map(summary => {
+                    const percent = Math.max(0, Math.min(100, Math.round(summary.percent || 0)));
+                    const pending = Math.max(0, summary.pending || 0);
+                    const buttonState = pending === 0 ? 'disabled' : '';
+                    return `
+                        <div class="section-progress-item">
+                            <div class="section-progress-header">
+                                <span>${summary.name}</span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div class="section-progress-bar">
+                                <div class="bar-fill" style="width:${percent}%"></div>
+                            </div>
+                            <div class="section-progress-meta">
+                                <span><span class="badge bg-success me-1">${summary.completed || 0}</span>Completed</span>
+                                <span><span class="badge bg-secondary me-1">${pending}</span>Pending</span>
+                            </div>
+                            <p class="text-muted small mb-2">Active standards: ${summary.applicable || 0}</p>
+                            <button type="button" class="btn btn-link btn-sm section-focus-button p-0" data-target-section="${summary.key}" ${buttonState}>View pending</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function focusSection(sectionKey){
+                if (!sectionKey){
+                    return;
+                }
+                const navLink = document.querySelector('.sidebar .nav-link[href="#' + sectionKey + '"]');
+                if (navLink){
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tab){
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(navLink);
+                        tabInstance.show();
+                    } else {
+                        navLink.click();
+                    }
+                }
+                setTimeout(() => {
+                    const tabPane = document.getElementById(sectionKey);
+                    if (!tabPane){
+                        return;
+                    }
+                    const pendingSelect = tabPane.querySelector('.compliance-card:not(.d-none) .score-select:not([value="3"])');
+                    const targetCard = pendingSelect ? pendingSelect.closest('.compliance-card') : tabPane.querySelector('.compliance-card:not(.d-none)');
+                    if (targetCard){
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const select = targetCard.querySelector('.score-select');
+                        if (select){
+                            select.focus();
+                        }
+                    }
+                }, 200);
+            }
+
+            function bindSectionFocusButtons(){
+                document.querySelectorAll('.section-focus-button').forEach(button => {
+                    button.onclick = event => {
+                        event.preventDefault();
+                        focusSection(button.dataset.targetSection);
+                    };
+                });
+            }
+
+            function getSelectedModalitiesLabels(){
+                return MODALITY_METADATA
+                    .filter(modality => {
+                        const checkbox = document.getElementById('modality-' + modality.key);
+                        return checkbox && checkbox.checked;
+                    })
+                    .map(modality => modality.label);
+            }
+            function toggleModalityDetails(){
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
+                    if (card) {
+                        card.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    }
+                    document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
+                        block.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    });
+                });
+            }
+            function initializeData(){
+                const stored = localStorage.getItem("hidSCTAssessment");
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        assessmentData = {
+                            teamInfo: parsed.teamInfo || {},
+                            scores: parsed.scores || {},
+                            evidence: parsed.evidence || {},
+                            gaps: parsed.gaps || {},
+                            actions: parsed.actions || {},
+                            comments: parsed.comments || {},
+                            summary: parsed.summary || {},
+                            deploymentRequirements: parsed.deploymentRequirements || {}
+                        };
+                    } catch (error) {
+                        console.warn('Failed to parse saved assessment data', error);
+                        assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+                    }
+                }
+
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                if (!assessmentData.teamInfo.deploymentModalities) {
+                    assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
+                }
+
+                loadSavedData();
+                updateProgress();
+            }
+            function loadSavedData(){
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
+
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        const isChecked = !!modalityState[modality.key];
+                        checkbox.checked = isChecked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', isChecked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo.deploymentModalities = modalityState;
+                assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
+
+                Object.keys(assessmentData.teamInfo).forEach(field => {
+                    if (field === 'deploymentModalities') return;
+                    const input = document.getElementById(field);
+                    if (input) {
+                        input.value = assessmentData.teamInfo[field];
+                    }
+                });
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
+                        select.value = assessmentData.scores[key];
+                    } else {
+                        select.value = '0';
+                    }
+                    updateScoreBadge(select);
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) {
+                        evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
+                    }
+                    if (gapsField) {
+                        gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
+                    }
+                    if (actionField) {
+                        actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
+                    }
+                });
+
+                const deploymentData = assessmentData.deploymentRequirements || {};
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
+                            textarea.value = stored[field];
+                        }
+                    });
+                });
+
+                if (assessmentData.comments) {
+                    Object.keys(assessmentData.comments).forEach(id => {
+                        setFieldValue(id, assessmentData.comments[id]);
+                    });
+                }
+
+                if (assessmentData.summary) {
+                    Object.keys(assessmentData.summary).forEach(id => {
+                        setFieldValue(id, assessmentData.summary[id]);
+                    });
+                }
+            }
+            function saveProgress(){
+                const modalityState = { ...DEFAULT_MODALITY_STATE };
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        modalityState[modality.key] = checkbox.checked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', checkbox.checked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo = {
+                    teamName: getFieldValue('teamName'),
+                    region: getFieldValue('region'),
+                    country: getFieldValue('country'),
+                    mentorName: getFieldValue('mentorName'),
+                    hqName: getFieldValue('hqName'),
+                    hqEmail: getFieldValue('hqEmail'),
+                    hqPhone: getFieldValue('hqPhone'),
+                    hqPosition: getFieldValue('hqPosition'),
+                    opsName: getFieldValue('opsName'),
+                    opsEmail: getFieldValue('opsEmail'),
+                    opsPhone: getFieldValue('opsPhone'),
+                    opsPosition: getFieldValue('opsPosition'),
+                    deploymentModalities: modalityState
+                };
+
+                assessmentData.scores = {};
+                assessmentData.evidence = {};
+                assessmentData.gaps = {};
+                assessmentData.actions = {};
+                assessmentData.deploymentRequirements = {};
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (select.value) {
+                        assessmentData.scores[key] = select.value;
+                    }
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
+                    if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
+                    if (actionField) assessmentData.actions[key] = actionField.value || '';
+                });
+
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    if (!assessmentData.deploymentRequirements[section]) {
+                        assessmentData.deploymentRequirements[section] = {};
+                    }
+                    if (!assessmentData.deploymentRequirements[section][item]) {
+                        assessmentData.deploymentRequirements[section][item] = {};
+                    }
+                    const record = {};
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        record[field] = textarea.value || '';
+                    });
+                    assessmentData.deploymentRequirements[section][item][modality] = record;
+                });
+
+                assessmentData.comments = {};
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const commentField = document.getElementById(section.section + 'Comments');
+                    if (commentField) {
+                        assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
+                    }
+                });
+
+                assessmentData.summary = {
+                    strengths: getFieldValue('strengths'),
+                    criticalGaps: getFieldValue('criticalGaps'),
+                    immediateActions: getFieldValue('immediateActions'),
+                    shortTermActions: getFieldValue('shortTermActions'),
+                    mediumTermActions: getFieldValue('mediumTermActions'),
+                    technicalAssistance: getFieldValue('technicalAssistance'),
+                    trainingRequirements: getFieldValue('trainingRequirements'),
+                    resourceRequirements: getFieldValue('resourceRequirements'),
+                    nextSteps: getFieldValue('nextSteps'),
+                    completionDate: getFieldValue('completionDate'),
+                    reviewedBy: getFieldValue('reviewedBy'),
+                    mentorAssignment: getFieldValue('mentorAssignment')
+                };
+
+                localStorage.setItem('hidSCTAssessment', JSON.stringify(assessmentData));
+                showNotification('Progress saved successfully!');
+                updateProgress();
+            }
+            function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+            function updateScoreBadge(select){
+                const value = select.value;
+                select.className = 'form-select score-select compliance-score';
+                if (value !== '' && value !== 'NA') {
+                    select.classList.add('score-' + value);
+                }
+            }
+            function updateProgress(){
+                const sectionSummaries = [];
+                let totalWeight = 0;
+                let weightedScore = 0;
+                let completedSectionCount = 0;
+
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const sectionKey = section.section;
+                    const weight = Number(section.weight) || 0;
+                    const cards = Array.from(document.querySelectorAll('.compliance-card[data-section="' + sectionKey + '"]'));
+                    const activeCards = cards.filter(isCardActive);
+                    const consideredCards = activeCards.filter(card => {
+                        const select = card.querySelector('.score-select');
+                        return !(select && select.value === 'NA');
+                    });
+                    const divisor = consideredCards.length;
+                    const weightShare = divisor > 0 ? weight / divisor : 0;
+                    let sectionScore = 0;
+                    let completedCount = 0;
+
+                    consideredCards.forEach(card => {
+                        const select = card.querySelector('.score-select');
+                        let rawValue = 0;
+                        if (select){
+                            const value = select.value;
+                            if (value && value !== 'NA'){
+                                const parsed = parseInt(value, 10);
+                                rawValue = Number.isNaN(parsed) ? 0 : parsed;
+                            }
+                        }
+                        if (rawValue === 3){
+                            completedCount += 1;
+                        }
+                        const compliance = rawValue > 0 ? Math.min(Math.max(rawValue, 0), 3) / 3 : 0;
+                        sectionScore += weightShare * compliance;
+                    });
+
+                    const pendingCount = divisor > 0 ? Math.max(divisor - completedCount, 0) : 0;
+                    if (divisor > 0 && pendingCount === 0 && completedCount > 0){
+                        completedSectionCount += 1;
+                    }
+
+                    const normalizedPercent = weight > 0 ? Math.max(0, Math.min(100, (sectionScore / weight) * 100)) : 0;
+                    totalWeight += weight;
+                    weightedScore += sectionScore;
+
+                    const pill = document.getElementById(sectionKey + 'Score');
+                    if (pill){
+                        pill.textContent = `${Math.round(normalizedPercent)}% Complete`;
+                    }
+
+                    sectionSummaries.push({
+                        key: sectionKey,
+                        name: section.name,
+                        weight,
+                        percent: normalizedPercent,
+                        completed: completedCount,
+                        pending: pendingCount,
+                        applicable: divisor,
+                        hidden: cards.length - activeCards.length
+                    });
+                });
+
+                const overallPercent = totalWeight > 0 ? Math.max(0, Math.min(100, (weightedScore / totalWeight) * 100)) : 0;
+                const roundedOverall = Math.round(overallPercent);
+
+                const overallProgressBar = document.getElementById('overallProgressBar');
+                if (overallProgressBar){
+                    overallProgressBar.style.width = `${roundedOverall}%`;
+                }
+                const overallProgressText = document.getElementById('overallProgressText');
+                if (overallProgressText){
+                    overallProgressText.textContent = `${roundedOverall}%`;
+                }
+
+                setCircleProgress(document.getElementById('globalProgressCircle'), overallPercent);
+                setCircleProgress(document.getElementById('orgProgressCircle'), overallPercent);
+
+                const sectionList = document.getElementById('sectionProgressList');
+                if (sectionList){
+                    sectionList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+                const orgList = document.getElementById('orgProgressList');
+                if (orgList){
+                    orgList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+
+                bindSectionFocusButtons();
+
+                const selectedModalities = getSelectedModalitiesLabels();
+                const noteCard = document.getElementById('deploymentNoteCard');
+                const noteText = document.getElementById('deploymentNoteText');
+                if (noteCard && noteText){
+                    const hiddenSections = sectionSummaries.filter(summary => summary.hidden > 0);
+                    if ((selectedModalities.length > 0 && selectedModalities.length < MODALITY_METADATA.length) || hiddenSections.length > 0){
+                        noteCard.classList.remove('d-none');
+                        const selectionText = selectedModalities.length > 0
+                            ? `Active profiles: ${selectedModalities.join(', ')}.`
+                            : 'No deployment profile currently selected.';
+                        const hiddenText = hiddenSections.length > 0
+                            ? ` Hidden standards in: ${hiddenSections.map(item => item.name).join(', ')}.`
+                            : '';
+                        noteText.textContent = selectionText + hiddenText;
+                    } else {
+                        noteCard.classList.add('d-none');
+                        noteText.textContent = '';
+                    }
+                }
+
+                const completedSectionsElement = document.getElementById('completedSections');
+                if (completedSectionsElement){
+                    completedSectionsElement.textContent = `${completedSectionCount}/${SECTIONS_WITH_WEIGHT.length}`;
+                }
+                const overallScoreElement = document.getElementById('overallScore');
+                if (overallScoreElement){
+                    overallScoreElement.textContent = `${roundedOverall}%`;
+                }
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement){
+                    lastUpdatedElement.textContent = (new Date()).toLocaleDateString();
+                }
+            }
+            function exportToExcel(){
+                saveProgress();
+                const workbook = XLSX.utils.book_new();
+                const teamInfo = [
+                    ['Team Information', ''],
+                    ['Team Name', assessmentData.teamInfo.teamName || ''],
+                    ['Region', assessmentData.teamInfo.region || ''],
+                    ['Country', assessmentData.teamInfo.country || ''],
+                    ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
+                    [''],
+                    ['Headquarters Contact', ''],
+                    ['Name', assessmentData.teamInfo.hqName || ''],
+                    ['Email', assessmentData.teamInfo.hqEmail || ''],
+                    ['Phone', assessmentData.teamInfo.hqPhone || ''],
+                    ['Position', assessmentData.teamInfo.hqPosition || ''],
+                    [''],
+                    ['Operations Contact', ''],
+                    ['Name', assessmentData.teamInfo.opsName || ''],
+                    ['Email', assessmentData.teamInfo.opsEmail || ''],
+                    ['Phone', assessmentData.teamInfo.opsPhone || ''],
+                    ['Position', assessmentData.teamInfo.opsPosition || '']
+                ];
+                teamInfo.push(['']);
+                teamInfo.push(['Supported Deployment Modalities', '']);
+                MODALITY_METADATA.forEach(modality => {
+                    const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
+                    teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
+                });
+                const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
+                XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
+
+                const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const sectionKey = select.dataset.section;
+                    const itemId = select.dataset.item;
+                    const itemKey = sectionKey + '-' + itemId;
+                    const titleElement = card.querySelector('.subsection-title');
+                    const descElement = card.querySelector('.card-description');
+                    const title = titleElement ? titleElement.textContent.trim() : '';
+                    const description = descElement ? descElement.textContent.trim() : '';
+                    const statement = description ? title + ' — ' + description : title;
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    const evidence = evidenceField ? evidenceField.value : '';
+                    const gaps = gapsField ? gapsField.value : '';
+                    const actions = actionField ? actionField.value : '';
+                    let deploymentRequirementsText = '';
+                    let deploymentMitigationsText = '';
+                    const deploymentRecord = assessmentData.deploymentRequirements &&
+                        assessmentData.deploymentRequirements[sectionKey] &&
+                        assessmentData.deploymentRequirements[sectionKey][itemId];
+                    if (deploymentRecord) {
+                        const requirementParts = [];
+                        const mitigationParts = [];
+                        Object.keys(deploymentRecord).forEach(modalityKey => {
+                            const entry = deploymentRecord[modalityKey] || {};
+                            const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
+                            const label = meta ? meta.label : modalityKey;
+                            if (entry.requirements && entry.requirements.trim() !== '') {
+                                requirementParts.push(label + ': ' + entry.requirements.trim());
+                            }
+                            if (entry.mitigation && entry.mitigation.trim() !== '') {
+                                mitigationParts.push(label + ': ' + entry.mitigation.trim());
+                            }
+                        });
+                        deploymentRequirementsText = requirementParts.join('\n\n');
+                        deploymentMitigationsText = mitigationParts.join('\n\n');
+                    }
+                    assessmentRows.push([
+                        itemKey,
+                        sectionKey,
+                        statement,
+                        select.value || '',
+                        evidence,
+                        gaps,
+                        actions,
+                        (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
+                        deploymentRequirementsText,
+                        deploymentMitigationsText
+                    ]);
+                });
+
+                const assessmentSheet = XLSX.utils.aoa_to_sheet(assessmentRows);
+                XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
+                const dateSuffix = (new Date).toISOString().split('T')[0];
+                XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
+                showNotification('Data exported to Excel successfully!');
+            }
+            function importFromExcel(event){
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(loadEvent){
+                    try {
+                        const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
+                        assessmentData = {
+                            teamInfo: { deploymentModalities: { ...DEFAULT_MODALITY_STATE } },
+                            scores: {},
+                            evidence: {},
+                            gaps: {},
+                            actions: {},
+                            comments: {},
+                            summary: {},
+                            deploymentRequirements: {}
+                        };
+
+                        const sheet = workbook.Sheets["HID SCT Assessment"];
+                        if (sheet) {
+                            const rows = XLSX.utils.sheet_to_json(sheet);
+                            for (const row of rows) {
+                                const id = row["Standard ID"];
+                                if (!id) continue;
+                                assessmentData.scores[id] = row.Score;
+                                assessmentData.evidence[id] = row.Evidence;
+                                assessmentData.gaps[id] = row.Gaps;
+                                assessmentData.actions[id] = row.Actions;
+                            }
+                        }
+
+                        localStorage.setItem("hidSCTAssessment", JSON.stringify(assessmentData));
+                        loadSavedData();
+                        updateProgress();
+                        showNotification("Data imported successfully!");
+                    } catch (error) {
+                        console.warn('Error importing file', error);
+                        showNotification("Error importing file.");
+                    }
+                };
+                reader.readAsBinaryString(file);
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                initializeData();
+
+                document.querySelectorAll("input, textarea, select").forEach(element => {
+                    element.addEventListener("change", saveProgress);
+                });
+
+                document.querySelectorAll('.score-select').forEach(select => {
+                    updateScoreBadge(select);
+                    select.addEventListener('change', function () {
+                        updateScoreBadge(select);
+                    });
+                });
+
+                document.getElementById("btn-save").addEventListener("click", saveProgress);
+                document.getElementById("btn-export-json").addEventListener("click", () => {
+                    saveProgress();
+                    const json = JSON.stringify(assessmentData, null, 2);
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "HID_SCT_Assessment_" + (new Date).toISOString().split("T")[0] + ".json";
+                    link.click();
+                    URL.revokeObjectURL(url);
+                });
+
+                document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
+                document.getElementById("btn-submit").addEventListener("click", () => {
+                    saveProgress();
+                    showNotification("Assessment submitted successfully!");
+                });
+
+                document.getElementById("btn-import-excel").addEventListener("click", () => {
+                    document.getElementById("fileInput").click();
+                });
+
+                document.getElementById("fileInput").addEventListener("change", importFromExcel);
+
+                const navLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+                navLinks.forEach(link => {
+                    link.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        navLinks.forEach(item => item.classList.remove("active"));
+                        link.classList.add("active");
+                        const target = link.getAttribute("href");
+                        document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
+                        document.querySelector(target).classList.add("show", "active");
+                    });
+                });
+            });
+    </script>
     <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
     <div id="template-definition" style="display: none;"><h2 class="mb-4">Technical Standards Definition</h2><div class="card section-card"><div class="card-body"><p>HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.</p><p>Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.</p></div></div></div>
     <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><div class="d-flex flex-column flex-md-row align-items-center gap-4"><div class="text-center"><div class="progress-circle" id="orgProgressCircle"><span id="orgProgressValue">0%</span></div><p class="small text-muted mb-0">Weighted completion</p></div><div class="flex-grow-1 w-100"><div class="section-progress-list" id="orgProgressList"></div></div></div></div></div></div>
