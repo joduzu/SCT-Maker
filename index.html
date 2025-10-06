@@ -2603,8 +2603,8 @@
                 width: 100%;
             }
         }
-    <\/style>
-<\/head>
+    </style>
+</head>
 <body>
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
@@ -2853,7 +2853,7 @@
             select.classList.add('score-' + value);
         }
     }
-    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c.innerHTML="",d.innerHTML="";let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`,d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`});const m=r>0?Math.round(l/r*100):0;c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`}
+    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c&&(c.innerHTML=""),d&&(d.innerHTML="");let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c&&(c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`),d&&(d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`)});const m=r>0?Math.round(l/r*100):0;c&&(c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`)}
     function exportToExcel(){
         saveProgress();
         const workbook = XLSX.utils.book_new();
@@ -2922,8 +2922,8 @@
                         mitigationParts.push(label + ': ' + entry.mitigation.trim());
                     }
                 });
-                deploymentRequirementsText = requirementParts.join('\n\n');
-                deploymentMitigationsText = mitigationParts.join('\n\n');
+                deploymentRequirementsText = requirementParts.join('\\n\\n');
+                deploymentMitigationsText = mitigationParts.join('\\n\\n');
             }
             assessmentRows.push([
                 itemKey,
@@ -3040,8 +3040,8 @@
         });
     });
     <\/script>
-<\/body>
-<\/html>
+</body>
+</html>
 `;
         const blob = new Blob([fullHTML], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
