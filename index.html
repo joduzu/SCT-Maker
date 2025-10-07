@@ -28,6 +28,7 @@
         .subsection-actions .btn { min-width: 120px; }
         .section-content-editor { margin-top: 10px; }
         .section-content-editor .editor-content { min-height: 160px; }
+        .standard-name-group input { font-weight: 600; }
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
@@ -862,6 +863,10 @@
         ensureDeploymentOverride(sectionKey, itemKey, titleText);
         const subsectionHTML = `
             <div class="subsection-item" data-section="${sectionKey}" data-item-key="${itemKey}" data-default-index="${index}" data-title="${escapeHTML(titleText)}">
+                <div class="standard-name-group mb-2">
+                    <label class="form-label">Standard Name</label>
+                    <input type="text" class="form-control standard-title-input" data-section="${sectionKey}" data-item-key="${itemKey}" value="${escapeHTML(titleText)}" placeholder="Enter the standard title">
+                </div>
                 ${getEditorTemplate(subContent)}
                 ${buildBuilderDeploymentEditor(sectionKey, itemKey, titleText)}
                 <div class="subsection-actions">
@@ -874,6 +879,26 @@
         setupRichTextEditors(newItem);
         setupDeploymentPrefillEditors(newItem);
         updateBuilderModalityEditorsVisibility();
+        const titleInput = newItem.querySelector('.standard-title-input');
+        if (titleInput) {
+            const updateTitle = () => {
+                const defaultIndex = parseInt(newItem.dataset.defaultIndex, 10);
+                const fallbackTitle = Number.isFinite(defaultIndex) ? `Standard ${defaultIndex + 1}` : 'Standard';
+                const value = titleInput.value.trim() || fallbackTitle;
+                newItem.dataset.title = value;
+                const details = newItem.querySelector('.builder-deployment-editor');
+                if (details) {
+                    details.dataset.title = value;
+                }
+                const summaryTitle = newItem.querySelector('.builder-deployment-summary-title');
+                if (summaryTitle) {
+                    summaryTitle.textContent = value;
+                }
+                ensureDeploymentOverride(sectionKey, itemKey, value);
+            };
+            titleInput.addEventListener('input', updateTitle);
+            updateTitle();
+        }
         const removeBtn = newItem.querySelector('.remove-item');
         if (removeBtn) {
             removeBtn.onclick = () => {
@@ -1061,6 +1086,26 @@
                         ${optionsHTML}
                     </div>
                 </div>
+            </div>
+        `;
+    }
+
+    function buildDeploymentSummaryBannerHTML(selectedKeys = []) {
+        const selectedModalities = DEPLOYMENT_MODALITIES.filter(modality => selectedKeys.includes(modality.key));
+        const pillsHTML = selectedModalities.map(modality => `
+            <span class="deployment-summary-pill ${modality.accentClass || ''}">
+                <i class="fas ${modality.icon || 'fa-clipboard'}"></i>
+                ${escapeHTML(modality.label)}
+            </span>
+        `).join('');
+        const hiddenClass = selectedModalities.length ? '' : ' d-none';
+        return `
+            <div class="deployment-summary-banner${hiddenClass}" id="deploymentSummaryBanner">
+                <div class="deployment-summary-info">
+                    <h2 class="deployment-summary-title" id="deploymentSummaryTitle">HID SCT Assessment</h2>
+                    <p class="deployment-summary-subtitle" id="deploymentSummarySubtitle">Supported deployment modalities</p>
+                </div>
+                <div class="deployment-summary-pill-group" id="deploymentSummaryPills">${pillsHTML}</div>
             </div>
         `;
     }
@@ -1674,6 +1719,7 @@
             .map(cb => cb.dataset.key);
         const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
         const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
+        const deploymentSummaryBannerHTML = buildDeploymentSummaryBannerHTML(selectedModalities);
         const defaultModalityState = {};
         DEPLOYMENT_MODALITIES.forEach(modality => {
             defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
@@ -1931,6 +1977,76 @@
             max-height: 100vh;
             overflow-y: auto;
             background: #f8f9ff;
+        }
+
+        .deployment-summary-banner {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #312e81, #6366f1);
+            color: #ffffff;
+            padding: 24px;
+            border-radius: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.24);
+            gap: 16px;
+        }
+
+        .deployment-summary-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .deployment-summary-title {
+            font-size: 1.75rem;
+            margin: 0 0 6px;
+            font-weight: 700;
+        }
+
+        .deployment-summary-subtitle {
+            margin: 0;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        .deployment-summary-pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .deployment-summary-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #1f2937;
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+            transition: transform 0.2s ease;
+        }
+
+        .deployment-summary-pill i {
+            font-size: 0.9rem;
+        }
+
+        .deployment-summary-pill.embedded {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .deployment-summary-pill.coupled {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .deployment-summary-pill.self-sustained {
+            background: #dcfce7;
+            color: #15803d;
         }
 
         .progress-sidebar {
@@ -2197,6 +2313,290 @@
             box-shadow: 0 12px 30px rgba(34, 197, 94, 0.3);
             z-index: 1000;
             animation: slideIn 0.3s ease;
+        }
+
+        .btn-report {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 2.2rem;
+            box-shadow: 0 18px 32px rgba(99, 102, 241, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-report:hover,
+        .btn-report:focus {
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 22px 38px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-report:disabled {
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pdf-report-root {
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
+            width: 1024px;
+            padding: 48px;
+            background: #eef2ff;
+            color: #1f2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: -1;
+        }
+
+        .pdf-report {
+            background: #ffffff;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(79, 70, 229, 0.18);
+        }
+
+        .pdf-header {
+            background: linear-gradient(135deg, #5b21b6 0%, #4338ca 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 48px 40px 40px;
+        }
+
+        .pdf-header h1 {
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .pdf-header .pdf-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-header .pdf-date {
+            font-size: 0.95rem;
+            opacity: 0.75;
+        }
+
+        .pdf-body {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .pdf-body section h3 {
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: #312e81;
+        }
+
+        .pdf-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .pdf-info-item {
+            background: #f8f9ff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(79, 70, 229, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pdf-info-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+        }
+
+        .pdf-info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .pdf-overview-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .pdf-summary-card {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 102, 241, 0.12));
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pdf-summary-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #4338ca;
+        }
+
+        .pdf-summary-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1f1b4b;
+        }
+
+        .pdf-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 16px 34px rgba(30, 64, 175, 0.12);
+        }
+
+        .pdf-summary-table th,
+        .pdf-summary-table td {
+            padding: 16px 18px;
+            text-align: left;
+        }
+
+        .pdf-summary-table thead {
+            background: #eef2ff;
+            color: #3730a3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+        }
+
+        .pdf-summary-table tbody tr:nth-child(even) {
+            background: #f8faff;
+        }
+
+        .pdf-summary-total td {
+            font-weight: 700;
+            background: #ede9fe;
+        }
+
+        .pdf-details {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .pdf-section-block {
+            background: #f5f7ff;
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: 0 16px 32px rgba(76, 29, 149, 0.12);
+        }
+
+        .pdf-section-block h3 {
+            margin-bottom: 18px;
+            color: #312e81;
+        }
+
+        .pdf-detail-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .pdf-detail-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .pdf-detail-card-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .pdf-detail-card-header h4 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .pdf-detail-card-header p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .pdf-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .pdf-detail-grid h5 {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+            margin-bottom: 8px;
+        }
+
+        .pdf-detail-grid p {
+            margin: 0;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .pdf-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status-not-started {
+            background: rgba(148, 163, 184, 0.28);
+            color: #1f2937;
+        }
+
+        .status-initial {
+            background: rgba(253, 230, 138, 0.35);
+            color: #b45309;
+        }
+
+        .status-in-progress {
+            background: rgba(96, 165, 250, 0.28);
+            color: #1d4ed8;
+        }
+
+        .status-completed {
+            background: rgba(134, 239, 172, 0.3);
+            color: #047857;
+        }
+
+        .status-na {
+            background: rgba(209, 213, 219, 0.35);
+            color: #374151;
+        }
+
+        .pdf-empty {
+            color: #9ca3af;
+            font-style: italic;
         }
 
         .btn-report {
@@ -3979,12 +4379,25 @@
             .main-content {
                 max-height: none;
             }
+
+            .deployment-summary-banner {
+                align-items: flex-start;
+            }
         }
 
         @media (max-width: 768px) {
             .sidebar {
                 height: auto;
                 position: relative;
+            }
+
+            .deployment-summary-banner {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .deployment-summary-pill-group {
+                width: 100%;
             }
 
             .section-banner {
@@ -4028,7 +4441,7 @@
 <body>
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
-        <div class="col-lg-8"><div class="main-content"><div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div><div class="text-end mt-3"><button class="btn btn-report" id="btn-generate-pdf"><i class="fas fa-file-pdf me-2"></i>Generate PDF Report</button></div></div></div>
+        <div class="col-lg-8"><div class="main-content">${deploymentSummaryBannerHTML}<div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div><div class="text-end mt-3"><button class="btn btn-report" id="btn-generate-pdf"><i class="fas fa-file-pdf me-2"></i>Generate PDF Report</button></div></div></div>
         <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
     </div></div>
     <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
@@ -4046,6 +4459,7 @@
         '3': { label: 'Completed', className: 'status-completed' },
         'NA': { label: 'Not Applicable', className: 'status-na' }
     };
+    const DEFAULT_SUMMARY_TITLE = 'HID SCT Assessment';
     let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
     function safeGetItem(key){
         try {
@@ -4077,6 +4491,31 @@
         if (element){
             element.value = value;
         }
+    }
+    function renderDeploymentSummary(modalityState = DEFAULT_MODALITY_STATE){
+        const banner = document.getElementById('deploymentSummaryBanner');
+        if (!banner) {
+            return;
+        }
+        const pillsContainer = document.getElementById('deploymentSummaryPills');
+        const titleEl = document.getElementById('deploymentSummaryTitle');
+        const state = { ...DEFAULT_MODALITY_STATE, ...(modalityState || {}) };
+        const activeModalities = MODALITY_METADATA.filter(modality => state[modality.key]);
+        if (pillsContainer) {
+            pillsContainer.innerHTML = '';
+            activeModalities.forEach(modality => {
+                const pill = document.createElement('span');
+                pill.className = 'deployment-summary-pill ' + (modality.accentClass || '');
+                pill.innerHTML = '<i class="fas ' + (modality.icon || 'fa-clipboard') + '"></i> ' + modality.label;
+                pillsContainer.appendChild(pill);
+            });
+        }
+        if (titleEl) {
+            const currentName = (getFieldValue('teamName') || '').trim();
+            const storedName = assessmentData.teamInfo && assessmentData.teamInfo.teamName ? assessmentData.teamInfo.teamName : '';
+            titleEl.textContent = currentName || storedName || DEFAULT_SUMMARY_TITLE;
+        }
+        banner.classList.toggle('d-none', activeModalities.length === 0);
     }
     function toggleModalityDetails(){
         MODALITY_METADATA.forEach(modality => {
@@ -4197,6 +4636,7 @@
                 setFieldValue(id, assessmentData.summary[id]);
             });
         }
+        renderDeploymentSummary(modalityState);
     }
     function saveProgress(arg){
         if (arg && typeof arg.preventDefault === 'function') {
@@ -4237,6 +4677,7 @@
             opsPosition: getFieldValue('opsPosition'),
             deploymentModalities: modalityState
         };
+        renderDeploymentSummary(modalityState);
 
         assessmentData.scores = {};
         assessmentData.evidence = {};
@@ -4724,6 +5165,20 @@
     }
     document.addEventListener("DOMContentLoaded", function () {
         initializeData();
+
+        const teamNameInput = document.getElementById('teamName');
+        if (teamNameInput) {
+            teamNameInput.addEventListener('input', () => {
+                const currentState = { ...DEFAULT_MODALITY_STATE };
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        currentState[modality.key] = checkbox.checked;
+                    }
+                });
+                renderDeploymentSummary(currentState);
+            });
+        }
 
         document.querySelectorAll("input, textarea, select").forEach(element => {
             element.addEventListener("change", saveProgress);
