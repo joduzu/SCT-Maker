@@ -2483,6 +2483,290 @@
             font-style: italic;
         }
 
+        .btn-report {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 2.2rem;
+            box-shadow: 0 18px 32px rgba(99, 102, 241, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-report:hover,
+        .btn-report:focus {
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 22px 38px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-report:disabled {
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pdf-report-root {
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
+            width: 1024px;
+            padding: 48px;
+            background: #eef2ff;
+            color: #1f2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: -1;
+        }
+
+        .pdf-report {
+            background: #ffffff;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(79, 70, 229, 0.18);
+        }
+
+        .pdf-header {
+            background: linear-gradient(135deg, #5b21b6 0%, #4338ca 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 48px 40px 40px;
+        }
+
+        .pdf-header h1 {
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .pdf-header .pdf-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-header .pdf-date {
+            font-size: 0.95rem;
+            opacity: 0.75;
+        }
+
+        .pdf-body {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .pdf-body section h3 {
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: #312e81;
+        }
+
+        .pdf-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .pdf-info-item {
+            background: #f8f9ff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(79, 70, 229, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pdf-info-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+        }
+
+        .pdf-info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .pdf-overview-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .pdf-summary-card {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 102, 241, 0.12));
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pdf-summary-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #4338ca;
+        }
+
+        .pdf-summary-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1f1b4b;
+        }
+
+        .pdf-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 16px 34px rgba(30, 64, 175, 0.12);
+        }
+
+        .pdf-summary-table th,
+        .pdf-summary-table td {
+            padding: 16px 18px;
+            text-align: left;
+        }
+
+        .pdf-summary-table thead {
+            background: #eef2ff;
+            color: #3730a3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+        }
+
+        .pdf-summary-table tbody tr:nth-child(even) {
+            background: #f8faff;
+        }
+
+        .pdf-summary-total td {
+            font-weight: 700;
+            background: #ede9fe;
+        }
+
+        .pdf-details {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .pdf-section-block {
+            background: #f5f7ff;
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: 0 16px 32px rgba(76, 29, 149, 0.12);
+        }
+
+        .pdf-section-block h3 {
+            margin-bottom: 18px;
+            color: #312e81;
+        }
+
+        .pdf-detail-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .pdf-detail-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .pdf-detail-card-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .pdf-detail-card-header h4 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .pdf-detail-card-header p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .pdf-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .pdf-detail-grid h5 {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+            margin-bottom: 8px;
+        }
+
+        .pdf-detail-grid p {
+            margin: 0;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .pdf-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status-not-started {
+            background: rgba(148, 163, 184, 0.28);
+            color: #1f2937;
+        }
+
+        .status-initial {
+            background: rgba(253, 230, 138, 0.35);
+            color: #b45309;
+        }
+
+        .status-in-progress {
+            background: rgba(96, 165, 250, 0.28);
+            color: #1d4ed8;
+        }
+
+        .status-completed {
+            background: rgba(134, 239, 172, 0.3);
+            color: #047857;
+        }
+
+        .status-na {
+            background: rgba(209, 213, 219, 0.35);
+            color: #374151;
+        }
+
+        .pdf-empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
         .progress-sidebar-table {
             width: 100%;
             font-size: 0.85rem;
@@ -3256,7 +3540,129 @@
             select.classList.add('score-' + value);
         }
     }
-    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c&&(c.innerHTML=""),d&&(d.innerHTML="");let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c&&(c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`),d&&(d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`)});const m=r>0?Math.round(l/r*100):0;c&&(c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`)}
+    function updateProgress(){
+        const sectionScores = {};
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            sectionScores[section.section] = { score: 0, maxScore: 0, percent: 0 };
+        });
+
+        document.querySelectorAll('.score-select').forEach(select => {
+            const sectionKey = select.dataset.section;
+            if (!sectionKey || !sectionScores[sectionKey]) {
+                return;
+            }
+
+            if (select.value !== '' && select.value !== 'NA') {
+                const numeric = parseInt(select.value, 10);
+                if (!Number.isNaN(numeric)) {
+                    sectionScores[sectionKey].score += numeric;
+                    sectionScores[sectionKey].maxScore += 3;
+                }
+            }
+        });
+
+        let weightedTotal = 0;
+        let totalWeight = 0;
+        let sectionsWithRecordedScores = 0;
+
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            const sectionData = sectionScores[section.section];
+            if (!sectionData) {
+                return;
+            }
+
+            if (sectionData.maxScore > 0) {
+                sectionData.percent = Math.round((sectionData.score / sectionData.maxScore) * 100);
+                sectionsWithRecordedScores += 1;
+            }
+
+            const banner = document.getElementById(section.section + 'Score');
+            if (banner) {
+                banner.textContent = sectionData.percent + '% Complete';
+            }
+
+            totalWeight += section.weight;
+            weightedTotal += (section.weight * sectionData.percent) / 100;
+        });
+
+        const overallPercent = totalWeight > 0 ? Math.round(weightedTotal / totalWeight) : 0;
+
+        const overallProgressBar = document.getElementById('overallProgressBar');
+        if (overallProgressBar) {
+            overallProgressBar.style.width = overallPercent + '%';
+        }
+        const overallProgressText = document.getElementById('overallProgressText');
+        if (overallProgressText) {
+            overallProgressText.textContent = overallPercent + '%';
+        }
+        const sidebarProgressBar = document.getElementById('sidebarProgressBar');
+        if (sidebarProgressBar) {
+            sidebarProgressBar.style.width = overallPercent + '%';
+        }
+        const sidebarProgressText = document.getElementById('sidebarProgressText');
+        if (sidebarProgressText) {
+            sidebarProgressText.textContent = overallPercent + '%';
+        }
+
+        const completedSectionsEl = document.getElementById('completedSections');
+        if (completedSectionsEl) {
+            completedSectionsEl.textContent = sectionsWithRecordedScores + '/' + SECTIONS_WITH_WEIGHT.length;
+        }
+        const overallScoreEl = document.getElementById('overallScore');
+        if (overallScoreEl) {
+            overallScoreEl.textContent = overallPercent + '%';
+        }
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        if (lastUpdatedEl) {
+            lastUpdatedEl.textContent = (new Date).toLocaleDateString();
+        }
+
+        const tableBody = document.getElementById('progressTableBody');
+        const sidebarBody = document.getElementById('progressSidebarBody');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+        }
+        if (sidebarBody) {
+            sidebarBody.innerHTML = '';
+        }
+
+        let listedWeight = 0;
+        let listedWeightedPercent = 0;
+
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            const sectionData = sectionScores[section.section];
+            if (!sectionData) {
+                return;
+            }
+
+            const percent = sectionData.percent || 0;
+            const status = percent === 0 ? 'Not Started' : percent < 100 ? 'In Progress' : 'Completed';
+            const badgeClass = status === 'Completed' ? 'bg-success' : status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
+
+            listedWeight += section.weight;
+            listedWeightedPercent += (section.weight * percent) / 100;
+
+            if (tableBody) {
+                tableBody.insertAdjacentHTML('beforeend',
+                    `<tr><td>${section.name}</td><td>${section.weight}%</td><td><span class="badge ${badgeClass}">${status}</span></td><td>${percent}%</td></tr>`
+                );
+            }
+
+            if (sidebarBody) {
+                const shortName = section.name.split(' ')[0];
+                sidebarBody.insertAdjacentHTML('beforeend',
+                    `<tr><td>${shortName}</td><td><span class="badge ${badgeClass}">${status}</span></td><td>${percent}%</td></tr>`
+                );
+            }
+        });
+
+        if (tableBody) {
+            const totalPercent = listedWeight > 0 ? Math.round(listedWeightedPercent / listedWeight) : 0;
+            tableBody.insertAdjacentHTML('beforeend',
+                `<tr class="table-primary fw-bold"><td>TOTAL</td><td>${listedWeight}%</td><td></td><td>${totalPercent}%</td></tr>`
+            );
+        }
+    }
     async function generatePdfReport(){
         const data = saveProgress(false);
         if (!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF) {
