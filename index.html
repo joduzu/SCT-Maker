@@ -2067,13 +2067,31 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-            color: white;
-            padding: 15px 25px;
+            min-width: 260px;
+            max-width: 360px;
+            padding: 16px 22px;
             border-radius: 12px;
-            box-shadow: 0 12px 30px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18);
+            font-weight: 600;
+            color: #ffffff;
             z-index: 1000;
             animation: slideIn 0.3s ease;
+        }
+
+        .notification--success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .notification--error {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+        }
+
+        .notification--info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .notification--warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
         }
 
         .btn-report {
@@ -3001,118 +3019,228 @@
         }
         renderDeploymentSummary(modalityState);
     }
+    function validateSaveDraft(modalityState) {
+        const errors = [];
+        const sctName = getFieldValue('sctName');
+        if (!sctName) {
+            errors.push('Provide a name for the SCT.');
+        }
+        let modalitySelected = false;
+        if (modalityState) {
+            Object.keys(modalityState).forEach(key => {
+                if (modalityState[key]) {
+                    modalitySelected = true;
+                }
+            });
+        }
+        if (!modalitySelected) {
+            errors.push('Select at least one deployment modality.');
+        }
+        const standardsAvailable = document.querySelectorAll('.compliance-card').length;
+        if (!standardsAvailable) {
+            errors.push('No standards are available to save.');
+        }
+        return { valid: errors.length === 0, errors: errors };
+    }
     function saveProgress(arg){
         if (arg && typeof arg.preventDefault === 'function') {
             arg.preventDefault();
         }
-        let shouldNotify = true;
+        let options = { showNotification: true, enforceValidation: true };
         if (typeof arg === 'boolean') {
-            shouldNotify = arg;
-        } else if (arg && typeof arg === 'object' && !('type' in arg) && Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
-            shouldNotify = arg.showNotification !== false;
+            options.showNotification = arg;
+        } else if (arg && typeof arg === 'object' && !('type' in arg)) {
+            options = { ...options, ...arg };
+            if (Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
+                options.showNotification = arg.showNotification !== false;
+            }
+            if (Object.prototype.hasOwnProperty.call(arg, 'enforceValidation')) {
+                options.enforceValidation = arg.enforceValidation !== false;
+            }
         }
-        const modalityState = { ...DEFAULT_MODALITY_STATE };
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            if (checkbox) {
-                modalityState[modality.key] = checkbox.checked;
-                const pill = checkbox.closest('.modality-pill');
-                if (pill) {
-                    pill.classList.toggle('selected', checkbox.checked);
+
+        console.group('Save Draft');
+        console.log('Starting saveProgress at', new Date().toISOString());
+
+        let validationErrors = [];
+        let validationPassed = true;
+
+        try {
+            const modalityState = { ...DEFAULT_MODALITY_STATE };
+            MODALITY_METADATA.forEach(modality => {
+                const checkbox = document.getElementById('modality-' + modality.key);
+                if (checkbox) {
+                    modalityState[modality.key] = checkbox.checked;
+                    const pill = checkbox.closest('.modality-pill');
+                    if (pill) {
+                        pill.classList.toggle('selected', checkbox.checked);
+                    }
+                }
+            });
+
+            const validation = validateSaveDraft(modalityState);
+            if (!validation.valid) {
+                validationErrors = validation.errors || [];
+                validationPassed = false;
+                console.warn('Save draft validation failed', validationErrors);
+                if (options.enforceValidation) {
+                    if (options.showNotification) {
+                        showNotification({
+                            message: 'Unable to save draft. Please review:\n- ' + validationErrors.join('\n- '),
+                            type: 'error',
+                            duration: 6000
+                        });
+                    }
+                    return null;
                 }
             }
-        });
 
-        toggleModalityDetails();
+            console.log((validationPassed ? 'Validation passed' : 'Proceeding despite validation warnings') + '. Collecting form data.');
+            toggleModalityDetails();
 
-        assessmentData.teamInfo = {
-            sctName: getFieldValue('sctName'),
-            teamName: getFieldValue('teamName'),
-            region: getFieldValue('region'),
-            country: getFieldValue('country'),
-            mentorName: getFieldValue('mentorName'),
-            hqName: getFieldValue('hqName'),
-            hqEmail: getFieldValue('hqEmail'),
-            hqPhone: getFieldValue('hqPhone'),
-            hqPosition: getFieldValue('hqPosition'),
-            opsName: getFieldValue('opsName'),
-            opsEmail: getFieldValue('opsEmail'),
-            opsPhone: getFieldValue('opsPhone'),
-            opsPosition: getFieldValue('opsPosition'),
-            deploymentModalities: modalityState
-        };
-        renderDeploymentSummary(modalityState);
+            assessmentData.teamInfo = {
+                sctName: getFieldValue('sctName'),
+                teamName: getFieldValue('teamName'),
+                region: getFieldValue('region'),
+                country: getFieldValue('country'),
+                mentorName: getFieldValue('mentorName'),
+                hqName: getFieldValue('hqName'),
+                hqEmail: getFieldValue('hqEmail'),
+                hqPhone: getFieldValue('hqPhone'),
+                hqPosition: getFieldValue('hqPosition'),
+                opsName: getFieldValue('opsName'),
+                opsEmail: getFieldValue('opsEmail'),
+                opsPhone: getFieldValue('opsPhone'),
+                opsPosition: getFieldValue('opsPosition'),
+                deploymentModalities: modalityState
+            };
+            renderDeploymentSummary(modalityState);
 
-        assessmentData.scores = {};
-        assessmentData.evidence = {};
-        assessmentData.gaps = {};
-        assessmentData.actions = {};
-        assessmentData.deploymentRequirements = {};
+            assessmentData.scores = {};
+            assessmentData.evidence = {};
+            assessmentData.gaps = {};
+            assessmentData.actions = {};
+            assessmentData.deploymentRequirements = {};
 
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (select.value) {
-                assessmentData.scores[key] = select.value;
-            }
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
-            if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
-            if (actionField) assessmentData.actions[key] = actionField.value || '';
-        });
-
-        document.querySelectorAll('.modality-requirement-block').forEach(block => {
-            const section = block.dataset.section;
-            const item = block.dataset.item;
-            const modality = block.dataset.modality;
-            if (!assessmentData.deploymentRequirements[section]) {
-                assessmentData.deploymentRequirements[section] = {};
-            }
-            if (!assessmentData.deploymentRequirements[section][item]) {
-                assessmentData.deploymentRequirements[section][item] = {};
-            }
-            const record = {};
-            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
-                const field = textarea.dataset.field;
-                record[field] = textarea.value || '';
+            document.querySelectorAll('.compliance-card').forEach(card => {
+                const select = card.querySelector('.score-select');
+                if (!select) {
+                    return;
+                }
+                const key = select.dataset.section + '-' + select.dataset.item;
+                if (select.value) {
+                    assessmentData.scores[key] = select.value;
+                }
+                const evidenceField = card.querySelector('.evidence-input');
+                const gapsField = card.querySelector('.gaps-input');
+                const actionField = card.querySelector('.action-input');
+                if (evidenceField) {
+                    assessmentData.evidence[key] = evidenceField.value || '';
+                }
+                if (gapsField) {
+                    assessmentData.gaps[key] = gapsField.value || '';
+                }
+                if (actionField) {
+                    assessmentData.actions[key] = actionField.value || '';
+                }
             });
-            assessmentData.deploymentRequirements[section][item][modality] = record;
-        });
 
-        assessmentData.comments = {};
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const commentField = document.getElementById(section.section + 'Comments');
-            if (commentField) {
-                assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
+            document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                const section = block.dataset.section;
+                const item = block.dataset.item;
+                const modality = block.dataset.modality;
+                if (!assessmentData.deploymentRequirements[section]) {
+                    assessmentData.deploymentRequirements[section] = {};
+                }
+                if (!assessmentData.deploymentRequirements[section][item]) {
+                    assessmentData.deploymentRequirements[section][item] = {};
+                }
+                const record = {};
+                block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                    const field = textarea.dataset.field;
+                    record[field] = textarea.value || '';
+                });
+                assessmentData.deploymentRequirements[section][item][modality] = record;
+            });
+
+            assessmentData.comments = {};
+            SECTIONS_WITH_WEIGHT.forEach(section => {
+                const commentField = document.getElementById(section.section + 'Comments');
+                if (commentField) {
+                    assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
+                }
+            });
+
+            assessmentData.summary = {
+                strengths: getFieldValue('strengths'),
+                criticalGaps: getFieldValue('criticalGaps'),
+                immediateActions: getFieldValue('immediateActions'),
+                shortTermActions: getFieldValue('shortTermActions'),
+                mediumTermActions: getFieldValue('mediumTermActions'),
+                technicalAssistance: getFieldValue('technicalAssistance'),
+                trainingRequirements: getFieldValue('trainingRequirements'),
+                resourceRequirements: getFieldValue('resourceRequirements'),
+                nextSteps: getFieldValue('nextSteps'),
+                completionDate: getFieldValue('completionDate'),
+                reviewedBy: getFieldValue('reviewedBy'),
+                mentorAssignment: getFieldValue('mentorAssignment')
+            };
+
+            safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
+            console.log('Assessment data stored to local storage.');
+
+            if (options.showNotification) {
+                if (validationPassed) {
+                    showNotification({ message: 'Progress saved successfully!', type: 'success' });
+                } else if (validationErrors.length) {
+                    showNotification({
+                        message: 'Draft saved, but missing required information:\n- ' + validationErrors.join('\n- '),
+                        type: 'warning',
+                        duration: 6000
+                    });
+                }
             }
-        });
 
-        assessmentData.summary = {
-            strengths: getFieldValue('strengths'),
-            criticalGaps: getFieldValue('criticalGaps'),
-            immediateActions: getFieldValue('immediateActions'),
-            shortTermActions: getFieldValue('shortTermActions'),
-            mediumTermActions: getFieldValue('mediumTermActions'),
-            technicalAssistance: getFieldValue('technicalAssistance'),
-            trainingRequirements: getFieldValue('trainingRequirements'),
-            resourceRequirements: getFieldValue('resourceRequirements'),
-            nextSteps: getFieldValue('nextSteps'),
-            completionDate: getFieldValue('completionDate'),
-            reviewedBy: getFieldValue('reviewedBy'),
-            mentorAssignment: getFieldValue('mentorAssignment')
-        };
-
-        safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
-        if (shouldNotify) {
-            showNotification('Progress saved successfully!');
+            return assessmentData;
+        } catch (error) {
+            console.error('Error while saving progress', error);
+            if (options.showNotification) {
+                showNotification({
+                    message: 'Unable to save progress. Check console for details.',
+                    type: 'error',
+                    duration: 6000
+                });
+            }
+            return null;
+        } finally {
+            updateProgress();
+            console.log('Progress indicators refreshed.');
+            console.groupEnd();
         }
-        updateProgress();
-        return assessmentData;
     }
-    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+    function showNotification(message, type){
+        const options = typeof message === 'object' && message !== null ? message : { message: message, type: type };
+        const text = options.message || '';
+        const variant = options.type || 'info';
+        const duration = typeof options.duration === 'number' ? options.duration : 3200;
+
+        if (!text) {
+            console.warn('Notification dismissed because no message was provided.');
+            return;
+        }
+
+        const notification = document.createElement('div');
+        notification.className = 'notification notification--' + variant;
+        notification.setAttribute('role', 'status');
+        notification.textContent = text;
+
+        document.body.appendChild(notification);
+
+        setTimeout(function () {
+            notification.style.animation = 'fadeOut .3s ease';
+            setTimeout(function () { notification.remove(); }, 300);
+        }, duration);
+    }
     function escapeHtmlForPdf(text){
         if (text === null || text === undefined) {
             return '';
@@ -3345,318 +3473,317 @@
         }
     }
  async function generatePdfReport(){
-    const data = saveProgress(false);
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-        throw new Error('Missing PDF dependencies');
-    }
-    
-    const snapshots = calculateSectionSnapshots();
-    const sectionDetails = collectSectionDetails();
-    const totalWeight = snapshots.reduce((sum, section) => sum + section.weight, 0);
-    const weightedProgress = snapshots.reduce((sum, section) => sum + (section.percent * section.weight / 100), 0);
-    const overallPercent = totalWeight > 0 ? Math.round((weightedProgress / totalWeight) * 100) : 0;
-    const sectionsWithProgress = snapshots.filter(section => section.hasProgress).length;
-    const generatedDate = new Date();
-    const formattedDate = generatedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    const teamInfo = data && data.teamInfo ? data.teamInfo : {};
+     console.group('PDF Report Generation');
+     try {
+         const data = saveProgress({ showNotification: false, enforceValidation: true });
+         if (!data) {
+             console.warn('PDF generation aborted because draft data is invalid.');
+             showNotification({
+                 message: 'Unable to generate PDF report. Please resolve validation errors and try again.',
+                 type: 'error',
+                 duration: 6000
+             });
+             return;
+         }
+         if (!window.jspdf || !window.jspdf.jsPDF) {
+             throw new Error('Missing PDF dependencies');
+         }
 
-    const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 20;
-    const contentWidth = pageWidth - (margin * 2);
-    let yPos = margin;
+         const snapshots = calculateSectionSnapshots();
+         const sectionDetails = collectSectionDetails();
+         const totalWeight = snapshots.reduce((sum, section) => sum + section.weight, 0);
+         const weightedProgress = snapshots.reduce((sum, section) => sum + (section.percent * section.weight / 100), 0);
+         const overallPercent = totalWeight > 0 ? Math.round((weightedProgress / totalWeight) * 100) : 0;
+         const sectionsWithProgress = snapshots.filter(section => section.hasProgress).length;
+         const generatedDate = new Date();
+         const formattedDate = generatedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+         const teamInfo = data && data.teamInfo ? data.teamInfo : {};
 
-    // Función auxiliar para agregar nueva página
-    const checkAddPage = (neededHeight) => {
-        if (yPos + neededHeight > pageHeight - margin) {
-            pdf.addPage();
-            yPos = margin;
-            return true;
-        }
-        return false;
-    };
+         const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+         const pageWidth = pdf.internal.pageSize.getWidth();
+         const pageHeight = pdf.internal.pageSize.getHeight();
+         const margin = 20;
+         const contentWidth = pageWidth - (margin * 2);
+         let yPos = margin;
 
-    // Función para texto con wrap
-    const addWrappedText = (text, x, y, maxWidth, lineHeight = 6) => {
-        const lines = pdf.splitTextToSize(text, maxWidth);
-        lines.forEach((line, index) => {
-            if (y + (index * lineHeight) > pageHeight - margin) {
-                pdf.addPage();
-                y = margin;
-            }
-            pdf.text(line, x, y + (index * lineHeight));
-        });
-        return y + (lines.length * lineHeight);
-    };
+         const checkAddPage = (neededHeight) => {
+             if (yPos + neededHeight > pageHeight - margin) {
+                 pdf.addPage();
+                 yPos = margin;
+                 return true;
+             }
+             return false;
+         };
 
-    // PORTADA
-    pdf.setFillColor(91, 33, 182);
-    pdf.rect(0, 0, pageWidth, 80, 'F');
-    
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(28);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SCT Report', pageWidth / 2, 35, { align: 'center' });
-    
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('Minimum Standards Assessment', pageWidth / 2, 50, { align: 'center' });
-    pdf.text('Generated on ' + formattedDate, pageWidth / 2, 65, { align: 'center' });
+         const addWrappedText = (text, x, y, maxWidth, lineHeight = 6) => {
+             const lines = pdf.splitTextToSize(text, maxWidth);
+             lines.forEach((line, index) => {
+                 if (y + (index * lineHeight) > pageHeight - margin) {
+                     pdf.addPage();
+                     y = margin;
+                 }
+                 pdf.text(line, x, y + (index * lineHeight));
+             });
+             return y + (lines.length * lineHeight);
+         };
 
-    yPos = 100;
+         pdf.setFillColor(91, 33, 182);
+         pdf.rect(0, 0, pageWidth, 80, 'F');
 
-    // INFORMACIÓN DEL EQUIPO
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Team Information', margin, yPos);
-    yPos += 10;
+         pdf.setTextColor(255, 255, 255);
+         pdf.setFontSize(28);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('SCT Report', pageWidth / 2, 35, { align: 'center' });
 
-    const teamInfoItems = [
-        ['Team Name', teamInfo.teamName || 'Not provided'],
-        ['Region', teamInfo.region || 'Not provided'],
-        ['Country', teamInfo.country || 'Not provided'],
-        ['Mentor', teamInfo.mentorName || 'Not provided']
-    ];
+         pdf.setFontSize(14);
+         pdf.setFont('helvetica', 'normal');
+         pdf.text('Minimum Standards Assessment', pageWidth / 2, 50, { align: 'center' });
+         pdf.text('Generated on ' + formattedDate, pageWidth / 2, 65, { align: 'center' });
 
-    pdf.setFontSize(10);
-    teamInfoItems.forEach(([label, value]) => {
-        checkAddPage(20);
-        pdf.setFillColor(248, 249, 255);
-        pdf.roundedRect(margin, yPos, contentWidth, 15, 3, 3, 'F');
-        
-        pdf.setTextColor(99, 102, 241);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(label.toUpperCase(), margin + 5, yPos + 5);
-        
-        pdf.setTextColor(31, 41, 55);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(value, margin + 5, yPos + 11);
-        
-        yPos += 18;
-    });
+         yPos = 100;
 
-    yPos += 10;
-    checkAddPage(40);
+         pdf.setTextColor(49, 46, 129);
+         pdf.setFontSize(16);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('Team Information', margin, yPos);
+         yPos += 10;
 
-    // RESUMEN GENERAL
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Overall Progress Summary', margin, yPos);
-    yPos += 10;
+         const teamInfoItems = [
+             ['Team Name', teamInfo.teamName || 'Not provided'],
+             ['Region', teamInfo.region || 'Not provided'],
+             ['Country', teamInfo.country || 'Not provided'],
+             ['Mentor', teamInfo.mentorName || 'Not provided']
+         ];
 
-    // Tarjetas de resumen
-    const cardWidth = (contentWidth - 10) / 2;
-    
-    pdf.setFillColor(129, 140, 248, 0.2 * 255);
-    pdf.roundedRect(margin, yPos, cardWidth, 25, 3, 3, 'F');
-    pdf.setFontSize(9);
-    pdf.setTextColor(67, 56, 202);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('OVERALL PROGRESS', margin + 5, yPos + 8);
-    pdf.setFontSize(24);
-    pdf.setTextColor(31, 27, 75);
-    pdf.text(overallPercent + '%', margin + 5, yPos + 20);
+         pdf.setFontSize(10);
+         teamInfoItems.forEach(([label, value]) => {
+             checkAddPage(20);
+             pdf.setFillColor(248, 249, 255);
+             pdf.roundedRect(margin, yPos, contentWidth, 15, 3, 3, 'F');
 
-    pdf.setFillColor(129, 140, 248, 0.2 * 255);
-    pdf.roundedRect(margin + cardWidth + 10, yPos, cardWidth, 25, 3, 3, 'F');
-    pdf.setFontSize(9);
-    pdf.setTextColor(67, 56, 202);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SECTIONS COMPLETED', margin + cardWidth + 15, yPos + 8);
-    pdf.setFontSize(24);
-    pdf.setTextColor(31, 27, 75);
-    pdf.text(sectionsWithProgress + '/' + snapshots.length, margin + cardWidth + 15, yPos + 20);
+             pdf.setTextColor(99, 102, 241);
+             pdf.setFont('helvetica', 'bold');
+             pdf.text(label.toUpperCase(), margin + 5, yPos + 5);
 
-    yPos += 35;
-    checkAddPage(60);
+             pdf.setTextColor(31, 41, 55);
+             pdf.setFont('helvetica', 'normal');
+             pdf.text(value, margin + 5, yPos + 11);
 
-    // TABLA DE SECCIONES
-    pdf.setFontSize(12);
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Section Progress Details', margin, yPos);
-    yPos += 8;
+             yPos += 18;
+         });
 
-    // Encabezado de tabla
-    pdf.setFillColor(238, 242, 255);
-    pdf.rect(margin, yPos, contentWidth, 8, 'F');
-    pdf.setFontSize(9);
-    pdf.setTextColor(55, 48, 163);
-    pdf.setFont('helvetica', 'bold');
-    
-    const colWidths = [contentWidth * 0.45, contentWidth * 0.15, contentWidth * 0.20, contentWidth * 0.20];
-    const headers = ['SECTION', 'WEIGHT', 'STATUS', 'PROGRESS'];
-    let xOffset = margin;
-    headers.forEach((header, i) => {
-        pdf.text(header, xOffset + 2, yPos + 5.5);
-        xOffset += colWidths[i];
-    });
-    yPos += 8;
+         yPos += 10;
+         checkAddPage(40);
 
-    // Filas de datos
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(31, 41, 55);
-    pdf.setFontSize(9);
+         pdf.setTextColor(49, 46, 129);
+         pdf.setFontSize(16);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('Overall Progress Summary', margin, yPos);
+         yPos += 10;
 
-    snapshots.forEach((section, index) => {
-        checkAddPage(8);
-        
-        if (index % 2 === 0) {
-            pdf.setFillColor(248, 250, 255);
-            pdf.rect(margin, yPos, contentWidth, 8, 'F');
-        }
+         const cardWidth = (contentWidth - 10) / 2;
 
-        xOffset = margin;
-        
-        // Nombre de la sección
-        const sectionName = section.name.length > 30 ? section.name.substring(0, 27) + '...' : section.name;
-        pdf.text(sectionName, xOffset + 2, yPos + 5.5);
-        xOffset += colWidths[0];
+         pdf.setFillColor(129, 140, 248, 0.2 * 255);
+         pdf.roundedRect(margin, yPos, cardWidth, 25, 3, 3, 'F');
+         pdf.setFontSize(9);
+         pdf.setTextColor(67, 56, 202);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('OVERALL PROGRESS', margin + 5, yPos + 8);
+         pdf.setFontSize(24);
+         pdf.setTextColor(31, 27, 75);
+         pdf.text(overallPercent + '%', margin + 5, yPos + 20);
 
-        // Weight
-        pdf.text(section.weight + '%', xOffset + 2, yPos + 5.5);
-        xOffset += colWidths[1];
+         pdf.setFillColor(129, 140, 248, 0.2 * 255);
+         pdf.roundedRect(margin + cardWidth + 10, yPos, cardWidth, 25, 3, 3, 'F');
+         pdf.setFontSize(9);
+         pdf.setTextColor(67, 56, 202);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('SECTIONS COMPLETED', margin + cardWidth + 15, yPos + 8);
+         pdf.setFontSize(24);
+         pdf.setTextColor(31, 27, 75);
+         pdf.text(sectionsWithProgress + '/' + snapshots.length, margin + cardWidth + 15, yPos + 20);
 
-        // Status badge
-        let badgeColor;
-        if (section.status === 'Completed') badgeColor = [134, 239, 172];
-        else if (section.status === 'In Progress') badgeColor = [96, 165, 250];
-        else badgeColor = [148, 163, 184];
-        
-        pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2], 0.3 * 255);
-        pdf.roundedRect(xOffset + 2, yPos + 1, 25, 6, 2, 2, 'F');
-        pdf.setFontSize(7);
-        pdf.text(section.status.toUpperCase(), xOffset + 4, yPos + 5);
-        pdf.setFontSize(9);
-        xOffset += colWidths[2];
+         yPos += 35;
+         checkAddPage(60);
 
-        // Progress
-        pdf.text(section.percent + '%', xOffset + 2, yPos + 5.5);
+         pdf.setFontSize(12);
+         pdf.setTextColor(49, 46, 129);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('Section Progress Details', margin, yPos);
+         yPos += 8;
 
-        yPos += 8;
-    });
+         pdf.setFillColor(238, 242, 255);
+         pdf.rect(margin, yPos, contentWidth, 8, 'F');
+         pdf.setFontSize(9);
+         pdf.setTextColor(55, 48, 163);
+         pdf.setFont('helvetica', 'bold');
 
-    // Fila total
-    pdf.setFillColor(237, 233, 254);
-    pdf.rect(margin, yPos, contentWidth, 8, 'F');
-    pdf.setFont('helvetica', 'bold');
-    xOffset = margin;
-    pdf.text('TOTAL', xOffset + 2, yPos + 5.5);
-    xOffset += colWidths[0];
-    pdf.text(totalWeight + '%', xOffset + 2, yPos + 5.5);
-    xOffset += colWidths[1] + colWidths[2];
-    pdf.text(overallPercent + '%', xOffset + 2, yPos + 5.5);
-    yPos += 15;
+         const colWidths = [contentWidth * 0.45, contentWidth * 0.15, contentWidth * 0.20, contentWidth * 0.20];
+         const headers = ['SECTION', 'WEIGHT', 'STATUS', 'PROGRESS'];
+         let xOffset = margin;
+         headers.forEach((header, i) => {
+             pdf.text(header, xOffset + 2, yPos + 5.5);
+             xOffset += colWidths[i];
+         });
+         yPos += 8;
 
-    // DETALLES DE EVALUACIÓN
-    pdf.addPage();
-    yPos = margin;
-    
-    pdf.setFontSize(16);
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Detailed Assessment Results', margin, yPos);
-    yPos += 12;
+         pdf.setFont('helvetica', 'normal');
+         pdf.setTextColor(31, 41, 55);
+         pdf.setFontSize(9);
 
-    snapshots.forEach(section => {
-        const cards = sectionDetails[section.key] || [];
-        if (cards.length === 0) return;
+         snapshots.forEach((section, index) => {
+             checkAddPage(8);
 
-        checkAddPage(30);
+             if (index % 2 === 0) {
+                 pdf.setFillColor(248, 250, 255);
+                 pdf.rect(margin, yPos, contentWidth, 8, 'F');
+             }
 
-        // Sección header
-        pdf.setFillColor(245, 247, 255);
-        pdf.roundedRect(margin, yPos, contentWidth, 12, 3, 3, 'F');
-        pdf.setFontSize(13);
-        pdf.setTextColor(49, 46, 129);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(section.name, margin + 5, yPos + 8);
-        yPos += 17;
+             xOffset = margin;
 
-        // Cards de cada estándar
-        cards.forEach(card => {
-            const estimatedHeight = 60;
-            checkAddPage(estimatedHeight);
+             const sectionName = section.name.length > 30 ? section.name.substring(0, 27) + '...' : section.name;
+             pdf.text(sectionName, xOffset + 2, yPos + 5.5);
+             xOffset += colWidths[0];
 
-            // Card background
-            pdf.setFillColor(255, 255, 255);
-            pdf.setDrawColor(226, 232, 240);
-            pdf.setLineWidth(0.5);
-            const cardStartY = yPos;
-            
-            // Título y status
-            pdf.setFontSize(11);
-            pdf.setTextColor(31, 41, 55);
-            pdf.setFont('helvetica', 'bold');
-            const titleLines = pdf.splitTextToSize(card.title || 'Untitled Standard', contentWidth - 40);
-            titleLines.forEach((line, i) => {
-                pdf.text(line, margin + 5, yPos + 6 + (i * 5));
-            });
-            
-            // Status badge
-            let statusColor;
-            if (card.statusLabel === 'Completed') statusColor = [134, 239, 172];
-            else if (card.statusLabel === 'In Progress') statusColor = [96, 165, 250];
-            else if (card.statusLabel === 'Initial') statusColor = [253, 230, 138];
-            else statusColor = [148, 163, 184];
-            
-            pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2], 0.3 * 255);
-            pdf.roundedRect(pageWidth - margin - 35, yPos + 2, 30, 6, 2, 2, 'F');
-            pdf.setFontSize(7);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(card.statusLabel.toUpperCase(), pageWidth - margin - 33, yPos + 5.5);
+             pdf.text(section.weight + '%', xOffset + 2, yPos + 5.5);
+             xOffset += colWidths[1];
 
-            yPos += (titleLines.length * 5) + 8;
+             let badgeColor;
+             if (section.status === 'Completed') badgeColor = [134, 239, 172];
+             else if (section.status === 'In Progress') badgeColor = [96, 165, 250];
+             else badgeColor = [148, 163, 184];
 
-            // Description
-            if (card.description) {
-                pdf.setFontSize(9);
-                pdf.setTextColor(75, 85, 99);
-                pdf.setFont('helvetica', 'normal');
-                yPos = addWrappedText(card.description, margin + 5, yPos, contentWidth - 10, 5);
-                yPos += 3;
-            }
+             pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2], 0.3 * 255);
+             pdf.roundedRect(xOffset + 2, yPos + 1, 25, 6, 2, 2, 'F');
+             pdf.setFontSize(7);
+             pdf.text(section.status.toUpperCase(), xOffset + 4, yPos + 5);
+             pdf.setFontSize(9);
+             xOffset += colWidths[2];
 
-            // Evidence, Gaps, Actions
-            const fields = [
-                { label: 'EVIDENCE', text: card.evidence || 'No evidence provided', color: [59, 130, 246] },
-                { label: 'GAPS', text: card.gaps || 'No gaps identified', color: [245, 158, 11] },
-                { label: 'ACTIONS', text: card.actions || 'No actions planned', color: [16, 185, 129] }
-            ];
+             pdf.text(section.percent + '%', xOffset + 2, yPos + 5.5);
 
-            fields.forEach(field => {
-                checkAddPage(15);
-                pdf.setFontSize(8);
-                pdf.setTextColor(field.color[0], field.color[1], field.color[2]);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text(field.label, margin + 5, yPos + 4);
-                yPos += 6;
+             yPos += 8;
+         });
 
-                pdf.setFontSize(9);
-                pdf.setTextColor(55, 65, 81);
-                pdf.setFont('helvetica', 'normal');
-                yPos = addWrappedText(field.text, margin + 5, yPos, contentWidth - 10, 4.5);
-                yPos += 2;
-            });
+         pdf.setFillColor(237, 233, 254);
+         pdf.rect(margin, yPos, contentWidth, 8, 'F');
+         pdf.setFont('helvetica', 'bold');
+         xOffset = margin;
+         pdf.text('TOTAL', xOffset + 2, yPos + 5.5);
+         xOffset += colWidths[0];
+         pdf.text(totalWeight + '%', xOffset + 2, yPos + 5.5);
+         xOffset += colWidths[1] + colWidths[2];
+         pdf.text(overallPercent + '%', xOffset + 2, yPos + 5.5);
+         yPos += 15;
 
-            // Draw card border
-            pdf.roundedRect(margin, cardStartY, contentWidth, yPos - cardStartY, 3, 3, 'S');
-            yPos += 8;
-        });
+         pdf.addPage();
+         yPos = margin;
 
-        yPos += 5;
-    });
+         pdf.setFontSize(16);
+         pdf.setTextColor(49, 46, 129);
+         pdf.setFont('helvetica', 'bold');
+         pdf.text('Detailed Assessment Results', margin, yPos);
+         yPos += 12;
 
-    // Guardar PDF
-    const dateSuffix = generatedDate.toISOString().split('T')[0];
-    pdf.save('HID_SCT_Assessment_Report_' + dateSuffix + '.pdf');
-    showNotification('Professional PDF report generated successfully!');
-}
+         snapshots.forEach(section => {
+             const cards = sectionDetails[section.key] || [];
+             if (cards.length === 0) {
+                 return;
+             }
+
+             checkAddPage(30);
+
+             pdf.setFillColor(245, 247, 255);
+             pdf.roundedRect(margin, yPos, contentWidth, 12, 3, 3, 'F');
+             pdf.setFontSize(13);
+             pdf.setTextColor(49, 46, 129);
+             pdf.setFont('helvetica', 'bold');
+             pdf.text(section.name, margin + 5, yPos + 8);
+             yPos += 17;
+
+             cards.forEach(card => {
+                 const estimatedHeight = 60;
+                 checkAddPage(estimatedHeight);
+
+                 pdf.setFillColor(255, 255, 255);
+                 pdf.setDrawColor(226, 232, 240);
+                 pdf.setLineWidth(0.5);
+                 const cardStartY = yPos;
+
+                 pdf.setFontSize(11);
+                 pdf.setTextColor(31, 41, 55);
+                 pdf.setFont('helvetica', 'bold');
+                 const titleLines = pdf.splitTextToSize(card.title || 'Untitled Standard', contentWidth - 40);
+                 titleLines.forEach((line, i) => {
+                     pdf.text(line, margin + 5, yPos + 6 + (i * 5));
+                 });
+
+                 let statusColor;
+                 if (card.statusLabel === 'Completed') statusColor = [134, 239, 172];
+                 else if (card.statusLabel === 'In Progress') statusColor = [96, 165, 250];
+                 else if (card.statusLabel === 'Initial') statusColor = [253, 230, 138];
+                 else statusColor = [148, 163, 184];
+
+                 pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2], 0.3 * 255);
+                 pdf.roundedRect(pageWidth - margin - 35, yPos + 2, 30, 6, 2, 2, 'F');
+                 pdf.setFontSize(7);
+                 pdf.setFont('helvetica', 'bold');
+                 pdf.text(card.statusLabel.toUpperCase(), pageWidth - margin - 33, yPos + 5.5);
+
+                 yPos += (titleLines.length * 5) + 8;
+
+                 if (card.description) {
+                     pdf.setFontSize(9);
+                     pdf.setTextColor(75, 85, 99);
+                     pdf.setFont('helvetica', 'normal');
+                     yPos = addWrappedText(card.description, margin + 5, yPos, contentWidth - 10, 5);
+                     yPos += 3;
+                 }
+
+                 const fields = [
+                     { label: 'EVIDENCE', text: card.evidence || 'No evidence provided', color: [59, 130, 246] },
+                     { label: 'GAPS', text: card.gaps || 'No gaps identified', color: [245, 158, 11] },
+                     { label: 'ACTIONS', text: card.actions || 'No actions planned', color: [16, 185, 129] }
+                 ];
+
+                 fields.forEach(field => {
+                     checkAddPage(15);
+                     pdf.setFontSize(8);
+                     pdf.setTextColor(field.color[0], field.color[1], field.color[2]);
+                     pdf.setFont('helvetica', 'bold');
+                     pdf.text(field.label, margin + 5, yPos + 4);
+                     yPos += 6;
+
+                     pdf.setFontSize(9);
+                     pdf.setTextColor(55, 65, 81);
+                     pdf.setFont('helvetica', 'normal');
+                     yPos = addWrappedText(field.text, margin + 5, yPos, contentWidth - 10, 4.5);
+                     yPos += 2;
+                 });
+
+                 pdf.roundedRect(margin, cardStartY, contentWidth, yPos - cardStartY, 3, 3, 'S');
+                 yPos += 8;
+             });
+
+             yPos += 5;
+         });
+
+         const dateSuffix = generatedDate.toISOString().split('T')[0];
+         pdf.save('HID_SCT_Assessment_Report_' + dateSuffix + '.pdf');
+         showNotification({ message: 'Professional PDF report generated successfully!', type: 'success' });
+     } catch (error) {
+         console.error('Failed to generate PDF report', error);
+         showNotification({
+             message: 'Failed to generate PDF report. Check console for details.',
+             type: 'error',
+             duration: 6000
+         });
+     } finally {
+         console.groupEnd();
+     }
+ }
     function exportToExcel(){
-        saveProgress();
+        saveProgress({ showNotification: false, enforceValidation: false });
         const workbook = XLSX.utils.book_new();
         const teamInfo = [
             ['Team Information', ''],
@@ -3744,7 +3871,7 @@
         XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
         const dateSuffix = (new Date).toISOString().split('T')[0];
         XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
-        showNotification('Data exported to Excel successfully!');
+        showNotification({ message: 'Data exported to Excel successfully!', type: 'success' });
     }
     function importFromExcel(event){
         const file = event.target.files[0];
@@ -3781,10 +3908,10 @@
                 safeSetItem("hidSCTAssessment", JSON.stringify(assessmentData));
                 loadSavedData();
                 updateProgress();
-                showNotification("Data imported successfully!");
+                  showNotification({ message: 'Data imported successfully!', type: 'success' });
             } catch (error) {
                 console.warn('Error importing file', error);
-                showNotification("Error importing file.");
+                  showNotification({ message: 'Error importing file.', type: 'error', duration: 6000 });
             }
         };
         reader.readAsBinaryString(file);
@@ -3809,7 +3936,9 @@
         });
 
         document.querySelectorAll("input, textarea, select").forEach(element => {
-            element.addEventListener("change", saveProgress);
+            element.addEventListener("change", () => {
+                saveProgress({ showNotification: false, enforceValidation: false });
+            });
         });
 
         document.querySelectorAll('.score-select').forEach(select => {
@@ -3819,9 +3948,15 @@
             });
         });
 
-        document.getElementById("btn-save").addEventListener("click", saveProgress);
+        const saveButton = document.getElementById("btn-save");
+        if (saveButton) {
+            saveButton.addEventListener("click", () => {
+                saveProgress({ showNotification: true, enforceValidation: true });
+            });
+        }
+
         document.getElementById("btn-export-json").addEventListener("click", () => {
-            saveProgress();
+            saveProgress({ showNotification: false, enforceValidation: false });
             const json = JSON.stringify(assessmentData, null, 2);
             const blob = new Blob([json], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -3834,8 +3969,10 @@
 
         document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
         document.getElementById("btn-submit").addEventListener("click", () => {
-            saveProgress();
-            showNotification("Assessment submitted successfully!");
+            const result = saveProgress({ showNotification: true, enforceValidation: true });
+            if (result) {
+                showNotification({ message: 'Assessment submitted successfully!', type: 'success' });
+            }
         });
 
         const pdfButton = document.getElementById("btn-generate-pdf");
@@ -3851,7 +3988,7 @@
                     await generatePdfReport();
                 } catch (error) {
                     console.warn('Failed to generate PDF report', error);
-                    showNotification('Unable to generate PDF report. Please try again.');
+                      showNotification({ message: 'Unable to generate PDF report. Please try again.', type: 'error', duration: 6000 });
                 } finally {
                     pdfButton.disabled = false;
                     pdfButton.innerHTML = originalHtml;
