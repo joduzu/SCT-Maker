@@ -3046,15 +3046,24 @@
         if (arg && typeof arg.preventDefault === 'function') {
             arg.preventDefault();
         }
-        let shouldNotify = true;
+        let options = { showNotification: true, enforceValidation: true };
         if (typeof arg === 'boolean') {
-            shouldNotify = arg;
-        } else if (arg && typeof arg === 'object' && !('type' in arg) && Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
-            shouldNotify = arg.showNotification !== false;
+            options.showNotification = arg;
+        } else if (arg && typeof arg === 'object' && !('type' in arg)) {
+            options = { ...options, ...arg };
+            if (Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
+                options.showNotification = arg.showNotification !== false;
+            }
+            if (Object.prototype.hasOwnProperty.call(arg, 'enforceValidation')) {
+                options.enforceValidation = arg.enforceValidation !== false;
+            }
         }
 
         console.group('Save Draft');
         console.log('Starting saveProgress at', new Date().toISOString());
+
+        let validationErrors = [];
+        let validationPassed = true;
 
         try {
             const modalityState = { ...DEFAULT_MODALITY_STATE };
@@ -3071,18 +3080,22 @@
 
             const validation = validateSaveDraft(modalityState);
             if (!validation.valid) {
-                console.warn('Save draft validation failed', validation.errors);
-                if (shouldNotify) {
-                    showNotification({
-                        message: 'Unable to save draft. Please review:\n- ' + validation.errors.join('\n- '),
-                        type: 'error',
-                        duration: 6000
-                    });
+                validationErrors = validation.errors || [];
+                validationPassed = false;
+                console.warn('Save draft validation failed', validationErrors);
+                if (options.enforceValidation) {
+                    if (options.showNotification) {
+                        showNotification({
+                            message: 'Unable to save draft. Please review:\n- ' + validationErrors.join('\n- '),
+                            type: 'error',
+                            duration: 6000
+                        });
+                    }
+                    return null;
                 }
-                return null;
             }
 
-            console.log('Validation passed. Collecting form data.');
+            console.log((validationPassed ? 'Validation passed' : 'Proceeding despite validation warnings') + '. Collecting form data.');
             toggleModalityDetails();
 
             assessmentData.teamInfo = {
@@ -3176,16 +3189,22 @@
             safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
             console.log('Assessment data stored to local storage.');
 
-            if (shouldNotify) {
-                showNotification({ message: 'Progress saved successfully!', type: 'success' });
+            if (options.showNotification) {
+                if (validationPassed) {
+                    showNotification({ message: 'Progress saved successfully!', type: 'success' });
+                } else if (validationErrors.length) {
+                    showNotification({
+                        message: 'Draft saved, but missing required information:\n- ' + validationErrors.join('\n- '),
+                        type: 'warning',
+                        duration: 6000
+                    });
+                }
             }
 
-            updateProgress();
-            console.log('Progress indicators refreshed.');
             return assessmentData;
         } catch (error) {
             console.error('Error while saving progress', error);
-            if (shouldNotify) {
+            if (options.showNotification) {
                 showNotification({
                     message: 'Unable to save progress. Check console for details.',
                     type: 'error',
@@ -3194,6 +3213,8 @@
             }
             return null;
         } finally {
+            updateProgress();
+            console.log('Progress indicators refreshed.');
             console.groupEnd();
         }
     }
@@ -3454,7 +3475,7 @@
  async function generatePdfReport(){
      console.group('PDF Report Generation');
      try {
-         const data = saveProgress({ showNotification: false });
+         const data = saveProgress({ showNotification: false, enforceValidation: true });
          if (!data) {
              console.warn('PDF generation aborted because draft data is invalid.');
              showNotification({
@@ -3762,7 +3783,7 @@
      }
  }
     function exportToExcel(){
-        saveProgress();
+        saveProgress({ showNotification: false, enforceValidation: false });
         const workbook = XLSX.utils.book_new();
         const teamInfo = [
             ['Team Information', ''],
@@ -3915,7 +3936,9 @@
         });
 
         document.querySelectorAll("input, textarea, select").forEach(element => {
-            element.addEventListener("change", saveProgress);
+            element.addEventListener("change", () => {
+                saveProgress({ showNotification: false, enforceValidation: false });
+            });
         });
 
         document.querySelectorAll('.score-select').forEach(select => {
@@ -3925,9 +3948,15 @@
             });
         });
 
-        document.getElementById("btn-save").addEventListener("click", saveProgress);
+        const saveButton = document.getElementById("btn-save");
+        if (saveButton) {
+            saveButton.addEventListener("click", () => {
+                saveProgress({ showNotification: true, enforceValidation: true });
+            });
+        }
+
         document.getElementById("btn-export-json").addEventListener("click", () => {
-            saveProgress();
+            saveProgress({ showNotification: false, enforceValidation: false });
             const json = JSON.stringify(assessmentData, null, 2);
             const blob = new Blob([json], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -3940,8 +3969,10 @@
 
         document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
         document.getElementById("btn-submit").addEventListener("click", () => {
-            saveProgress();
-              showNotification({ message: 'Assessment submitted successfully!', type: 'success' });
+            const result = saveProgress({ showNotification: true, enforceValidation: true });
+            if (result) {
+                showNotification({ message: 'Assessment submitted successfully!', type: 'success' });
+            }
         });
 
         const pdfButton = document.getElementById("btn-generate-pdf");
