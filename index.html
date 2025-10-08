@@ -3344,12 +3344,13 @@
             );
         }
     }
- async function generatePdfReport(){
+
+async function generatePdfReport() {
     const data = saveProgress(false);
     if (!window.jspdf || !window.jspdf.jsPDF) {
         throw new Error('Missing PDF dependencies');
     }
-    
+
     const snapshots = calculateSectionSnapshots();
     const sectionDetails = collectSectionDetails();
     const totalWeight = snapshots.reduce((sum, section) => sum + section.weight, 0);
@@ -3363,23 +3364,27 @@
     const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
     let yPos = margin;
 
-    // Función auxiliar para agregar nueva página
-    const checkAddPage = (neededHeight) => {
-        if (yPos + neededHeight > pageHeight - margin) {
+    const checkAddPage = (neededHeight, marginTop = 10) => {
+        if (yPos + neededHeight + marginTop > pageHeight - margin) {
             pdf.addPage();
             yPos = margin;
             return true;
         }
+        yPos += marginTop;
         return false;
     };
 
-    // Función para texto con wrap
-    const addWrappedText = (text, x, y, maxWidth, lineHeight = 6) => {
-        const lines = pdf.splitTextToSize(text, maxWidth);
+    const addWrappedText = (text, x, y, maxWidth, lineHeight = 5, fontSize = 10) => {
+        const originalFontSize = pdf.getFontSize();
+        if (fontSize !== originalFontSize) {
+            pdf.setFontSize(fontSize);
+        }
+
+        const lines = pdf.splitTextToSize(text || '', maxWidth);
         lines.forEach((line, index) => {
             if (y + (index * lineHeight) > pageHeight - margin) {
                 pdf.addPage();
@@ -3387,274 +3392,411 @@
             }
             pdf.text(line, x, y + (index * lineHeight));
         });
+
+        if (fontSize !== originalFontSize) {
+            pdf.setFontSize(originalFontSize);
+        }
         return y + (lines.length * lineHeight);
     };
 
-    // PORTADA
-    pdf.setFillColor(91, 33, 182);
-    pdf.rect(0, 0, pageWidth, 80, 'F');
-    
+    const addSectionHeader = (text, y) => {
+        pdf.setFillColor(59, 130, 246);
+        pdf.rect(margin, y, contentWidth, 8, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(text, margin + 5, y + 5.5);
+        pdf.setTextColor(0, 0, 0);
+        return y + 12;
+    };
+
+    pdf.setFillColor(30, 64, 175);
+    pdf.rect(0, 0, pageWidth, 100, 'F');
+
     pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(28);
+    pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('SCT Report', pageWidth / 2, 35, { align: 'center' });
-    
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('Minimum Standards Assessment', pageWidth / 2, 50, { align: 'center' });
-    pdf.text('Generated on ' + formattedDate, pageWidth / 2, 65, { align: 'center' });
+    pdf.text('HID SCT ASSESSMENT REPORT', pageWidth / 2, 45, { align: 'center' });
 
-    yPos = 100;
-
-    // INFORMACIÓN DEL EQUIPO
-    pdf.setTextColor(49, 46, 129);
     pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Team Information', margin, yPos);
-    yPos += 10;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Specialized Care Team - Minimum Standards', pageWidth / 2, 60, { align: 'center' });
 
-    const teamInfoItems = [
-        ['Team Name', teamInfo.teamName || 'Not provided'],
-        ['Region', teamInfo.region || 'Not provided'],
-        ['Country', teamInfo.country || 'Not provided'],
-        ['Mentor', teamInfo.mentorName || 'Not provided']
+    pdf.setFontSize(12);
+    pdf.text('Generated on ' + formattedDate, pageWidth / 2, 75, { align: 'center' });
+
+    if (teamInfo.teamName) {
+        pdf.setFontSize(14);
+        pdf.text(teamInfo.teamName, pageWidth / 2, 85, { align: 'center' });
+    }
+
+    yPos = 120;
+
+    checkAddPage(60);
+    yPos = addSectionHeader('EXECUTIVE SUMMARY', yPos);
+
+    const summaryCards = [
+        { label: 'Overall Progress', value: overallPercent + '%', color: [59, 130, 246] },
+        { label: 'Sections Completed', value: sectionsWithProgress + '/' + snapshots.length, color: [16, 185, 129] },
+        { label: 'Assessment Date', value: formattedDate, color: [139, 92, 246] }
     ];
 
-    pdf.setFontSize(10);
-    teamInfoItems.forEach(([label, value]) => {
-        checkAddPage(20);
-        pdf.setFillColor(248, 249, 255);
-        pdf.roundedRect(margin, yPos, contentWidth, 15, 3, 3, 'F');
-        
-        pdf.setTextColor(99, 102, 241);
+    const cardWidth = (contentWidth - 20) / 3;
+    summaryCards.forEach((card, index) => {
+        const x = margin + (index * (cardWidth + 10));
+        pdf.setFillColor(card.color[0], card.color[1], card.color[2]);
+        pdf.roundedRect(x, yPos, cardWidth, 20, 2, 2, 'F');
+
+        pdf.setDrawColor(card.color[0], card.color[1], card.color[2]);
+        pdf.setLineWidth(0.5);
+        pdf.roundedRect(x, yPos, cardWidth, 20, 2, 2, 'S');
+
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(8);
         pdf.setFont('helvetica', 'bold');
-        pdf.text(label.toUpperCase(), margin + 5, yPos + 5);
-        
-        pdf.setTextColor(31, 41, 55);
+        pdf.text(card.label.toUpperCase(), x + 5, yPos + 7);
+
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(12);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(value, margin + 5, yPos + 11);
-        
-        yPos += 18;
+        pdf.text(card.value, x + 5, yPos + 15);
+    });
+
+    yPos += 30;
+
+    checkAddPage(40);
+    yPos = addSectionHeader('TEAM INFORMATION', yPos);
+
+    const teamFields = [
+        ['Team Name', teamInfo.teamName],
+        ['Region', teamInfo.region],
+        ['Country', teamInfo.country],
+        ['Mentor', teamInfo.mentorName]
+    ].filter(([_, value]) => value);
+
+    teamFields.forEach(([label, value]) => {
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(label + ':', margin + 5, yPos);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(value || 'Not provided', margin + 35, yPos);
+
+        yPos += 6;
     });
 
     yPos += 10;
-    checkAddPage(40);
 
-    // RESUMEN GENERAL
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Overall Progress Summary', margin, yPos);
-    yPos += 10;
+    const activeModalities = MODALITY_METADATA.filter(modality =>
+        teamInfo.deploymentModalities && teamInfo.deploymentModalities[modality.key]
+    );
 
-    // Tarjetas de resumen
-    const cardWidth = (contentWidth - 10) / 2;
-    
-    pdf.setFillColor(129, 140, 248, 0.2 * 255);
-    pdf.roundedRect(margin, yPos, cardWidth, 25, 3, 3, 'F');
-    pdf.setFontSize(9);
-    pdf.setTextColor(67, 56, 202);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('OVERALL PROGRESS', margin + 5, yPos + 8);
-    pdf.setFontSize(24);
-    pdf.setTextColor(31, 27, 75);
-    pdf.text(overallPercent + '%', margin + 5, yPos + 20);
+    if (activeModalities.length > 0) {
+        checkAddPage(20);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(30, 41, 59);
+        pdf.text('Supported Deployment Modalities:', margin + 5, yPos);
+        yPos += 5;
 
-    pdf.setFillColor(129, 140, 248, 0.2 * 255);
-    pdf.roundedRect(margin + cardWidth + 10, yPos, cardWidth, 25, 3, 3, 'F');
-    pdf.setFontSize(9);
-    pdf.setTextColor(67, 56, 202);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SECTIONS COMPLETED', margin + cardWidth + 15, yPos + 8);
-    pdf.setFontSize(24);
-    pdf.setTextColor(31, 27, 75);
-    pdf.text(sectionsWithProgress + '/' + snapshots.length, margin + cardWidth + 15, yPos + 20);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(55, 65, 81);
+        const modalitiesText = activeModalities.map(m => m.label).join(', ');
+        yPos = addWrappedText(modalitiesText, margin + 5, yPos, contentWidth - 10, 5, 10);
+        yPos += 10;
+    }
 
-    yPos += 35;
-    checkAddPage(60);
+    checkAddPage(30);
+    yPos = addSectionHeader('DETAILED PROGRESS BY SECTION', yPos);
 
-    // TABLA DE SECCIONES
-    pdf.setFontSize(12);
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Section Progress Details', margin, yPos);
-    yPos += 8;
-
-    // Encabezado de tabla
-    pdf.setFillColor(238, 242, 255);
+    pdf.setFillColor(241, 245, 249);
     pdf.rect(margin, yPos, contentWidth, 8, 'F');
+
+    pdf.setTextColor(30, 41, 59);
     pdf.setFontSize(9);
-    pdf.setTextColor(55, 48, 163);
     pdf.setFont('helvetica', 'bold');
-    
-    const colWidths = [contentWidth * 0.45, contentWidth * 0.15, contentWidth * 0.20, contentWidth * 0.20];
-    const headers = ['SECTION', 'WEIGHT', 'STATUS', 'PROGRESS'];
+
+    const colWidths = [contentWidth * 0.5, contentWidth * 0.2, contentWidth * 0.15, contentWidth * 0.15];
+    const headers = ['Section', 'Weight', 'Status', 'Progress'];
     let xOffset = margin;
+
     headers.forEach((header, i) => {
-        pdf.text(header, xOffset + 2, yPos + 5.5);
+        pdf.text(header, xOffset + 3, yPos + 5);
         xOffset += colWidths[i];
     });
+
     yPos += 8;
 
-    // Filas de datos
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(31, 41, 55);
-    pdf.setFontSize(9);
-
     snapshots.forEach((section, index) => {
-        checkAddPage(8);
-        
+        checkAddPage(8, 0);
+
         if (index % 2 === 0) {
-            pdf.setFillColor(248, 250, 255);
+            pdf.setFillColor(248, 250, 252);
             pdf.rect(margin, yPos, contentWidth, 8, 'F');
         }
 
         xOffset = margin;
-        
-        // Nombre de la sección
-        const sectionName = section.name.length > 30 ? section.name.substring(0, 27) + '...' : section.name;
-        pdf.text(sectionName, xOffset + 2, yPos + 5.5);
+
+        const sectionName = section.name.length > 35 ? section.name.substring(0, 32) + '...' : section.name;
+        pdf.text(sectionName, xOffset + 3, yPos + 5);
         xOffset += colWidths[0];
 
-        // Weight
-        pdf.text(section.weight + '%', xOffset + 2, yPos + 5.5);
+        pdf.text(section.weight + '%', xOffset + 3, yPos + 5);
         xOffset += colWidths[1];
 
-        // Status badge
-        let badgeColor;
-        if (section.status === 'Completed') badgeColor = [134, 239, 172];
-        else if (section.status === 'In Progress') badgeColor = [96, 165, 250];
-        else badgeColor = [148, 163, 184];
-        
-        pdf.setFillColor(badgeColor[0], badgeColor[1], badgeColor[2], 0.3 * 255);
-        pdf.roundedRect(xOffset + 2, yPos + 1, 25, 6, 2, 2, 'F');
+        const statusColors = {
+            'Completed': [34, 197, 94],
+            'In Progress': [59, 130, 246],
+            'Not Started': [148, 163, 184]
+        };
+
+        const statusColor = statusColors[section.status] || statusColors['Not Started'];
+        pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+        pdf.roundedRect(xOffset + 1, yPos + 1, 22, 6, 1, 1, 'F');
+
         pdf.setFontSize(7);
-        pdf.text(section.status.toUpperCase(), xOffset + 4, yPos + 5);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(section.status.toUpperCase(), xOffset + 3, yPos + 4.5);
         pdf.setFontSize(9);
+        pdf.setTextColor(30, 41, 59);
         xOffset += colWidths[2];
 
-        // Progress
-        pdf.text(section.percent + '%', xOffset + 2, yPos + 5.5);
+        pdf.text(section.percent + '%', xOffset + 3, yPos + 5);
 
         yPos += 8;
     });
 
-    // Fila total
-    pdf.setFillColor(237, 233, 254);
+    checkAddPage(10, 2);
+    pdf.setFillColor(239, 246, 255);
     pdf.rect(margin, yPos, contentWidth, 8, 'F');
     pdf.setFont('helvetica', 'bold');
+
     xOffset = margin;
-    pdf.text('TOTAL', xOffset + 2, yPos + 5.5);
+    pdf.text('TOTAL', xOffset + 3, yPos + 5);
     xOffset += colWidths[0];
-    pdf.text(totalWeight + '%', xOffset + 2, yPos + 5.5);
+    pdf.text(totalWeight + '%', xOffset + 3, yPos + 5);
     xOffset += colWidths[1] + colWidths[2];
-    pdf.text(overallPercent + '%', xOffset + 2, yPos + 5.5);
+    pdf.text(overallPercent + '%', xOffset + 3, yPos + 5);
+
     yPos += 15;
 
-    // DETALLES DE EVALUACIÓN
     pdf.addPage();
     yPos = margin;
-    
-    pdf.setFontSize(16);
-    pdf.setTextColor(49, 46, 129);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Detailed Assessment Results', margin, yPos);
-    yPos += 12;
+
+    yPos = addSectionHeader('DETAILED ASSESSMENT RESULTS', yPos);
+    yPos += 5;
 
     snapshots.forEach(section => {
         const cards = sectionDetails[section.key] || [];
-        if (cards.length === 0) return;
+        if (!cards.length) {
+            return;
+        }
 
-        checkAddPage(30);
+        checkAddPage(25, 5);
 
-        // Sección header
-        pdf.setFillColor(245, 247, 255);
-        pdf.roundedRect(margin, yPos, contentWidth, 12, 3, 3, 'F');
-        pdf.setFontSize(13);
-        pdf.setTextColor(49, 46, 129);
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(margin, yPos, contentWidth, 10, 'F');
+        pdf.setTextColor(30, 41, 59);
+        pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text(section.name, margin + 5, yPos + 8);
-        yPos += 17;
+        pdf.text(section.name.toUpperCase(), margin + 5, yPos + 7);
 
-        // Cards de cada estándar
-        cards.forEach(card => {
-            const estimatedHeight = 60;
-            checkAddPage(estimatedHeight);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Progress: ${section.percent}%`, pageWidth - margin - 30, yPos + 7, { align: 'right' });
 
-            // Card background
-            pdf.setFillColor(255, 255, 255);
-            pdf.setDrawColor(226, 232, 240);
-            pdf.setLineWidth(0.5);
+        yPos += 15;
+
+        cards.forEach((card, cardIndex) => {
+            const cardHeightEstimate = 80;
+            checkAddPage(cardHeightEstimate, 5);
+
             const cardStartY = yPos;
-            
-            // Título y status
+
             pdf.setFontSize(11);
-            pdf.setTextColor(31, 41, 55);
             pdf.setFont('helvetica', 'bold');
-            const titleLines = pdf.splitTextToSize(card.title || 'Untitled Standard', contentWidth - 40);
-            titleLines.forEach((line, i) => {
-                pdf.text(line, margin + 5, yPos + 6 + (i * 5));
-            });
-            
-            // Status badge
-            let statusColor;
-            if (card.statusLabel === 'Completed') statusColor = [134, 239, 172];
-            else if (card.statusLabel === 'In Progress') statusColor = [96, 165, 250];
-            else if (card.statusLabel === 'Initial') statusColor = [253, 230, 138];
-            else statusColor = [148, 163, 184];
-            
-            pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2], 0.3 * 255);
-            pdf.roundedRect(pageWidth - margin - 35, yPos + 2, 30, 6, 2, 2, 'F');
-            pdf.setFontSize(7);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(card.statusLabel.toUpperCase(), pageWidth - margin - 33, yPos + 5.5);
+            pdf.setTextColor(30, 41, 59);
+            yPos = addWrappedText(`${cardIndex + 1}. ${card.title || 'Untitled Standard'}`, margin + 5, yPos, contentWidth - 40, 5, 11);
 
-            yPos += (titleLines.length * 5) + 8;
+            const statusColors = {
+                'Completed': [34, 197, 94],
+                'In Progress': [59, 130, 246],
+                'Initial': [245, 158, 11],
+                'Not Started': [148, 163, 184],
+                'Not Applicable': [107, 114, 128]
+            };
 
-            // Description
+            const statusColor = statusColors[card.statusLabel] || statusColors['Not Started'];
+            pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+            pdf.roundedRect(pageWidth - margin - 25, cardStartY, 20, 6, 1, 1, 'F');
+
+            pdf.setFontSize(6);
+            pdf.setTextColor(255, 255, 255);
+            const statusText = (card.statusLabel || 'Not Started').toUpperCase();
+            pdf.text(statusText.length > 10 ? statusText.slice(0, 9) + '..' : statusText, pageWidth - margin - 23, cardStartY + 3.5);
+
+            pdf.setFontSize(10);
+            pdf.setTextColor(30, 41, 59);
+            yPos += 3;
+
             if (card.description) {
-                pdf.setFontSize(9);
-                pdf.setTextColor(75, 85, 99);
                 pdf.setFont('helvetica', 'normal');
-                yPos = addWrappedText(card.description, margin + 5, yPos, contentWidth - 10, 5);
-                yPos += 3;
+                yPos = addWrappedText(card.description, margin + 5, yPos, contentWidth - 10, 4.5, 9);
+                yPos += 5;
             }
 
-            // Evidence, Gaps, Actions
-            const fields = [
-                { label: 'EVIDENCE', text: card.evidence || 'No evidence provided', color: [59, 130, 246] },
-                { label: 'GAPS', text: card.gaps || 'No gaps identified', color: [245, 158, 11] },
-                { label: 'ACTIONS', text: card.actions || 'No actions planned', color: [16, 185, 129] }
+            const fieldConfigs = [
+                { label: 'EVIDENCE', content: card.evidence, color: [59, 130, 246] },
+                { label: 'GAPS IDENTIFIED', content: card.gaps, color: [245, 158, 11] },
+                { label: 'ACTION PLAN', content: card.actions, color: [16, 185, 129] }
             ];
 
-            fields.forEach(field => {
-                checkAddPage(15);
-                pdf.setFontSize(8);
-                pdf.setTextColor(field.color[0], field.color[1], field.color[2]);
-                pdf.setFont('helvetica', 'bold');
-                pdf.text(field.label, margin + 5, yPos + 4);
-                yPos += 6;
+            const fieldWidth = (contentWidth - 20) / 3;
+            let maxFieldHeight = 0;
 
-                pdf.setFontSize(9);
-                pdf.setTextColor(55, 65, 81);
+            fieldConfigs.forEach((field, fieldIndex) => {
+                const fieldX = margin + (fieldIndex * (fieldWidth + 10));
+
+                pdf.setFontSize(8);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(field.color[0], field.color[1], field.color[2]);
+                pdf.text(field.label, fieldX, yPos);
+
                 pdf.setFont('helvetica', 'normal');
-                yPos = addWrappedText(field.text, margin + 5, yPos, contentWidth - 10, 4.5);
-                yPos += 2;
+                pdf.setFontSize(7);
+                pdf.setTextColor(71, 85, 105);
+                const content = field.content && field.content.trim() ? field.content : 'No information provided';
+                const resultingY = addWrappedText(content, fieldX, yPos + 3, fieldWidth - 5, 3.5, 7);
+                const fieldHeight = resultingY - yPos;
+                if (fieldHeight > maxFieldHeight) {
+                    maxFieldHeight = fieldHeight;
+                }
             });
 
-            // Draw card border
-            pdf.roundedRect(margin, cardStartY, contentWidth, yPos - cardStartY, 3, 3, 'S');
-            yPos += 8;
+            yPos += maxFieldHeight + 25;
+
+            pdf.setDrawColor(226, 232, 240);
+            pdf.setLineWidth(0.3);
+            pdf.rect(margin, cardStartY, contentWidth, yPos - cardStartY, 'S');
+
+            yPos += 10;
         });
 
-        yPos += 5;
+        yPos += 10;
     });
 
-    // Guardar PDF
+    if (data.comments && Object.keys(data.comments).length > 0) {
+        pdf.addPage();
+        yPos = margin;
+
+        yPos = addSectionHeader('MENTOR COMMENTS & OBSERVATIONS', yPos);
+        yPos += 5;
+
+        Object.entries(data.comments).forEach(([sectionKey, comment]) => {
+            if (!comment || comment.trim() === '') {
+                return;
+            }
+
+            checkAddPage(30, 5);
+
+            const sectionName = sectionKey.replace('Comments', '').replace(/([A-Z])/g, ' $1').trim();
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(sectionName + ':', margin + 5, yPos);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            pdf.setTextColor(55, 65, 81);
+            yPos = addWrappedText(comment.trim(), margin + 5, yPos + 4, contentWidth - 10, 4.5, 9);
+            yPos += 10;
+        });
+    }
+
+    if (data.summary && Object.values(data.summary).some(val => val && val.trim() !== '')) {
+        pdf.addPage();
+        yPos = margin;
+
+        yPos = addSectionHeader('SUMMARY & ACTION PLAN', yPos);
+        yPos += 5;
+
+        const summaryFields = [
+            { label: 'Strengths Identified', key: 'strengths' },
+            { label: 'Critical Gaps', key: 'criticalGaps' },
+            { label: 'Immediate Actions (0-1 month)', key: 'immediateActions' },
+            { label: 'Short-term Actions (1-3 months)', key: 'shortTermActions' },
+            { label: 'Medium-term Actions (3-6 months)', key: 'mediumTermActions' },
+            { label: 'Technical Assistance Needed', key: 'technicalAssistance' },
+            { label: 'Training Requirements', key: 'trainingRequirements' },
+            { label: 'Resource Requirements', key: 'resourceRequirements' },
+            { label: 'Next Steps', key: 'nextSteps' }
+        ];
+
+        summaryFields.forEach(field => {
+            const content = data.summary[field.key];
+            if (!content || content.trim() === '') {
+                return;
+            }
+
+            checkAddPage(25, 5);
+
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(field.label + ':', margin + 5, yPos);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            pdf.setTextColor(55, 65, 81);
+            yPos = addWrappedText(content.trim(), margin + 5, yPos + 4, contentWidth - 10, 4.5, 9);
+            yPos += 10;
+        });
+
+        if (data.summary.completionDate || data.summary.reviewedBy) {
+            checkAddPage(20, 5);
+            yPos += 10;
+
+            pdf.setDrawColor(226, 232, 240);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 10;
+
+            if (data.summary.completionDate) {
+                pdf.setFontSize(9);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(30, 41, 59);
+                pdf.text('Completion Date:', margin + 5, yPos);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(data.summary.completionDate, margin + 40, yPos);
+                yPos += 6;
+            }
+
+            if (data.summary.reviewedBy) {
+                pdf.setFontSize(9);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(30, 41, 59);
+                pdf.text('Reviewed By:', margin + 5, yPos);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(data.summary.reviewedBy, margin + 35, yPos);
+            }
+        }
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+        pdf.text('HID SCT Assessment Tool', margin, pageHeight - 10);
+    }
+
     const dateSuffix = generatedDate.toISOString().split('T')[0];
     pdf.save('HID_SCT_Assessment_Report_' + dateSuffix + '.pdf');
     showNotification('Professional PDF report generated successfully!');
-}
+ }
     function exportToExcel(){
         saveProgress();
         const workbook = XLSX.utils.book_new();
