@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creador Avanzado de Herramientas de Evaluación HID SCT</title>
+    <title>Advanced HID SCT Assessment Builder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -11,43 +11,899 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7f9; padding: 40px; }
         .maker-container { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); border-radius: 12px; padding: 30px; }
         .maker-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }
-        .subsection-item { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .subsection-item input, .subsection-item textarea { flex-grow: 1; }
+        .deployment-modalities-card .card-header { display: flex; flex-direction: column; gap: 4px; }
+        .deployment-modalities-options { display: flex; flex-wrap: wrap; gap: 12px; }
+        .modality-option { border: 1px solid #d0d7ff; border-radius: 50px; padding: 10px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s ease; background: #f8f9ff; }
+        .modality-option:hover { box-shadow: 0 6px 16px rgba(99, 102, 241, 0.15); transform: translateY(-2px); }
+        .modality-option input { display: none; }
+        .modality-option .modality-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem; }
+        .modality-option .modality-label { font-weight: 600; color: #1f2937; }
+        .modality-option.embedded .modality-icon { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .modality-option.coupled .modality-icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .modality-option.self-sustained .modality-icon { background: linear-gradient(135deg, #16a34a, #22c55e); }
+        .modality-option.selected { border-color: transparent; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(129, 140, 248, 0.08)); }
+        .subsection-item { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 16px; border: 1px solid #e9ecef; border-radius: 12px; background: #fff; }
+        .subsection-item .rich-text-editor { flex: 1; }
+        .subsection-actions { display: flex; justify-content: flex-end; }
+        .subsection-actions .btn { min-width: 120px; }
+        .section-content-editor { margin-top: 10px; }
+        .section-content-editor .editor-content { min-height: 160px; }
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
         .section-header-controls { display: flex; align-items: center; gap: 15px; }
+        .rich-text-editor { flex-grow: 1; }
+        .editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .editor-toolbar .btn { padding: 4px 8px; }
+        .editor-content { border: 1px solid #ced4da; border-radius: 8px; min-height: 80px; padding: 10px; background-color: #fff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .editor-content:focus, .editor-content.focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
+        .editor-content.empty::before { content: attr(data-placeholder); color: #6c757d; pointer-events: none; }
+        .builder-deployment-editor { border: 1px solid #dee2f7; border-radius: 10px; background: #f8f9ff; padding: 12px 16px; }
+        .builder-deployment-editor summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #1f3a93; }
+        .builder-deployment-editor summary::-webkit-details-marker { display: none; }
+        .builder-deployment-editor .badge { font-size: 0.75rem; letter-spacing: 0.02em; }
+        .builder-deployment-body { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+        .builder-modality-editor { border: 1px dashed #c7d2fe; border-radius: 10px; padding: 12px; background: #ffffff; transition: opacity 0.2s ease; }
+        .builder-modality-editor.inactive { opacity: 0.45; }
+        .builder-modality-editor .badge { font-size: 0.75rem; }
+        .builder-modality-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .builder-modality-columns textarea { min-height: 90px; }
+        .builder-deployment-summary { display: inline-flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
     <div class="maker-container">
         <div class="maker-header">
-            <h2>🛠️ Creador Avanzado de Herramientas de Evaluación</h2>
-            <p class="text-muted">Personaliza cada aspecto de tu herramienta. El HTML generado será 100% funcional e idéntico al original.</p>
+            <h2>🛠️ Advanced Assessment Tool Builder</h2>
+            <p class="text-muted">Customize every aspect of your tool. The generated HTML will be fully functional and match the original layout.</p>
+        </div>
+
+        <div class="card my-4 deployment-modalities-card" id="deployment-modalities-card">
+            <div class="card-header">
+                <h5 class="mb-0">Supported Deployment Modalities</h5>
+                <small class="text-muted">Select the deployment profiles your SCT can support.</small>
+            </div>
+            <div class="card-body">
+                <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
+            </div>
         </div>
 
         <div class="card my-4">
-            <div class="card-header"><h5 class="mb-0">Asignar Pesos de Sección (%)</h5></div>
+            <div class="card-header"><h5 class="mb-0">Assign Section Weights (%)</h5></div>
             <div class="card-body">
                 <div class="row" id="weights-container"></div>
-                <div class="alert alert-info mt-3" id="weight-sum-alert">Suma total del peso: <span id="weight-sum">0</span>%. Debe ser 100%.</div>
+                <div class="alert alert-info mt-3" id="weight-sum-alert">Total weight: <span id="weight-sum">0</span>%. It must equal 100%.</div>
             </div>
         </div>
 
         <div class="accordion" id="sections-accordion"></div>
 
         <div class="d-grid mt-4">
-            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generar Herramienta HTML Completa</button>
+            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generate Complete HTML Tool</button>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    const DEPLOYMENT_MODALITIES = [
+        { key: 'embedded', label: 'Embedded', icon: 'fa-hospital', accentClass: 'embedded' },
+        { key: 'coupled', label: 'Coupled', icon: 'fa-link', accentClass: 'coupled' },
+        { key: 'self-sustained', label: 'Self-Sustained', icon: 'fa-campground', accentClass: 'self-sustained' }
+    ];
+
+    const DEPLOYMENT_MODALITY_DETAILS = {
+        'embedded': {
+            'CORE STANDARD': {
+                'Self-sufficiency': {
+                    requirements: [
+                        'Host provides necessary operational support',
+                        'Availability of SCT-specific clinical devices and supplies',
+                        'Appropriateness and accessibility of space for SCT',
+                        'Clear list and provision of necessary supplies by SCT',
+                        'Management of supplies between host and SCT',
+                        'Host provides accommodation for SCT staff',
+                        'Accommodation on site'
+                    ],
+                    mitigation: [
+                        'Ensure agreements detail operational support specifics, including utilities and basic supplies',
+                        'SCT to provide its own specialized equipment and negotiate storage and maintenance with host',
+                        'If inadequate, plan modifications or look for alternative spaces within the facility',
+                        'SCT to maintain an independent supply chain and inventory control',
+                        'Set up a joint management system to track usage and replenishment',
+                        'If not, team to arrange their own accommodation',
+                        'If off-site, organise necessary transport and additional budget'
+                    ]
+                },
+                'Human Resources': {
+                    requirements: [
+                        'Host supports SCT with additional personnel if needed',
+                        'Specialized SCT care staff available',
+                        'Health professionals provided to work alongside SCT'
+                    ],
+                    mitigation: [
+                        'Develop joint staffing plans that include host personnel training and integration',
+                        'Deploy autonomous teams and integrate host staff as feasible',
+                        'Assess capacity and provide additional training if needed'
+                    ]
+                },
+                'Team field management and operations': {
+                    requirements: [
+                        'Agreement on staff roles and integration',
+                        'Staff: Facility provides medical leadership and oversight for SCT target patients',
+                        'SCT staff expected to work daylight hours only'
+                    ],
+                    mitigation: [
+                        'Formalize roles and responsibilities in operational guidelines',
+                        'Collaborate with host to establish a focal point for SCT',
+                        'Adapt staffing and security plans for extended hours if necessary'
+                    ]
+                },
+                'Support national health system and patient referral': {
+                    requirements: [
+                        'Compliance with SCT\'s clinical specialty requirements',
+                        'Identified referral pathway for patients requiring higher levels of care'
+                    ],
+                    mitigation: [
+                        'SCT to conduct pre-deployment site visits to ensure space meets specific needs',
+                        'Establish and clarify referral pathways and protocols for deteriorating patients'
+                    ]
+                },
+                'Coordination': {
+                    requirements: [
+                        'Intensive coordination within host for integration'
+                    ],
+                    mitigation: [
+                        'Establish a dedicated liaison team to handle integration and daily coordination'
+                    ]
+                },
+                'Medical records and reporting': {
+                    requirements: [
+                        'Maintenance and sharing of clinical documentation'
+                    ],
+                    mitigation: [
+                        'Implement shared digital systems for seamless data flow'
+                    ]
+                }
+            },
+            'LOGISTICS': {
+                'Safety and Security': {
+                    requirements: [
+                        'Safety and security risk assessment collaboration',
+                        'Responsibilities for safety and security measures',
+                        'Facility demonstrates due diligence for the safety and security of personnel and patients',
+                        'Evacuation procedures in place',
+                        'Updated safety and security plan'
+                    ],
+                    mitigation: [
+                        'Jointly develop a comprehensive safety and security plan',
+                        'SCT and host to conduct regular safety drills and update emergency response plans',
+                        'Review and enhance security protocols',
+                        'Ensure teams are briefed on evacuation procedures',
+                        'Participate in creating or revising the safety plan to meet current needs'
+                    ]
+                },
+                'Pharmacy supply chain and medical stock management': {
+                    requirements: [
+                        'Oxygen Supply: Facility provides oxygen if required',
+                        'Sterilization: Facility provides sterilization of equipment',
+                        'Ward management: Sufficient beds and bedding for surge in patients',
+                        'Pharmacy drugs: Facility provides access to recommended medicines',
+                        'Diagnostics and Equipment: Facility provides necessary equipment and supplies for pre-emergency level of care',
+                        'SCT is self-sufficient with pharmaceuticals, medical consumables, and medical equipment'
+                    ],
+                    mitigation: [
+                        'Ensure reliable oxygen supply through deployment of cylinders or concentrators',
+                        'Bring sterile supplies and consider portable sterilization solutions if necessary',
+                        'Deploy additional beds and mattresses or source locally',
+                        'Ensure adequate supply if local availability is insufficient',
+                        'SCT provides additional equipment and consumables if necessary',
+                        'Secure additional sources and stockpile critical supplies'
+                    ]
+                },
+                'Power and Fuel': {
+                    requirements: [
+                        'Power and Fuel: Facility provides sufficient, safe, and sustainable fuel and power supply',
+                        'Appropriate lighting within the facility for clinical care and support services'
+                    ],
+                    mitigation: [
+                        'Ensure backup generators are available and fuel supply chains are secure',
+                        'Deploy portable lighting solutions if necessary'
+                    ]
+                },
+                'Communications': {
+                    requirements: [
+                        'Communications: Facility can transmit data and voice communications effectively',
+                        'Redundancy in communications in case of failure'
+                    ],
+                    mitigation: [
+                        'Set up additional communication channels such as satellite phones or radios',
+                        'Establish multiple communication methods to ensure redundancy'
+                    ]
+                },
+                'Transportation and fleet': {
+                    requirements: [
+                        'Facility coordinates transportation of equipment and personnel'
+                    ],
+                    mitigation: [
+                        'Arrange external transport services if necessary'
+                    ]
+                },
+                'Food': {
+                    requirements: [
+                        'Facility provides sufficient food for all staff, inpatients, and caregivers',
+                        'Food available in proximity of the facility'
+                    ],
+                    mitigation: [
+                        'Plan for initial self-sufficiency and establish local supply chains',
+                        'Stockpile essential supplies or negotiate with local providers'
+                    ]
+                },
+                'Warehouse Management': {
+                    requirements: [
+                        'Effective warehouse management processes',
+                        'Secure storage space for deployed equipment and consumables'
+                    ],
+                    mitigation: [
+                        'Develop contingency plans for supply chain disruptions',
+                        'Consider portable secure storage solutions; ensure safety and proper stock management'
+                    ]
+                },
+                'Donation Management': {
+                    requirements: [
+                        'Policies in place for managing donations'
+                    ],
+                    mitigation: [
+                        'Establish guidelines and a system for managing and distributing donations'
+                    ]
+                },
+                'Facility structure, environment & ventilation': {
+                    requirements: [
+                        'Facility is structurally sound',
+                        'Adequate ventilation provided'
+                    ],
+                    mitigation: [
+                        'Engage with the facility to conduct or request a formal structural assessment if needed',
+                        'Implement temporary solutions such as portable air filtration units if needed'
+                    ]
+                },
+                'Site assessment and planning': {
+                    requirements: [
+                        'Site assessed and configured according to local conditions'
+                    ],
+                    mitigation: [
+                        'Reassess and modify site layout to adapt to local conditions as necessary'
+                    ]
+                },
+                'Sequential Build': {
+                    requirements: [
+                        'Essential areas and services prioritized for urgent care during facility setup'
+                    ],
+                    mitigation: [
+                        'Ensure critical services are prioritized and operational first'
+                    ]
+                },
+                'Mobilization': {
+                    requirements: [
+                        'Host can mobilize resources in short time to ensure readiness'
+                    ],
+                    mitigation: [
+                        'Pre-arrange resources and staff for rapid deployment'
+                    ]
+                },
+                'Demobilization': {
+                    requirements: [
+                        'Effective demobilization plans to minimize disruption'
+                    ],
+                    mitigation: [
+                        'Develop comprehensive demobilization strategies that include community engagement'
+                    ]
+                }
+            },
+            'CLINICAL': {
+                'TRIAGE': {
+                    requirements: [
+                        'Clear admission criteria for SCT target patients'
+                    ],
+                    mitigation: [
+                        'Ensure agreement on admission criteria with local health authorities'
+                    ]
+                },
+                'IMAGING': {
+                    requirements: [
+                        'Imaging: Facility provides necessary imaging solutions'
+                    ],
+                    mitigation: [
+                        'Secure alternative imaging solutions if not available'
+                    ]
+                }
+            },
+            'WASH': {
+                'Water Supply': {
+                    requirements: [
+                        'Continuous access to potable water for medical and personal needs',
+                        'Water supply being tested continuously'
+                    ],
+                    mitigation: [
+                        'Consider options such as water purification systems and secure water storage solutions',
+                        'Coordinate with local authorities or WASH clusters for provision if untested'
+                    ]
+                },
+                'Hygiene': {
+                    requirements: [
+                        'Staff and patients can practice hand hygiene adequately',
+                        'Personal hygiene facilities, including showers',
+                        'Host provides laundry service for patients and staff'
+                    ],
+                    mitigation: [
+                        'Provide additional handwashing stations and supplies',
+                        'Install temporary hygiene facilities if necessary'
+                    ]
+                },
+                'Environmental Cleaning': {
+                    requirements: [
+                        'Documented procedures for cleaning to maintain a hygienic environment'
+                    ],
+                    mitigation: [
+                        'Develop and implement standardized cleaning protocols'
+                    ]
+                },
+                'Healthcare Waste Management': {
+                    requirements: [
+                        'Appropriate waste management in place for healthcare waste'
+                    ],
+                    mitigation: [
+                        'Implement safe waste handling and disposal procedures; coordinate with local waste management; SCT may need to bring their own containers and disposal solutions'
+                    ]
+                },
+                'Sanitation': {
+                    requirements: [
+                        'Sufficient and safe sanitation facilities for excreta and grey and storm water management'
+                    ],
+                    mitigation: [
+                        'Deploy portable sanitation units and support the development of faecal sludge and waste water management plans'
+                    ]
+                },
+                'Vector and Pest Control': {
+                    requirements: [
+                        'Effective vector and pest control measures in place'
+                    ],
+                    mitigation: [
+                        'Introduce pest control measures suited to the local environment'
+                    ]
+                },
+                'Dead Body Management': {
+                    requirements: [
+                        'Host manages dead bodies in a safe, dignified, and culturally appropriate manner'
+                    ],
+                    mitigation: [
+                        'Provide training and resources for proper dead body management'
+                    ]
+                }
+            }
+        },
+        'coupled': {
+            'CORE STANDARD': {
+                'Self-sufficiency': {
+                    requirements: [
+                        'SCT complements host by adding infrastructure and shares some operational support elements (e.g., power, water, waste management)',
+                        'SCT provides all internal infrastructure including equipment, consumables, lighting, etc.',
+                        'SCT provides additional infrastructure on the same site and ensures proper layout and setup',
+                        'SCT independently provides all necessary clinical devices, consumables, and equipment',
+                        'SCT manages its own supplies but coordinates with host for shared support elements',
+                        'SCT arranges its own accommodation',
+                        'SCT arranges transport for off-site accommodation'
+                    ],
+                    mitigation: [
+                        'Formalize shared operational support responsibilities and boundaries in a written agreement',
+                        'Ensure clear agreements on the division of responsibilities for internal infrastructure and shared support elements',
+                        'Ensure portable and adaptable structures are available and can be deployed quickly',
+                        'Ensure a robust logistics plan for continuous supply and replenishment',
+                        'Use technology for real-time tracking and management of supplies',
+                        'Ensure adequate and safe accommodation arrangements are in place',
+                        'Ensure secure and reliable transport arrangements'
+                    ]
+                },
+                'Human Resources': {
+                    requirements: [
+                        'SCT provides its own staff but collaborates with host for some support functions',
+                        'SCT provides its own specialized staff',
+                        'SCT coordinates with host for collaborative care functions'
+                    ],
+                    mitigation: [
+                        'Implement integration protocols for collaborative functions, including training and orientation',
+                        'Ensure seamless integration with host\'s medical leadership',
+                        'Conduct joint training and integration sessions'
+                    ]
+                },
+                'Team field management and operations': {
+                    requirements: [
+                        'Protocols in place for integrating SCT and host staff for shared support services',
+                        'SCT provides specialized staff and coordinates with host for overall medical leadership',
+                        'SCT provides 24/7 staffing as needed'
+                    ],
+                    mitigation: [
+                        'Set up joint training sessions and regular coordination meetings',
+                        'Ensure all required diagnostics and equipment are deployed and functional',
+                        'Ensure adequate training and orientation for all staff'
+                    ]
+                },
+                'Support national health system and patient referral': {
+                    requirements: [
+                        'Facilities provided by SCT are quickly deployable and adaptable for specialized care',
+                        'SCT coordinates with host to ensure effective referral pathways for patients needing higher care'
+                    ],
+                    mitigation: [
+                        'Plan for logistical support in setting up and adapting SCT facilities',
+                        'Refine patient cohorting with local health authorities'
+                    ]
+                },
+                'Coordination': {
+                    requirements: [
+                        'High-level coordination between SCT and host for shared support services'
+                    ],
+                    mitigation: [
+                        'Create a joint task force to oversee integration and address issues as they arise'
+                    ]
+                },
+                'Medical records and reporting': {
+                    requirements: [
+                        'SCT implements its own documentation systems but ensures compatibility with host systems'
+                    ],
+                    mitigation: [
+                        'Regularly review and update communication protocols to ensure efficiency'
+                    ]
+                }
+            },
+            'LOGISTICS': {
+                'Safety and Security': {
+                    requirements: [
+                        'Safety and security responsibilities shared, with SCT ensuring internal security and host managing site security',
+                        'SCT and host collaborate on safety drills and emergency response plans',
+                        'SCT coordinates with host for overall site security',
+                        'SCT coordinates with host on evacuation plans',
+                        'SCT ensures its own safety plans are compatible with host\'s safety protocols'
+                    ],
+                    mitigation: [
+                        'Define and regularly update safety and security protocols and responsibilities',
+                        'Set up a quick-response team and clear escalation paths for dealing with emergencies',
+                        'Ensure comprehensive safety and security plans are in place',
+                        'Ensure clear and effective evacuation protocols are established',
+                        'Ensure safety plans are regularly updated and communicated'
+                    ]
+                },
+                'Pharmacy supply chain and medical stock management': {
+                    requirements: [
+                        'SCT coordinates with host for oxygen supply but provides backup cylinders or concentrators',
+                        'SCT provides its own sterilization solutions and coordinates with host facility',
+                        'SCT provides additional beds and bedding within its area',
+                        'SCT ensures its own supply of necessary medicines',
+                        'SCT independently provides all necessary diagnostics and equipment',
+                        'SCT manages its own pharmaceutical and medical stock supplies'
+                    ],
+                    mitigation: [
+                        'Deploy additional cylinders or concentrators as needed',
+                        'Deploy portable sterilization units as needed',
+                        'Install temporary hygiene facilities if necessary',
+                        'Deploy portable imaging equipment as needed',
+                        'Ensure sustainable sourcing and stockpile critical supplies',
+                        'Ensure sustainable supply chain management'
+                    ]
+                },
+                'Power and Fuel': {
+                    requirements: [
+                        'SCT coordinates with host for power supply but ensures backup generators and fuel supply',
+                        'SCT provides all necessary lighting within its own infrastructure'
+                    ],
+                    mitigation: [
+                        'Ensure proper staffing and security arrangements for extended hours',
+                        'Deploy backup generators and secure fuel supply chains'
+                    ]
+                },
+                'Communications': {
+                    requirements: [
+                        'SCT provides its own communication systems but ensures integration with host systems',
+                        'SCT ensures redundancy in its communication systems'
+                    ],
+                    mitigation: [
+                        'Ensure adequate lighting solutions are deployed',
+                        'Ensure multiple communication methods are available; deploy backup communication systems'
+                    ]
+                },
+                'Transportation and fleet': {
+                    requirements: [
+                        'SCT provides its own transportation solutions'
+                    ],
+                    mitigation: [
+                        'Ensure effective coordination of transportation and logistics'
+                    ]
+                },
+                'Food': {
+                    requirements: [
+                        'SCT ensures its own food supplies for its staff and patients',
+                        'SCT ensures food availability through local suppliers'
+                    ],
+                    mitigation: [
+                        'Ensure sustainable food supply arrangements are in place',
+                        'Negotiate with local providers and stockpile as necessary'
+                    ]
+                },
+                'Warehouse Management': {
+                    requirements: [
+                        'SCT manages its own warehouse and ensures effective supply chain processes',
+                        'SCT provides its own secure storage solutions'
+                    ],
+                    mitigation: [
+                        'Ensure effective supply chain and stock management',
+                        'Deploy portable storage units as needed'
+                    ]
+                },
+                'Donation Management': {
+                    requirements: [
+                        'SCT coordinates donation management'
+                    ],
+                    mitigation: [
+                        'Ensure clear protocols for handling and distribution of donations'
+                    ]
+                },
+                'Facility Structure, Environment & Ventilation': {
+                    requirements: [
+                        'SCT coordinates with host to ensure structural integrity',
+                        'SCT ensures proper ventilation within its infrastructure'
+                    ],
+                    mitigation: [
+                        'Ensure all structures are safe and meet operational requirements',
+                        'Deploy portable ventilation units as necessary'
+                    ]
+                },
+                'Site Assessment and Planning': {
+                    requirements: [
+                        'SCT conducts thorough site assessments'
+                    ],
+                    mitigation: [
+                        'Ensure site configurations meet operational needs'
+                    ]
+                },
+                'Sequential Build': {
+                    requirements: [
+                        'SCT ensures essential services are operational first'
+                    ],
+                    mitigation: [
+                        'Plan and implement sequential build strategies'
+                    ]
+                },
+                'Mobilization': {
+                    requirements: [
+                        'SCT ensures rapid deployment of resources'
+                    ],
+                    mitigation: [
+                        'Plan for quick mobilization and effective resource deployment'
+                    ]
+                },
+                'Demobilization': {
+                    requirements: [
+                        'SCT coordinates demobilization plans'
+                    ],
+                    mitigation: [
+                        'Ensure demobilization strategies are well-planned and executed'
+                    ]
+                }
+            },
+            'CLINICAL': {
+                'TRIAGE': {
+                    requirements: [
+                        'SCT and host agree on admission criteria and coordinate patient management'
+                    ],
+                    mitigation: [
+                        'Ensure adequate stock of bedding and negotiate with local suppliers'
+                    ]
+                },
+                'IMAGING': {
+                    requirements: [
+                        'SCT provides portable imaging solutions within its area'
+                    ],
+                    mitigation: [
+                        'Ensure rapid transfer capabilities are in place'
+                    ]
+                }
+            },
+            'WASH': {
+                'Water Supply': {
+                    requirements: [
+                        'SCT coordinates with host for water supply but provides backup solutions if needed',
+                        'SCT ensures water quality testing and coordinates with host for regular checks'
+                    ],
+                    mitigation: [
+                        'Deploy water purification and storage solutions',
+                        'Implement regular water quality testing protocols'
+                    ]
+                },
+                'Hygiene': {
+                    requirements: [
+                        'SCT provides its own hand hygiene facilities',
+                        'SCT provides its own hygiene facilities within its infrastructure',
+                        'SCT provides its own laundry facilities'
+                    ],
+                    mitigation: [
+                        'Deploy portable handwashing stations as needed',
+                        'Deploy temporary hygiene facilities as necessary',
+                        'Deploy portable laundry units as necessary'
+                    ]
+                },
+                'Environmental Cleaning': {
+                    requirements: [
+                        'SCT ensures additional cleaning protocols'
+                    ],
+                    mitigation: [
+                        'Implement additional environmental cleaning procedures'
+                    ]
+                },
+                'Healthcare Waste Management': {
+                    requirements: [
+                        'SCT coordinates with host for waste treatment but provides backup solutions if needed'
+                    ],
+                    mitigation: [
+                        'Deploy portable waste handling and disposal systems'
+                    ]
+                },
+                'Sanitation': {
+                    requirements: [
+                        'SCT provides additional sanitation solutions but coordinates with host for faecal sludge treatment and or disposal and provides backup solutions if needed'
+                    ],
+                    mitigation: [
+                        'Implement additional sanitation facilities and management plans'
+                    ]
+                },
+                'Vector and Pest Control': {
+                    requirements: [
+                        'SCT ensures additional vector control solutions'
+                    ],
+                    mitigation: [
+                        'Implement comprehensive vector control strategies'
+                    ]
+                },
+                'Dead Body Management': {
+                    requirements: [
+                        'SCT ensures additional dead body management solutions'
+                    ],
+                    mitigation: [
+                        'Deploy resources and training for proper dead body management'
+                    ]
+                }
+            }
+        },
+        'self-sustained': {}
+    };
+
+    function escapeHTML(value = '') {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function stripHTML(value = '') {
+        return String(value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function normalizeStandardName(value = '') {
+        return stripHTML(value)
+            .toLowerCase()
+            .replace(/&amp;/g, 'and')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    }
+
+    function extractTitleTextFromHTML(html, fallbackIndex = 0) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html || '';
+        const text = (temp.textContent || '').trim();
+        const separators = [':', '–', '-', '—'];
+        let title = text;
+        for (const sep of separators) {
+            const idx = text.indexOf(sep);
+            if (idx > -1) {
+                title = text.slice(0, idx).trim();
+                break;
+            }
+        }
+        if (!title) {
+            title = `Standard ${fallbackIndex + 1}`;
+        }
+        return title;
+    }
+
+    function findModalityDetailSource(modalityKey, sectionKey, standardTitle, source = DEPLOYMENT_MODALITY_DETAILS) {
+        if (!modalityKey || !sectionKey) return null;
+        const modalityData = source[modalityKey];
+        if (!modalityData) return null;
+        const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
+        if (!mappedSection) return null;
+        const sectionData = modalityData[mappedSection];
+        if (!sectionData) return null;
+        const normalizedTitle = normalizeStandardName(standardTitle);
+        let bestMatch = null;
+        for (const [name, details] of Object.entries(sectionData)) {
+            const normalizedName = normalizeStandardName(name);
+            if (!normalizedName) continue;
+            if (normalizedTitle && normalizedName === normalizedTitle) {
+                bestMatch = details;
+                break;
+            }
+            if (!bestMatch && normalizedTitle && (normalizedName.includes(normalizedTitle) || normalizedTitle.includes(normalizedName))) {
+                bestMatch = details;
+            }
+        }
+        return bestMatch;
+    }
+
+    function generateSubsectionKey(sectionKey) {
+        return `${sectionKey}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    const builderDeploymentOverrides = {};
+
+    function ensureDeploymentOverride(sectionKey, itemKey, titleText = '') {
+        if (!builderDeploymentOverrides[sectionKey]) {
+            builderDeploymentOverrides[sectionKey] = {};
+        }
+        if (!builderDeploymentOverrides[sectionKey][itemKey]) {
+            builderDeploymentOverrides[sectionKey][itemKey] = {};
+            DEPLOYMENT_MODALITIES.forEach(modality => {
+                const defaults = findModalityDetailSource(modality.key, sectionKey, titleText) || {};
+                const requirements = Array.isArray(defaults.requirements) ? defaults.requirements.join('\n') : (defaults.requirements || '');
+                const mitigation = Array.isArray(defaults.mitigation) ? defaults.mitigation.join('\n') : (defaults.mitigation || '');
+                builderDeploymentOverrides[sectionKey][itemKey][modality.key] = {
+                    requirements,
+                    mitigation
+                };
+            });
+        }
+        return builderDeploymentOverrides[sectionKey][itemKey];
+    }
+
+    function buildBuilderDeploymentEditor(sectionKey, itemKey, titleText) {
+        const overrides = ensureDeploymentOverride(sectionKey, itemKey, titleText);
+        const modalityEditors = DEPLOYMENT_MODALITIES.map(modality => {
+            const modalityData = overrides[modality.key] || { requirements: '', mitigation: '' };
+            return `
+                <div class="builder-modality-editor" data-modality="${modality.key}">
+                    <div class="builder-modality-header mb-2">
+                        <span class="badge bg-light text-primary"><i class="fas ${modality.icon} me-1"></i>${escapeHTML(modality.label)}</span>
+                    </div>
+                    <div class="builder-modality-columns">
+                        <div>
+                            <label class="form-label">Requirements</label>
+                            <textarea class="form-control deployment-prefill-textarea" data-section="${sectionKey}" data-item-key="${itemKey}" data-modality="${modality.key}" data-field="requirements" rows="3">${escapeHTML(modalityData.requirements || '')}</textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Mitigation</label>
+                            <textarea class="form-control deployment-prefill-textarea" data-section="${sectionKey}" data-item-key="${itemKey}" data-modality="${modality.key}" data-field="mitigation" rows="3">${escapeHTML(modalityData.mitigation || '')}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <details class="builder-deployment-editor" data-section="${sectionKey}" data-item-key="${itemKey}" data-title="${escapeHTML(titleText)}" open>
+                <summary>
+                    <span class="builder-deployment-summary">
+                        <i class="fas fa-clipboard-list text-primary"></i>
+                        <span class="builder-deployment-summary-title">${escapeHTML(titleText)}</span>
+                        <span class="badge bg-light text-secondary">Deployment Prefill</span>
+                    </span>
+                </summary>
+                <div class="builder-deployment-body">
+                    ${modalityEditors}
+                </div>
+            </details>
+        `;
+    }
+
+    function splitStandardContent(html, fallbackIndex = 0) {
+        const raw = String(html || '').trim();
+        const separators = [': ', ' – ', ' - ', ' — ', ':', '–', '-', '—'];
+        let titleHTML = raw;
+        let bodyHTML = raw;
+        for (const sep of separators) {
+            const idx = raw.indexOf(sep);
+            if (idx > -1) {
+                titleHTML = raw.slice(0, idx);
+                bodyHTML = raw.slice(idx + sep.length).trim() || raw;
+                break;
+            }
+        }
+        const titleText = extractTitleTextFromHTML(titleHTML, fallbackIndex);
+        return { titleHTML, bodyHTML, titleText };
+    }
+
+    function setupDeploymentPrefillEditors(root = document) {
+        root.querySelectorAll('.deployment-prefill-textarea').forEach(textarea => {
+            if (textarea.dataset.prefillInitialized === 'true') {
+                return;
+            }
+            textarea.dataset.prefillInitialized = 'true';
+            textarea.addEventListener('input', event => {
+                const field = event.currentTarget.dataset.field;
+                const section = event.currentTarget.dataset.section;
+                const itemKey = event.currentTarget.dataset.itemKey;
+                const modality = event.currentTarget.dataset.modality;
+                if (!field || !section || !itemKey || !modality) {
+                    return;
+                }
+                const wrapper = event.currentTarget.closest('.builder-deployment-editor');
+                const title = wrapper ? (wrapper.dataset.title || '') : '';
+                ensureDeploymentOverride(section, itemKey, title);
+                if (!builderDeploymentOverrides[section][itemKey][modality]) {
+                    builderDeploymentOverrides[section][itemKey][modality] = { requirements: '', mitigation: '' };
+                }
+                builderDeploymentOverrides[section][itemKey][modality][field] = event.currentTarget.value;
+            });
+        });
+    }
+
+    function updateBuilderModalityEditorsVisibility() {
+        document.querySelectorAll('.builder-modality-editor').forEach(editor => {
+            const modality = editor.dataset.modality;
+            if (!modality) return;
+            editor.classList.toggle('inactive', !builderSelectedModalities.has(modality));
+        });
+    }
+
+    function addSubsectionItem(sectionKey, subContent = '', options = {}) {
+        const container = options.container || document.getElementById(`subsections-${sectionKey}`);
+        if (!container) return null;
+        const index = typeof options.index === 'number' ? options.index : container.querySelectorAll('.subsection-item').length;
+        const itemKey = options.itemKey || generateSubsectionKey(sectionKey);
+        const titleText = options.titleText || extractTitleTextFromHTML(subContent, index);
+        ensureDeploymentOverride(sectionKey, itemKey, titleText);
+        const subsectionHTML = `
+            <div class="subsection-item" data-section="${sectionKey}" data-item-key="${itemKey}" data-default-index="${index}" data-title="${escapeHTML(titleText)}">
+                ${getEditorTemplate(subContent)}
+                ${buildBuilderDeploymentEditor(sectionKey, itemKey, titleText)}
+                <div class="subsection-actions">
+                    <button class="btn btn-danger btn-sm remove-item" type="button"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', subsectionHTML);
+        const newItem = container.lastElementChild;
+        setupRichTextEditors(newItem);
+        setupDeploymentPrefillEditors(newItem);
+        updateBuilderModalityEditorsVisibility();
+        const removeBtn = newItem.querySelector('.remove-item');
+        if (removeBtn) {
+            removeBtn.onclick = () => {
+                if (activeEditor && newItem.contains(activeEditor)) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+                const key = newItem.dataset.itemKey;
+                if (builderDeploymentOverrides[sectionKey] && key && builderDeploymentOverrides[sectionKey][key]) {
+                    delete builderDeploymentOverrides[sectionKey][key];
+                }
+                newItem.remove();
+            };
+        }
+        return newItem;
+    }
+
+    const SECTION_KEY_TO_MODALITY_SECTION = {
+        'core-standards': 'CORE STANDARD',
+        'clinical-standards': 'CLINICAL',
+        'logistic-standards': 'LOGISTICS',
+        'wash-standards': 'WASH'
+    };
+
+    let builderSelectedModalities = new Set(['embedded', 'coupled']);
+
     const TOOL_CONFIG = {
-        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true },
-        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true },
-        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true },
+        'info': { title: 'INFO', icon: 'fa-info-circle', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
+        'definition': { title: 'DEFINITION', icon: 'fa-book', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
+        'org-detail': { title: 'ORGANIZATIONAL DETAIL', icon: 'fa-building', hasSubsections: false, weight: 0, enabled: true, editableContent: true },
         'guiding-principles': { title: 'GUIDING PRINCIPLES', icon: 'fa-star', hasSubsections: true, weight: 2, enabled: true, subsections: ['Safe Care - Written statement on behalf the organization', 'Equitable Care - Written statement on behalf the organization', 'Ethical Care - Written statement on behalf the organization', 'Accountable Response - Written statement on behalf the organization', 'Appropriate Response - Written statement on behalf the organization', 'Coordinated Response - Written statement on behalf the organization'] },
         'core-standards': { title: 'CORE STANDARDS', icon: 'fa-cogs', hasSubsections: true, weight: 18, enabled: true, subsections: ['Administration & Organizational Management', 'Human Resources', 'Professional Licensing & Conduct', 'Training of Teams', 'Coordination of EMTs', 'Records and Reporting'] },
         'clinical-standards': { 
@@ -69,26 +925,251 @@
                 '<strong>Distribution</strong> - Distribute ORS sachets and water treatment products'
             ]
         },
-        'logistic-standards': { title: 'LOGISTIC STANDARDS', icon: 'fa-truck', hasSubsections: true, weight: 10, enabled: true, subsections: ['Power and Fuel - SCTs/EMTs must ensure sufficient power supply', 'Communications - SCTs/EMTs must have communication capabilities', 'Transportation & Fleet', 'Warehouse Management'] },
-        'wash-standards': { title: 'WASH STANDARDS', icon: 'fa-hand-holding-water', hasSubsections: true, weight: 10, enabled: true, subsections: ['Water Supply - SCTs/EMTs must ensure sufficient safe drinking water', 'Hygiene - SCTs/EMTs must ensure safe hygiene measures', 'Environmental Cleaning', 'Healthcare Waste Management'] },
+        'logistic-standards': {
+            title: 'LOGISTIC STANDARDS', icon: 'fa-truck', hasSubsections: true, weight: 10, enabled: true,
+            subsections: [
+                'Power and Fuel: EMTs must ensure sufficient, safe, sustainable and context appropriate fuel, power supply and lighting for their facilities, clinical care and support services.',
+                'Communications: EMTs must have the ability to transmit by voice and data to the local and national coordination structures with at least one level of redundancy in case of failure.',
+                'Transportation and fleet: EMTs must effectively coordinate the transportation of equipment and personnel to the scene and throughout the deployment.',
+                'Food: EMTs must provide food requirements for all staff, inpatients and caregivers.',
+                'Warehouse Management: EMTs have warehouse management processes and procedures that address preparedness requirements and an ability to respond in the field to manage consistent availability of supplies.',
+                'Pharmacy supply chain and medical stock Management: EMTs are self-sufficient with enough pharmaceutical, medical consumables and medical equipment to deliver patient care.',
+                'Donation Management: EMTs should have policies in place compliant with national and international standards, for anticipated donation of medical consumables, pharmaceuticals, equipment and/or their entire field facility.',
+                'Safety and security: EMTs must demonstrate due diligence for the safety and security of their personnel and patients during deployment by putting in place management plans and practical measures appropriate to the operational context and communicate plans to those concerned.',
+                'Facility structure, environment & ventilation: EMTs must be able to provide suitable and acceptable facilities for clinical care and staff needs.',
+                'Site assessment and planning: EMTs are able to assess possible site locations and adapt their configuration to local conditions, including the possibility to work within or reinforce existing health facilities.',
+                'Sequential build: EMTs must prioritize the establishment of their facility in a way that areas and services necessary for urgent patient care are established first while the rest of the facility is completed, allowing certain functions to be operational before deployment is fully completed.',
+                'Mobilization: EMTs must be able to mobilize in the shortest possible time ensuring general and institutional interventions to support their operational readiness status.',
+                'Demobilization: EMTs should have plans and procedures for coordinated demobilization that maximizes the time of operation and minimizes disruption, supporting recovery of normal local health services and local environmental impacts.'
+            ]
+        },
+        'wash-standards': {
+            title: 'WASH STANDARDS', icon: 'fa-hand-holding-water', hasSubsections: true, weight: 10, enabled: true,
+            subsections: [
+                'Water Supply: EMTs must ensure that patients, caregivers and staff have sufficient safe drinking water at all times, distributed through appropriate water collection points and facilities, to enable medical, personal hygiene, drinking, cooking, cleaning and laundry activities.',
+                'Hygiene: EMTs should ensure that staff and patients can practice hand hygiene throughout the facility by promoting access to culturally appropriate materials and places for handwashing, as well as adequate access to showers, safe spaces and materials for personal and menstrual hygiene.',
+                'Environmental cleaning: EMT facilities and the immediate environment should always be kept clean and hygienic. EMTs should have documented procedures and appropriate materials for immediate, routine and terminal cleaning to reduce risks of infection.',
+                'Healthcare Waste Management: EMTs are responsible for the safe management and disposal of health waste generated at their facilities. Safe health-care waste management involves multiple steps: minimization, segregation, collection, storage, treatment and final disposal.',
+                'Sanitation: EMTs must ensure that patients, staff and caregivers have accessible, appropriate, safe and sufficient facilities and well-documented procedures in place for management of excreta and grey and storm water to limit disease transmission.',
+                'Vector and Pest Control: EMTs should ensure that patients, staff and caregivers are protected from disease vectors and pests by using appropriate equipment and methods adapted to the local context.',
+                'Dead Body Management: EMTs need to be able to manage dead bodies in a way that is dignified, culturally appropriate, safe and according to public health practices.'
+            ]
+        },
         'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true }
     };
+
+    let activeEditor = null;
+    let savedRange = null;
+    const SECTION_CONTENT = {};
+
+    function storeSelection(editor) {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        if (editor && editor.contains(range.commonAncestorContainer)) {
+            savedRange = range.cloneRange();
+        }
+    }
+
+    function restoreSelection(editor) {
+        if (!savedRange || !editor || !editor.contains(savedRange.commonAncestorContainer)) {
+            savedRange = null;
+            if (editor) {
+                editor.focus();
+            }
+            return;
+        }
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        editor.focus();
+    }
+
+    function renderDeploymentModalitiesSelector() {
+        const container = document.getElementById('deployment-modalities-options');
+        if (!container) return;
+        container.innerHTML = '';
+        DEPLOYMENT_MODALITIES.forEach(modality => {
+            const isChecked = builderSelectedModalities.has(modality.key);
+            container.insertAdjacentHTML('beforeend', `
+                <label class="modality-option ${modality.accentClass} ${isChecked ? 'selected' : ''}" data-key="${modality.key}">
+                    <input type="checkbox" class="deployment-modality-checkbox" data-key="${modality.key}" ${isChecked ? 'checked' : ''}>
+                    <span class="modality-icon"><i class="fas ${modality.icon}"></i></span>
+                    <span class="modality-label">${modality.label}</span>
+                </label>
+            `);
+        });
+
+        container.querySelectorAll('.deployment-modality-checkbox').forEach(input => {
+            input.onchange = (event) => {
+                const key = event.currentTarget.dataset.key;
+                if (event.currentTarget.checked) {
+                    builderSelectedModalities.add(key);
+                } else {
+                    builderSelectedModalities.delete(key);
+                }
+                const label = event.currentTarget.closest('.modality-option');
+                if (label) {
+                    label.classList.toggle('selected', event.currentTarget.checked);
+                }
+                updateBuilderModalityEditorsVisibility();
+            };
+        });
+
+        updateBuilderModalityEditorsVisibility();
+    }
+
+    function getEditorTemplate(content = '', placeholder = 'Describe the standard...') {
+        return `
+            <div class="rich-text-editor">
+                <div class="editor-toolbar">
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="bold" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="italic" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="underline" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertUnorderedList" title="Bulleted list"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="insertOrderedList" title="Numbered list"><i class="fas fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm format-btn" data-command="removeFormat" title="Clear formatting"><i class="fas fa-eraser"></i></button>
+                </div>
+                <div class="editor-content form-control" contenteditable="true" data-placeholder="${placeholder}">${content}</div>
+            </div>
+        `;
+    }
+
+    function buildDeploymentModalitiesCardHTML(selectedKeys = []) {
+        const selectedSet = new Set(selectedKeys);
+        const optionsHTML = DEPLOYMENT_MODALITIES.map(modality => {
+            const isSelected = selectedSet.has(modality.key);
+            return `
+            <div class="form-check modality-pill ${modality.accentClass} ${isSelected ? 'selected' : ''}">
+                <input class="form-check-input deployment-modality-toggle" type="checkbox" id="modality-${modality.key}" data-modality="${modality.key}" ${isSelected ? 'checked' : ''}>
+                <label class="form-check-label" for="modality-${modality.key}">
+                    <span class="modality-pill-icon"><i class="fas ${modality.icon}"></i></span>
+                    <span class="modality-pill-label">${modality.label}</span>
+                </label>
+            </div>
+        `;
+        }).join('');
+
+        return `
+            <div class="card section-card deployment-modalities-card">
+                <div class="section-header">
+                    <h5>Supported deployment modalities</h5>
+                    <p class="text-muted small mb-0">Select the deployment profiles your SCT can support.</p>
+                </div>
+                <div class="card-body">
+                    <div class="deployment-modality-grid">
+                        ${optionsHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildDeploymentModalityDetailsHTML(selectedKeys = []) {
+        const selectionSet = new Set(selectedKeys);
+
+        const cardsHTML = DEPLOYMENT_MODALITIES.map(modality => {
+            const modalityDetails = DEPLOYMENT_MODALITY_DETAILS[modality.key];
+            let sectionsHTML = '';
+
+            if (modalityDetails && Object.keys(modalityDetails).length > 0) {
+                sectionsHTML = Object.entries(modalityDetails).map(([sectionName, subsections]) => {
+                    const subsectionHTML = Object.entries(subsections || {}).map(([subsectionName, data]) => {
+                        const requirements = (data && data.requirements ? data.requirements : []).map(item => `<li>${escapeHTML(item)}</li>`).join('') || '<li class="text-muted">No requirements provided.</li>';
+                        const mitigations = (data && data.mitigation ? data.mitigation : []).map(item => `<li>${escapeHTML(item)}</li>`).join('') || '<li class="text-muted">No mitigation guidance provided.</li>';
+                        return `
+                            <div class="modality-subsection">
+                                <h6 class="modality-subsection-title">${escapeHTML(subsectionName)}</h6>
+                                <div class="modality-subsection-columns">
+                                    <div>
+                                        <span class="label-pill requirements-pill">Requirements</span>
+                                        <ul class="mb-0">${requirements}</ul>
+                                    </div>
+                                    <div>
+                                        <span class="label-pill mitigation-pill">Mitigation</span>
+                                        <ul class="mb-0">${mitigations}</ul>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="modality-detail-section">
+                            <div class="modality-section-header">
+                                <span class="section-pill">${escapeHTML(sectionName)}</span>
+                            </div>
+                            <div class="modality-section-body">
+                                ${subsectionHTML}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                sectionsHTML = '<p class="text-muted mb-0">Operational detail data not yet defined for this modality.</p>';
+            }
+
+            const isSelected = selectionSet.has(modality.key);
+            return `
+                <div class="card section-card modality-detail-card ${modality.accentClass} ${isSelected ? '' : 'd-none'}" data-modality="${modality.key}">
+                    <div class="card-body">
+                        <div class="modality-card-header">
+                            <div class="modality-card-icon"><i class="fas ${modality.icon}"></i></div>
+                            <div>
+                                <h5 class="mb-1">${escapeHTML(modality.label)} Deployment Profile</h5>
+                                <p class="text-muted mb-0">Key operational requirements and mitigation strategies.</p>
+                            </div>
+                        </div>
+                        <div class="modality-card-content">
+                            ${sectionsHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (!cardsHTML.trim()) {
+            return '';
+        }
+
+        return `<div class="modality-details-container">${cardsHTML}</div>`;
+    }
 
     function renderMakerUI() {
         const sectionsContainer = document.getElementById('sections-accordion');
         const weightsContainer = document.getElementById('weights-container');
         sectionsContainer.innerHTML = ''; weightsContainer.innerHTML = '';
+        renderDeploymentModalitiesSelector();
 
         Object.entries(TOOL_CONFIG).forEach(([key, config]) => {
+            if (config.editableContent && !SECTION_CONTENT[key]) {
+                const template = document.getElementById(`template-${key}`);
+                SECTION_CONTENT[key] = template ? template.innerHTML.trim() : '';
+            }
+
+            let sectionBody = '';
+            if (config.hasSubsections) {
+                sectionBody = `<h5>Standards / Subsections (HTML supported)</h5>
+                <div id="subsections-${key}" class="subsections-container"></div>
+                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Add Standard</button>`;
+            } else if (config.editableContent) {
+                sectionBody = `<h5>Tab content (HTML supported)</h5>
+                <div class="section-content-editor" data-section="${key}">
+                    ${getEditorTemplate(SECTION_CONTENT[key] || '', 'Edit the content for this tab...')}
+                </div>`;
+            } else {
+                sectionBody = `<div class="alert alert-light">The content for this section is fixed and will be inserted automatically in the final tool.</div>`;
+            }
+
             const sectionHTML = `
                 <div class="accordion-item" id="accordion-item-${key}">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${key}">
                             <div class="section-header-controls w-100">
-                                <span class="me-auto">Configurar: ${config.title}</span>
+                                <span class="me-auto">Configure: ${config.title}</span>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input section-enable-switch" type="checkbox" data-key="${key}" ${config.enabled ? 'checked' : ''}>
-                                    <label class="form-check-label">Habilitar</label>
+                                    <label class="form-check-label">Enable</label>
                                 </div>
                             </div>
                         </button>
@@ -96,24 +1177,26 @@
                     <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
                         <div class="accordion-body">
                             <div class="mb-3">
-                                <label class="form-label">Título de la Sección</label>
+                                <label class="form-label">Section title</label>
                                 <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
                             </div>
-                            ${config.hasSubsections ?
-                                `<h5>Estándares / Subsecciones (HTML permitido)</h5><div id="subsections-${key}">${
-                                    config.subsections.map(sub => `
-                                        <div class="subsection-item">
-                                            <textarea class="form-control" rows="2">${sub.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-                                            <button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>
-                                        </div>`).join('')
-                                }</div>
-                                <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Añadir Estándar</button>`
-                                : `<div class="alert alert-light">El contenido de esta sección es fijo y se insertará automáticamente en la herramienta final.</div>`
-                            }
+                            ${sectionBody}
                         </div>
                     </div>
                 </div>`;
             sectionsContainer.insertAdjacentHTML('beforeend', sectionHTML);
+
+            if (config.hasSubsections) {
+                const container = document.getElementById(`subsections-${key}`);
+                const subsections = Array.isArray(config.subsections) ? config.subsections : [];
+                subsections.forEach((entry, index) => {
+                    if (entry && typeof entry === 'object' && entry.content !== undefined) {
+                        addSubsectionItem(key, entry.content, { container, index, itemKey: entry.itemKey, titleText: entry.titleText });
+                    } else {
+                        addSubsectionItem(key, entry, { container, index });
+                    }
+                });
+            }
 
             if (config.weight > 0) {
                 const weightHTML = `<div class="col-md-4 mb-3" id="weight-div-${key}"><label class="form-label">${config.title}</label><input type="number" class="form-control weight-input" data-key="${key}" value="${config.weight}" min="0" ${!config.enabled ? 'disabled' : ''}></div>`;
@@ -122,19 +1205,25 @@
         });
         updateWeightSum();
         addEventListeners();
+        setupRichTextEditors();
+
+        const firstItem = sectionsContainer.querySelector('.accordion-item');
+        if (firstItem) {
+            const firstButton = firstItem.querySelector('.accordion-button');
+            const firstCollapse = firstItem.querySelector('.accordion-collapse');
+            if (firstButton && firstCollapse) {
+                firstButton.classList.remove('collapsed');
+                firstButton.setAttribute('aria-expanded', 'true');
+                firstCollapse.classList.add('show');
+            }
+        }
     }
     
     function addEventListeners() {
         document.querySelectorAll('.add-item').forEach(btn => btn.onclick = e => {
             const section = e.currentTarget.dataset.section;
-            const container = document.getElementById(`subsections-${section}`);
-            const newItem = document.createElement('div');
-            newItem.className = 'subsection-item';
-            newItem.innerHTML = `<textarea class="form-control" rows="2" placeholder="Nuevo estándar..."></textarea><button class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash"></i></button>`;
-            container.appendChild(newItem);
-            newItem.querySelector('.remove-item').onclick = () => newItem.remove();
+            addSubsectionItem(section, '');
         });
-        document.querySelectorAll('.remove-item').forEach(btn => btn.onclick = e => e.currentTarget.closest('.subsection-item').remove());
         document.querySelectorAll('.weight-input').forEach(input => input.oninput = updateWeightSum);
         document.querySelectorAll('.section-enable-switch').forEach(toggle => toggle.onchange = e => {
             const key = e.currentTarget.dataset.key;
@@ -144,6 +1233,74 @@
             updateWeightSum();
         });
         document.getElementById('btn-make').onclick = generateHTML;
+    }
+
+    function setupRichTextEditors(root = document) {
+        root.querySelectorAll('.editor-content').forEach(editor => {
+            if (editor.dataset.editorInitialized === 'true') {
+                return;
+            }
+            editor.dataset.editorInitialized = 'true';
+            const updatePlaceholderState = () => {
+                const text = editor.innerText.trim();
+                editor.classList.toggle('empty', text.length === 0);
+            };
+            updatePlaceholderState();
+            const handleInput = () => {
+                updatePlaceholderState();
+                storeSelection(editor);
+                const subsectionItem = editor.closest('.subsection-item');
+                if (subsectionItem) {
+                    const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
+                    const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
+                    subsectionItem.dataset.title = newTitle;
+                    const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
+                    if (summaryTitle) {
+                        summaryTitle.textContent = newTitle;
+                    }
+                    const details = subsectionItem.querySelector('.builder-deployment-editor');
+                    if (details) {
+                        details.dataset.title = newTitle;
+                    }
+                }
+            };
+            editor.addEventListener('input', handleInput);
+            editor.addEventListener('focus', () => {
+                activeEditor = editor;
+                editor.classList.add('focus');
+                storeSelection(editor);
+            });
+            editor.addEventListener('blur', () => {
+                editor.classList.remove('focus');
+                if (activeEditor === editor) {
+                    activeEditor = null;
+                    savedRange = null;
+                }
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
+            editor._updatePlaceholder = updatePlaceholderState;
+        });
+        root.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = e => {
+                e.preventDefault();
+                const command = btn.dataset.command;
+                const value = btn.dataset.value || null;
+                const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
+                const editor = container ? container.querySelector('.editor-content') : null;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
+                }
+            };
+        });
     }
 
     function updateWeightSum() {
@@ -163,11 +1320,40 @@
                 ...TOOL_CONFIG[key],
                 title: input.value,
                 enabled: document.querySelector(`.section-enable-switch[data-key="${key}"]`).checked,
-                weight: parseInt(document.querySelector(`.weight-input[data-key="${key}"]`)?.value || 0)
+                weight: (function () {
+                    const weightInput = document.querySelector(`.weight-input[data-key="${key}"]`);
+                    const value = weightInput ? weightInput.value : '0';
+                    return parseInt(value || '0', 10);
+                })()
             };
             if (finalConfig[key].hasSubsections) {
-                finalConfig[key].subsections = Array.from(document.querySelectorAll(`#subsections-${key} textarea`)).map(area => area.value);
+                const items = Array.from(document.querySelectorAll(`#subsections-${key} .subsection-item`));
+                finalConfig[key].subsections = items.map((item, index) => {
+                    const editor = item.querySelector('.editor-content');
+                    const content = editor ? editor.innerHTML.trim() : '';
+                    if (!content) {
+                        return null;
+                    }
+                    const itemKey = item.dataset.itemKey || generateSubsectionKey(key);
+                    const titleText = item.dataset.title || extractTitleTextFromHTML(content, index);
+                    ensureDeploymentOverride(key, itemKey, titleText);
+                    return { content, itemKey, titleText };
+                }).filter(Boolean);
             }
+            if (finalConfig[key].editableContent) {
+                const editor = document.querySelector(`#accordion-item-${key} .section-content-editor .editor-content`);
+                finalConfig[key].content = editor ? editor.innerHTML.trim() : '';
+            }
+        });
+
+        const selectedModalities = Array.from(document.querySelectorAll('.deployment-modality-checkbox'))
+            .filter(cb => cb.checked)
+            .map(cb => cb.dataset.key);
+        const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
+        const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
+        const defaultModalityState = {};
+        DEPLOYMENT_MODALITIES.forEach(modality => {
+            defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
         });
 
         const enabledSections = Object.entries(finalConfig).filter(([, config]) => config.enabled);
@@ -176,14 +1362,164 @@
         let sidebarLinks = enabledSections.map(([key, config]) => `
             <li class="nav-item"><a class="nav-link" href="#${key}" data-bs-toggle="tab"><i class="fas ${config.icon}"></i> ${config.title}</a></li>`).join('');
 
+        const escapeHTML = (value = '') => value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const stripHTML = (value = '') => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+        const normalizeStandardName = (value = '') => stripHTML(value)
+            .toLowerCase()
+            .replace(/&amp;/g, 'and')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+
+        const getModalityMeta = (key) => {
+            const meta = DEPLOYMENT_MODALITIES.find(modality => modality.key === key);
+            return meta || { key, label: key, icon: 'fa-clipboard', accentClass: '' };
+        };
+
+        const findModalityDetail = (modalityKey, sectionKey, standardTitle) => {
+            return findModalityDetailSource(modalityKey, sectionKey, standardTitle);
+        };
+
+        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId, itemKey) => {
+            const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
+            if (!mappedSection || !selectedModalities || selectedModalities.length === 0) {
+                return '';
+            }
+
+            ensureDeploymentOverride(sectionKey, itemKey, standardTitle);
+            const modalityBlocks = selectedModalities.map(modalityKey => {
+                const overridesForSection = builderDeploymentOverrides[sectionKey] || {};
+                const overrideRecord = overridesForSection[itemKey] && overridesForSection[itemKey][modalityKey];
+                const details = overrideRecord || findModalityDetail(modalityKey, sectionKey, standardTitle) || {};
+                const meta = getModalityMeta(modalityKey);
+                const requirementsValue = typeof details.requirements === 'string'
+                    ? details.requirements
+                    : Array.isArray(details.requirements) ? details.requirements.join('\n') : '';
+                const mitigationValue = typeof details.mitigation === 'string'
+                    ? details.mitigation
+                    : Array.isArray(details.mitigation) ? details.mitigation.join('\n') : '';
+                return `
+                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}">
+                        <div class="modality-requirement-header">
+                            <span class="modality-badge"><i class="fas ${meta.icon || 'fa-clipboard'}"></i> ${escapeHTML(meta.label)} Mode</span>
+                        </div>
+                        <div class="modality-requirement-columns">
+                            <div>
+                                <label>Requirements</label>
+                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
+                            </div>
+                            <div>
+                                <label>Mitigations</label>
+                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (!modalityBlocks) {
+                return '';
+            }
+
+            return `
+                <div class="deployment-requirements-card">
+                    <div class="deployment-requirements-header">
+                        <span class="deployment-requirements-title"><i class="fas fa-clipboard-check"></i> Deployment Requirements</span>
+                        <small class="text-muted">Adjust operational expectations for each supported modality.</small>
+                    </div>
+                    <div class="deployment-requirements-body">
+                        ${modalityBlocks}
+                    </div>
+                </div>
+            `;
+        };
+
         let tabPanes = enabledSections.map(([key, config]) => {
             let content = '';
             if (config.hasSubsections) {
-                const tableRows = config.subsections.map(sub => {
-                    const subId = sub.replace(/<[^>]*>?/gm, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
-                    return `<tr><td>${sub}</td><td><select class="form-select score-select" data-section="${key}" data-item="${subId}"><option value="">-</option><option value="0">0 - Not started</option><option value="1">1 - Initial</option><option value="2">2 - In progress</option><option value="3">3 - Completed</option><option value="NA">N/A</option></select></td><td><textarea class="form-control evidence-input" rows="2"></textarea></td><td><textarea class="form-control gaps-input" rows="2"></textarea></td><td><textarea class="form-control action-input" rows="2"></textarea></td></tr>`;
+        const subsectionCards = (config.subsections || []).map((subEntry, index) => {
+            const entry = (subEntry && typeof subEntry === 'object' && subEntry.content !== undefined)
+                ? subEntry
+                : { content: subEntry };
+            const parsed = splitStandardContent(entry.content || '', index);
+            const titleText = entry.titleText || parsed.titleText || `Standard ${index + 1}`;
+            const baseId = stripHTML(`${titleText}-${index + 1}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
+            const safeTitle = escapeHTML(titleText);
+            const itemKey = entry.itemKey || generateSubsectionKey(key);
+            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId, itemKey);
+            return `
+                <div class="compliance-card" data-section="${key}" data-item="${subId}">
+                    <div class="card-inner">
+                        <div class="card-header">
+                            <h5 class="subsection-title">${safeTitle}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-description">${parsed.bodyHTML}</div>
+                            ${deploymentBlock}
+                            <div class="card-fields">
+                                <div class="field-group">
+                                    <label>Describe evidence</label>
+                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Gaps</label>
+                                            <textarea class="form-control gaps-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
+                                        </div>
+                                        <div class="field-group">
+                                            <label>Actions</label>
+                                            <textarea class="form-control action-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="score-select-wrapper">
+                                        <label>Compliance score</label>
+                                        <select class="form-select score-select compliance-score" data-section="${key}" data-item="${subId}">
+                                            <option value="">-</option>
+                                            <option value="0" selected>0 - Not started</option>
+                                            <option value="1">1 - Initial</option>
+                                            <option value="2">2 - In progress</option>
+                                            <option value="3">3 - Completed</option>
+                                            <option value="NA">N/A</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                 }).join('');
-                content = `<h2 class="mb-4">${config.title}</h2><div class="card section-card"><div class="section-header d-flex justify-content-between align-items-center"><h5>${config.title} Compliance</h5><div class="score-display" id="${key}Score">0% Complete</div></div><table class="assessment-table"><thead><tr><th width="40%">Standard</th><th width="10%">Score</th><th width="20%">Evidence</th><th width="15%">Gaps</th><th width="15%">Actions</th></tr></thead><tbody>${tableRows}</tbody></table><div class="comments-section"><label for="${key}Comments" class="form-label">Mentor Comments & Observations</label><textarea class="form-control" id="${key}Comments" rows="3"></textarea></div></div>`;
+
+                content = `
+                    <section class="compliance-section">
+                        <div class="section-banner">
+                            <div class="banner-info">
+                                <h2>${config.title}</h2>
+                                <p>Compliance</p>
+                            </div>
+                            <div class="section-progress">
+                                <span class="progress-pill" id="${key}Score">0% Complete</span>
+                            </div>
+                        </div>
+                        <div class="subsection-list">
+                            ${subsectionCards}
+                        </div>
+                        <div class="comments-panel">
+                            <label for="${key}Comments" class="form-label">Mentor Comments &amp; Observations</label>
+                            <textarea class="form-control" id="${key}Comments" rows="4"></textarea>
+                        </div>
+                    </section>`;
+            } else if (config.editableContent) {
+                let tabContent = config.content || '';
+                if (key === 'org-detail') {
+                    tabContent += deploymentModalitiesCardHTML + deploymentModalityDetailsHTML;
+                }
+                content = tabContent;
             } else {
                 content = document.getElementById(`template-${key}`).innerHTML;
             }
@@ -197,40 +1533,878 @@
             .filter(([,c]) => c.weight > 0)
             .map(([k,c]) => ({ name: c.title.toUpperCase(), weight: c.weight, section: k }));
 
+        const weightsDataJSON = JSON.stringify(weightsData);
+        const modalityMetadataJSON = JSON.stringify(DEPLOYMENT_MODALITIES);
+        const defaultModalityStateJSON = JSON.stringify(defaultModalityState);
+
+        const scriptTemplateElement = document.getElementById('generated-tool-script-template');
+        const scriptTemplate = scriptTemplateElement ? scriptTemplateElement.textContent : '';
+        const populatedScript = scriptTemplate
+            .replace(/__SECTIONS_WITH_WEIGHT__/g, weightsDataJSON)
+            .replace(/__MODALITY_METADATA__/g, modalityMetadataJSON)
+            .replace(/__DEFAULT_MODALITY_STATE__/g, defaultModalityStateJSON);
+        const escapedScript = populatedScript.replace(/<\/script>/g, '<\/script>');
+
         const fullHTML = `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HID SCT Self-Assessment Grid - Customized</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>
-    <style>:root{--primary:#0d6efd;--secondary:#6c757d;--success:#198754;--info:#0dcaf0;--warning:#ffc107;--danger:#dc3545;--light:#f8f9fa;--dark:#212529}body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f5f7f9;padding:20px 0}.app-container{max-width:1400px;margin:0 auto;background:white;box-shadow:0 0 15px rgba(0,0,0,.1);border-radius:8px;overflow:hidden}.sidebar{background-color:#2c3e50;color:white;height:100vh;position:sticky;top:0;padding-top:20px;overflow-y:auto}.sidebar .nav-link{color:rgba(255,255,255,.8);border-left:3px solid transparent;padding:10px 15px;margin:5px 0;transition:all .3s}.sidebar .nav-link:hover,.sidebar .nav-link.active{color:white;background-color:rgba(255,255,255,.1);border-left-color:var(--info)}.sidebar .nav-link i{margin-right:10px;width:20px;text-align:center}.main-content{padding:20px;max-height:100vh;overflow-y:auto}.progress-sidebar{background-color:#f8f9fa;height:100vh;position:sticky;top:0;padding:20px 15px;overflow-y:auto;border-left:1px solid #e9ecef}.progress-bar-container{background-color:#e9ecef;border-radius:5px;margin-bottom:20px;height:30px}.progress-bar{height:100%;border-radius:5px;transition:width .5s ease}.section-card{margin-bottom:20px;box-shadow:0 4px 6px rgba(0,0,0,.1);border:none;border-radius:8px}.section-header{background-color:#f8f9fa;padding:15px;border-bottom:1px solid #e9ecef;border-radius:8px 8px 0 0}.comments-section{background-color:#f8f9fa;padding:15px;border-radius:0 0 8px 8px;border-top:1px solid #e9ecef}.overview-card{text-align:center;padding:20px;border-radius:8px;margin-bottom:20px;box-shadow:0 4px 6px rgba(0,0,0,.1)}.overview-card .card-value{font-size:2rem;font-weight:bold;margin:10px 0}.score-display{font-size:1.2rem;font-weight:bold;color:var(--primary)}.assessment-table{width:100%;border-collapse:collapse;margin-bottom:20px}.assessment-table th,.assessment-table td{border:1px solid #dee2e6;padding:12px;text-align:left;vertical-align:middle}.assessment-table th{background-color:#f8f9fa;font-weight:600}.score-0{background:#fee2e2;color:#dc2626}.score-1{background:#fed7aa;color:#ea580c}.score-2{background:#fef3c7;color:#ca8a04}.score-3{background:#d1fae5;color:#059669}.notification{position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#4ade80 0%,#22c55e 100%);color:white;padding:15px 25px;border-radius:8px;box-shadow:0 5px 20px rgba(0,0,0,.2);z-index:1000;animation:slideIn .3s ease}.progress-sidebar-table{width:100%;font-size:.85rem}.progress-sidebar-table th,.progress-sidebar-table td{padding:8px 5px;border-bottom:1px solid #dee2e6}.progress-sidebar-table th{font-weight:600}.progress-sidebar-table tr:last-child td{border-bottom:none}@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes fadeOut{from{opacity:1}to{opacity:0}}.summary-textarea{min-height:100px;resize:vertical}.file-input{display:none}@media (max-width:992px){.progress-sidebar{display:none}.main-content{max-height:none}}@media (max-width:768px){.sidebar{height:auto;position:relative}.assessment-table{font-size:.9rem;display:block;overflow-x:auto}.assessment-table th,.assessment-table td{padding:8px;white-space:nowrap}}<\/style>
-<\/head>
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --secondary: #6c757d;
+            --success: #198754;
+            --info: #0dcaf0;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7f9;
+            padding: 20px 0;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(15, 23, 42, 0.12);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+            color: white;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-left: 3px solid transparent;
+            padding: 10px 15px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left-color: #a855f7;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            padding: 24px;
+            max-height: 100vh;
+            overflow-y: auto;
+            background: #f8f9ff;
+        }
+
+        .progress-sidebar {
+            background-color: #ffffff;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            padding: 24px 18px;
+            overflow-y: auto;
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .progress-bar-container {
+            background-color: #eef2ff;
+            border-radius: 999px;
+            margin-bottom: 20px;
+            height: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+
+        .section-card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            border: none;
+            border-radius: 12px;
+        }
+
+        .deployment-modalities-card .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: #f8f9ff;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .deployment-modalities-card .card-body {
+            padding: 20px;
+        }
+
+        .deployment-modality-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .modality-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #cbd5f5;
+            transition: all 0.2s ease;
+        }
+
+        .modality-pill.selected {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(59, 130, 246, 0.12));
+            border-color: transparent;
+            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
+        }
+
+        .modality-pill .form-check-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .modality-pill input {
+            display: none;
+        }
+
+        .modality-pill-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .modality-pill.embedded .modality-pill-icon {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .modality-pill.coupled .modality-pill-icon {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+
+        .modality-pill.self-sustained .modality-pill-icon {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .modality-details-container {
+            margin-top: 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .modality-detail-card .card-body {
+            padding: 24px;
+        }
+
+        .modality-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .modality-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.3rem;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+        }
+
+        .modality-detail-card.embedded .modality-card-icon {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .modality-detail-card.coupled .modality-card-icon {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+        }
+
+        .modality-detail-card.self-sustained .modality-card-icon {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .modality-detail-card .modality-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .modality-detail-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px 18px;
+        }
+
+        .modality-section-header {
+            margin-bottom: 12px;
+        }
+
+        .section-pill {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+        }
+
+        .modality-subsection {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        }
+
+        .modality-subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .modality-subsection-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .modality-subsection-columns {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .label-pill {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 8px;
+        }
+
+        .requirements-pill {
+            background: rgba(59, 130, 246, 0.15);
+            color: #1d4ed8;
+        }
+
+        .mitigation-pill {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+        }
+
+        .modality-subsection ul {
+            padding-left: 18px;
+        }
+
+        .modality-subsection ul li {
+            margin-bottom: 6px;
+        }
+
+        .modality-subsection ul li:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            background-color: #f8f9ff;
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .overview-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        .overview-card .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(34, 197, 94, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .global-progress-card {
+            background: linear-gradient(145deg, #f5f8ff 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem 1.25rem;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(148, 163, 184, 0.15);
+        }
+
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: conic-gradient(#4f46e5 0deg, #e2e8f0 0deg 360deg);
+        }
+
+        .progress-circle::after {
+            content: '';
+            position: absolute;
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        .progress-circle span {
+            position: absolute;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .section-progress-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-progress-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: #f8fafc;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+        }
+
+        .section-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .section-progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 0.65rem;
+        }
+
+        .section-progress-bar .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+        }
+
+        .section-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: #475569;
+            gap: 0.5rem;
+        }
+
+        .section-progress-meta .badge {
+            font-size: 0.72rem;
+            padding: 0.35rem 0.6rem;
+        }
+
+        .section-focus-button {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .deployment-note-card {
+            border: 1px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 1rem;
+            background: #eef2ff;
+            color: #1e293b;
+        }
+
+        .compliance-section {
+            margin-bottom: 32px;
+        }
+
+        .section-banner {
+            background: linear-gradient(135deg, #6d5dfc 0%, #8f75ff 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 16px 40px rgba(109, 93, 252, 0.3);
+        }
+
+        .section-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-banner h2 {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .section-banner p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 1rem;
+            letter-spacing: 0.03em;
+        }
+
+        .progress-pill {
+            background: rgba(255, 255, 255, 0.22);
+            padding: 0.6rem 1.75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .subsection-list {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1.75rem;
+        }
+
+        .compliance-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #e4e9ff;
+            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.12);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .compliance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 40px rgba(79, 70, 229, 0.18);
+        }
+
+        .compliance-card .card-header {
+            background: linear-gradient(90deg, #eef2ff 0%, #f7f9ff 100%);
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid #dbe4ff;
+        }
+
+        .subsection-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4338ca;
+        }
+
+        .compliance-card .card-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card-description {
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .deployment-requirements-card {
+            background: linear-gradient(145deg, rgba(219, 234, 254, 0.4), rgba(224, 231, 255, 0.8));
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 1.2rem 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .deployment-requirements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .deployment-requirements-title {
+            font-weight: 700;
+            color: #1d4ed8;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .deployment-requirements-title i {
+            font-size: 1.1rem;
+        }
+
+        .deployment-requirements-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modality-requirement-block {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid #e0e7ff;
+            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.12);
+            padding: 1rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .modality-requirement-block:hover {
+            box-shadow: 0 16px 32px rgba(59, 130, 246, 0.18);
+        }
+
+        .modality-requirement-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .modality-badge {
+            background: rgba(59, 130, 246, 0.18);
+            color: #1d4ed8;
+            border-radius: 999px;
+            padding: 0.4rem 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .modality-requirement-block.embedded .modality-badge {
+            background: rgba(37, 99, 235, 0.16);
+            color: #1d4ed8;
+        }
+
+        .modality-requirement-block.coupled .modality-badge {
+            background: rgba(245, 158, 11, 0.22);
+            color: #92400e;
+        }
+
+        .modality-requirement-block.self-sustained .modality-badge {
+            background: rgba(22, 163, 74, 0.18);
+            color: #065f46;
+        }
+
+        .modality-requirement-columns {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .modality-requirement-columns label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .deployment-textarea {
+            border-radius: 12px;
+            border: 1px solid #cbd5f5;
+            background: #f8faff;
+            min-height: 110px;
+            resize: vertical;
+            padding: 0.75rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .deployment-textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.18);
+            background: #ffffff;
+        }
+
+        .card-fields {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .field-group label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .field-group textarea {
+            border-radius: 12px;
+            border: 1px solid #d7def8;
+            padding: 0.75rem;
+            min-height: 96px;
+            background-color: #f8faff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field-group textarea:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.15);
+        }
+
+        .compliance-card .card-footer {
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-select-wrapper label {
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.35rem;
+            display: block;
+        }
+
+        .compliance-score {
+            max-width: 220px;
+            border-radius: 999px;
+            border: 1px solid #cbd5f5;
+            padding: 0.55rem 1rem;
+            font-weight: 600;
+            color: #334155;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .compliance-score:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 0.25rem rgba(124, 58, 237, 0.15);
+        }
+
+        .score-select.score-0 {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .score-select.score-1 {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        .score-select.score-2 {
+            background: #dcfce7;
+            color: #047857;
+            border-color: #bbf7d0;
+        }
+
+        .score-select.score-3 {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .comments-panel {
+            margin-top: 2rem;
+            background: #f8f9ff;
+            border: 1px solid #dde3ff;
+            border-radius: 18px;
+            padding: 1.25rem;
+        }
+
+        .comments-panel textarea {
+            min-height: 140px;
+            border-radius: 12px;
+            border: 1px solid #d7def8;
+            background-color: #ffffff;
+        }
+
+        .summary-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .progress-sidebar {
+                display: none;
+            }
+
+            .main-content {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+                position: relative;
+            }
+
+            .section-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modality-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modality-card-icon {
+                margin-bottom: 8px;
+            }
+
+            .modality-subsection-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .deployment-requirements-header {
+                align-items: flex-start;
+                gap: 0.5rem;
+                flex-direction: column;
+            }
+
+            .modality-requirement-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .modality-requirement-block {
+                padding: 0.85rem;
+            }
+
+            .compliance-score {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
 <body>
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
         <div class="col-lg-8"><div class="main-content"><div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div></div></div>
-        <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
+        <div class="col-lg-2">
+            <div class="progress-sidebar">
+                <div class="global-progress-card">
+                    <h6 class="text-uppercase text-muted mb-2">Overall Progress</h6>
+                    <div class="progress-circle" id="globalProgressCircle">
+                        <span id="globalProgressValue">0%</span>
+                    </div>
+                    <p class="small text-muted mb-0 text-center">Weighted across active section standards.</p>
+                </div>
+                <div>
+                    <h6 class="mb-2">Section Breakdown</h6>
+                    <div class="section-progress-list" id="sectionProgressList"></div>
+                </div>
+                <div class="deployment-note-card d-none" id="deploymentNoteCard">
+                    <h6 class="mb-2">Deployment Mode Considerations</h6>
+                    <p class="small mb-0" id="deploymentNoteText"></p>
+                </div>
+            </div>
+        </div>
     </div></div>
     <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
-    <script>
-    const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
-    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};
-    function initializeData(){const e=localStorage.getItem("hidSCTAssessment");e&&(assessmentData=JSON.parse(e),loadSavedData()),updateProgress()}
-    function loadSavedData(){if(assessmentData.teamInfo&&Object.keys(assessmentData.teamInfo).forEach(e=>{const t=document.getElementById(e);t&&(t.value=assessmentData.teamInfo[e])}),document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section+"-"+e.dataset.item;if(assessmentData.scores[t]){e.value=assessmentData.scores[t],updateScoreBadge(e);const s=e.closest("tr");s&&(s.querySelector(".evidence-input").value=assessmentData.evidence[t]||"",s.querySelector(".gaps-input").value=assessmentData.gaps[t]||"",s.querySelector(".action-input").value=assessmentData.actions[t]||"")}}),assessmentData.comments&&Object.keys(assessmentData.comments).forEach(e=>{const t=document.getElementById(e);t&&(t.value=assessmentData.comments[e])}),assessmentData.summary){const e=assessmentData.summary;Object.keys(e).forEach(t=>{const s=document.getElementById(t);s&&(s.value=e[t])})}}
-    function saveProgress(){assessmentData.teamInfo={teamName:document.getElementById("teamName")?.value,region:document.getElementById("region")?.value,country:document.getElementById("country")?.value,mentorName:document.getElementById("mentorName")?.value,hqName:document.getElementById("hqName")?.value,hqEmail:document.getElementById("hqEmail")?.value,hqPhone:document.getElementById("hqPhone")?.value,hqPosition:document.getElementById("hqPosition")?.value,opsName:document.getElementById("opsName")?.value,opsEmail:document.getElementById("opsEmail")?.value,opsPhone:document.getElementById("opsPhone")?.value,opsPosition:document.getElementById("opsPosition")?.value},assessmentData.scores={},assessmentData.evidence={},assessmentData.gaps={},assessmentData.actions={},document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section+"-"+e.dataset.item,s=e.closest("tr");e.value&&(assessmentData.scores[t]=e.value);const a=s.querySelector(".evidence-input"),o=s.querySelector(".gaps-input"),n=s.querySelector(".action-input");a&&(assessmentData.evidence[t]=a.value),o&&(assessmentData.gaps[t]=o.value),n&&(assessmentData.actions[t]=n.value)}),assessmentData.comments={},SECTIONS_WITH_WEIGHT.forEach(e=>{const t=document.getElementById(e.section+"Comments");t&&(assessmentData.comments[e.section+"Comments"]=t.value)}),assessmentData.summary={strengths:document.getElementById("strengths")?.value,criticalGaps:document.getElementById("criticalGaps")?.value,immediateActions:document.getElementById("immediateActions")?.value,shortTermActions:document.getElementById("shortTermActions")?.value,mediumTermActions:document.getElementById("mediumTermActions")?.value,technicalAssistance:document.getElementById("technicalAssistance")?.value,trainingRequirements:document.getElementById("trainingRequirements")?.value,resourceRequirements:document.getElementById("resourceRequirements")?.value,nextSteps:document.getElementById("nextSteps")?.value,completionDate:document.getElementById("completionDate")?.value,reviewedBy:document.getElementById("reviewedBy")?.value,mentorAssignment:document.getElementById("mentorAssignment")?.value},localStorage.setItem("hidSCTAssessment",JSON.stringify(assessmentData)),showNotification("Progress saved successfully!"),updateProgress()}
-    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
-    function updateScoreBadge(e){const t=e.value;e.className="form-select score-select",""!==t&&"NA"!==t&&e.classList.add("score-"+t)}
-    function updateProgress(){let e=0,t=0,s=0;const a={};SECTIONS_WITH_WEIGHT.forEach(e=>{a[e.section]={score:0,maxScore:0}});let o=0,n=0;document.querySelectorAll(".score-select").forEach(e=>{const t=e.dataset.section;a[t]&&(o++,""!==e.value&&(n++,"NA"!==e.value&&(a[t].score+=parseInt(e.value),a[t].maxScore+=3)))});let i=0;SECTIONS_WITH_WEIGHT.forEach(s=>{const o=a[s.section];let n=0;o.maxScore>0&&(n=Math.round(o.score/o.maxScore*100));const c=document.getElementById(s.section+"Score");c&&(c.textContent=n+"% Complete"),e+=s.weight,t+=s.weight*n/100}),i=e>0?Math.round(t/e*100):0,s=Object.values(a).filter(e=>e.maxScore>0).length,document.getElementById("overallProgressBar").style.width=i+"%",document.getElementById("overallProgressText").textContent=i+"%",document.getElementById("sidebarProgressBar").style.width=i+"%",document.getElementById("sidebarProgressText").textContent=i+"%",document.getElementById("completedSections").textContent=s+"/"+SECTIONS_WITH_WEIGHT.length,document.getElementById("overallScore").textContent=i+"%",document.getElementById("lastUpdated").textContent=(new Date).toLocaleDateString();const c=document.getElementById("progressTableBody"),d=document.getElementById("progressSidebarBody");c.innerHTML="",d.innerHTML="";let r=0,l=0;SECTIONS_WITH_WEIGHT.forEach(e=>{const t=a[e.section];let s=0;t.maxScore>0&&(s=Math.round(t.score/t.maxScore*100));const o=0===s?"Not Started":s<100?"In Progress":"Completed",n="Completed"===o?"bg-success":"In Progress"===o?"bg-warning":"bg-secondary";r+=e.weight,l+=e.weight*s/100,c.innerHTML+=\`<tr><td>\${e.name}</td><td>\${e.weight}%</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`,d.innerHTML+=\`<tr><td>\${e.name.split(" ")[0]}</td><td><span class="badge \${n}">\${o}</span></td><td>\${s}%</td></tr>\`});const m=r>0?Math.round(l/r*100):0;c.innerHTML+=\`<tr class="table-primary fw-bold"><td>TOTAL</td><td>\${r}%</td><td></td><td>\${m}%</td></tr>\`}
-    function exportToExcel(){saveProgress();const e=XLSX.utils.book_new(),t=[["Team Information",""],["Team Name",assessmentData.teamInfo.teamName||""],["Region",assessmentData.teamInfo.region||""],["Country",assessmentData.teamInfo.country||""],["Mentor Name",assessmentData.teamInfo.mentorName||""],[""],["Headquarters Contact",""],["Name",assessmentData.teamInfo.hqName||""],["Email",assessmentData.teamInfo.hqEmail||""],["Phone",assessmentData.teamInfo.hqPhone||""],["Position",assessmentData.teamInfo.hqPosition||""],[""],["Operations Contact",""],["Name",assessmentData.teamInfo.opsName||""],["Email",assessmentData.teamInfo.opsEmail||""],["Phone",assessmentData.teamInfo.opsPhone||""],["Position",assessmentData.teamInfo.opsPosition||""]],s=XLSX.utils.aoa_to_sheet(t);XLSX.utils.book_append_sheet(e,s,"Team Info");const a=[["Standard ID","Pillar","Standard Statement","Score","Evidence","Gaps","Actions","Comments"]];document.querySelectorAll(".score-select").forEach(e=>{const t=e.closest("tr"),s=t.cells[0].innerHTML,o=e.dataset.section,n=e.dataset.section+"-"+e.dataset.item;a.push([n,o,s,e.value||"",t.querySelector(".evidence-input")?.value||"",t.querySelector(".gaps-input")?.value||"",t.querySelector(".action-input")?.value||"",assessmentData.comments[o+"Comments"]||""])});const o=XLSX.utils.aoa_to_sheet(a);XLSX.utils.book_append_sheet(e,o,"HID SCT Assessment"),XLSX.writeFile(e,"HID_SCT_Assessment_"+(new Date).toISOString().split("T")[0]+".xlsx"),showNotification("Data exported to Excel successfully!")}
-    function importFromExcel(e){const t=e.target.files[0];if(!t)return;const s=new FileReader;s.onload=function(e){try{const t=(new Uint8Array(e.target.result),XLSX.read(e.target.result,{type:"binary"}));assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{}};const s=t.Sheets["HID SCT Assessment"],a=XLSX.utils.sheet_to_json(s);for(const e of a)assessmentData.scores[e["Standard ID"]]=e.Score,assessmentData.evidence[e["Standard ID"]]=e.Evidence,assessmentData.gaps[e["Standard ID"]]=e.Gaps,assessmentData.actions[e["Standard ID"]]=e.Actions;localStorage.setItem("hidSCTAssessment",JSON.stringify(assessmentData)),loadSavedData(),updateProgress(),showNotification("Data imported successfully!")}catch(e){showNotification("Error importing file.")}},s.readAsBinaryString(t)}
-    document.addEventListener("DOMContentLoaded",function(){initializeData(),document.querySelectorAll("input, textarea, select").forEach(e=>{e.addEventListener("change",saveProgress)}),document.getElementById("btn-save").addEventListener("click",saveProgress),document.getElementById("btn-export-json").addEventListener("click",()=>{saveProgress();const e=JSON.stringify(assessmentData,null,2),t=new Blob([e],{type:"application/json"}),s=URL.createObjectURL(t),a=document.createElement("a");a.href=s,a.download="HID_SCT_Assessment_"+(new Date).toISOString().split("T")[0]+".json",a.click(),URL.revokeObjectURL(s)}),document.getElementById("btn-export-excel").addEventListener("click",exportToExcel),document.getElementById("btn-submit").addEventListener("click",()=>{saveProgress(),showNotification("Assessment submitted successfully!")}),document.getElementById("btn-import-excel").addEventListener("click",()=>{document.getElementById("fileInput").click()}),document.getElementById("fileInput").addEventListener("change",importFromExcel);const e=document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');e.forEach(t=>{t.addEventListener("click",function(s){s.preventDefault(),e.forEach(e=>e.classList.remove("active")),t.classList.add("active");const a=t.getAttribute("href");document.querySelectorAll(".tab-pane").forEach(e=>e.classList.remove("show","active")),document.querySelector(a).classList.add("show","active")})})});
-    <\/script>
-<\/body>
-<\/html>
+    <script>${escapedScript}<\/script>
+</body>
+</html>
 `;
         const blob = new Blob([fullHTML], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
@@ -246,9 +2420,877 @@
     document.addEventListener('DOMContentLoaded', renderMakerUI);
     </script>
     
+    <script type="text/template" id="generated-tool-script-template">
+            const SECTIONS_WITH_WEIGHT = __SECTIONS_WITH_WEIGHT__;
+            const MODALITY_METADATA = __MODALITY_METADATA__;
+            const DEFAULT_MODALITY_STATE = __DEFAULT_MODALITY_STATE__;
+            let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+            const memoryStorage={};
+            let storageSupported=true;
+
+            function safeGetStoredItem(key){
+                if (storageSupported){
+                    try {
+                        return window.localStorage.getItem(key);
+                    } catch(error){
+                        console.warn('localStorage unavailable, switching to in-memory store', error);
+                        storageSupported=false;
+                    }
+                }
+                return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+            }
+
+            function safeSetStoredItem(key, value){
+                if (storageSupported){
+                    try {
+                        window.localStorage.setItem(key, value);
+                        return;
+                    } catch(error){
+                        console.warn('localStorage unavailable, persisting in memory', error);
+                        storageSupported=false;
+                    }
+                }
+                memoryStorage[key] = value;
+            }
+            function getFieldValue(id){
+                const element = document.getElementById(id);
+                return element ? element.value : '';
+            }
+            function setFieldValue(id, value){
+                const element = document.getElementById(id);
+                if (element){
+                    element.value = value;
+                }
+            }
+
+            function normalizeImportedScore(value){
+                if (value === null || value === undefined){
+                    return null;
+                }
+                if (typeof value === 'number' && Number.isFinite(value)){
+                    if (value >= 0 && value <= 3){
+                        return String(Math.round(value));
+                    }
+                    return null;
+                }
+                const text = String(value).trim();
+                if (!text){
+                    return null;
+                }
+                const upper = text.toUpperCase();
+                if (upper === 'NA' || upper === 'N/A'){
+                    return 'NA';
+                }
+                const lower = text.toLowerCase();
+                if (lower.includes('not') && lower.includes('start')){
+                    return '0';
+                }
+                if (lower.includes('initial')){
+                    return '1';
+                }
+                if (lower.includes('progress')){
+                    return '2';
+                }
+                if (lower.includes('complete')){
+                    return '3';
+                }
+                const numeric = parseFloat(text);
+                if (!Number.isNaN(numeric) && numeric >= 0 && numeric <= 3){
+                    return String(Math.round(numeric));
+                }
+                const digitMatch = text.match(/([0-3])/);
+                if (digitMatch){
+                    return digitMatch[1];
+                }
+                return null;
+            }
+
+            function isCardActive(card){
+                if (!card){
+                    return false;
+                }
+                if (card.hidden || card.classList.contains('d-none')){
+                    return false;
+                }
+                if (card.style && card.style.display === 'none'){
+                    return false;
+                }
+                if (card.hasAttribute('data-hidden') || card.closest('[data-hidden="true"]')){
+                    return false;
+                }
+                if (card.closest('.d-none')){
+                    return false;
+                }
+                if (card.closest('[hidden]')){
+                    return false;
+                }
+                return true;
+            }
+
+            function setCircleProgress(circle, percent){
+                if (!circle){
+                    return;
+                }
+                const safePercent = isFinite(percent) ? percent : 0;
+                const clamped = Math.max(0, Math.min(100, Math.round(safePercent)));
+                const angle = clamped * 3.6;
+                circle.style.background = `conic-gradient(#4f46e5 ${angle}deg, #e2e8f0 ${angle}deg 360deg)`;
+                const label = circle.querySelector('span');
+                if (label){
+                    label.textContent = `${clamped}%`;
+                }
+            }
+
+            function buildSectionProgressHTML(summaries){
+                if (!Array.isArray(summaries) || summaries.length === 0){
+                    return '<p class="text-muted mb-0">Progress data will appear here as scores are recorded.</p>';
+                }
+                return summaries.map(summary => {
+                    const percent = Math.max(0, Math.min(100, Math.round(summary.percent || 0)));
+                    const pending = Math.max(0, summary.pending || 0);
+                    const buttonState = pending === 0 ? 'disabled' : '';
+                    return `
+                        <div class="section-progress-item">
+                            <div class="section-progress-header">
+                                <span>${summary.name}</span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div class="section-progress-bar">
+                                <div class="bar-fill" style="width:${percent}%"></div>
+                            </div>
+                            <div class="section-progress-meta">
+                                <span><span class="badge bg-success me-1">${summary.completed || 0}</span>Completed</span>
+                                <span><span class="badge bg-secondary me-1">${pending}</span>Pending</span>
+                            </div>
+                            <p class="text-muted small mb-2">Active standards: ${summary.applicable || 0}</p>
+                            <button type="button" class="btn btn-link btn-sm section-focus-button p-0" data-target-section="${summary.key}" ${buttonState}>View pending</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function focusSection(sectionKey){
+                if (!sectionKey){
+                    return;
+                }
+                const navLink = document.querySelector('.sidebar .nav-link[href="#' + sectionKey + '"]');
+                if (navLink){
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tab){
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(navLink);
+                        tabInstance.show();
+                    } else {
+                        navLink.click();
+                    }
+                }
+                setTimeout(() => {
+                    const tabPane = document.getElementById(sectionKey);
+                    if (!tabPane){
+                        return;
+                    }
+                    const pendingSelect = tabPane.querySelector('.compliance-card:not(.d-none) .score-select:not([value="3"])');
+                    const targetCard = pendingSelect ? pendingSelect.closest('.compliance-card') : tabPane.querySelector('.compliance-card:not(.d-none)');
+                    if (targetCard){
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const select = targetCard.querySelector('.score-select');
+                        if (select){
+                            select.focus();
+                        }
+                    }
+                }, 200);
+            }
+
+            function bindSectionFocusButtons(){
+                document.querySelectorAll('.section-focus-button').forEach(button => {
+                    button.onclick = event => {
+                        event.preventDefault();
+                        focusSection(button.dataset.targetSection);
+                    };
+                });
+            }
+
+            function getSelectedModalitiesLabels(){
+                return MODALITY_METADATA
+                    .filter(modality => {
+                        const checkbox = document.getElementById('modality-' + modality.key);
+                        return checkbox && checkbox.checked;
+                    })
+                    .map(modality => modality.label);
+            }
+            function toggleModalityDetails(){
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
+                    if (card) {
+                        card.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    }
+                    document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
+                        block.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    });
+                });
+            }
+            function initializeData(){
+                const stored = safeGetStoredItem("hidSCTAssessment");
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        assessmentData = {
+                            teamInfo: parsed.teamInfo || {},
+                            scores: parsed.scores || {},
+                            evidence: parsed.evidence || {},
+                            gaps: parsed.gaps || {},
+                            actions: parsed.actions || {},
+                            comments: parsed.comments || {},
+                            summary: parsed.summary || {},
+                            deploymentRequirements: parsed.deploymentRequirements || {}
+                        };
+                    } catch (error) {
+                        console.warn('Failed to parse saved assessment data', error);
+                        assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+                    }
+                }
+
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                if (!assessmentData.teamInfo.deploymentModalities) {
+                    assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
+                }
+
+                loadSavedData();
+                updateProgress();
+            }
+            function loadSavedData(){
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
+
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        const isChecked = !!modalityState[modality.key];
+                        checkbox.checked = isChecked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', isChecked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo.deploymentModalities = modalityState;
+                assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
+
+                Object.keys(assessmentData.teamInfo).forEach(field => {
+                    if (field === 'deploymentModalities') return;
+                    const input = document.getElementById(field);
+                    if (input) {
+                        input.value = assessmentData.teamInfo[field];
+                    }
+                });
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
+                        select.value = assessmentData.scores[key];
+                    } else {
+                        select.value = '0';
+                    }
+                    updateScoreBadge(select);
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) {
+                        evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
+                    }
+                    if (gapsField) {
+                        gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
+                    }
+                    if (actionField) {
+                        actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
+                    }
+                });
+
+                const deploymentData = assessmentData.deploymentRequirements || {};
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
+                            textarea.value = stored[field];
+                        }
+                    });
+                });
+
+                if (assessmentData.comments) {
+                    Object.keys(assessmentData.comments).forEach(id => {
+                        setFieldValue(id, assessmentData.comments[id]);
+                    });
+                }
+
+                if (assessmentData.summary) {
+                    Object.keys(assessmentData.summary).forEach(id => {
+                        setFieldValue(id, assessmentData.summary[id]);
+                    });
+                }
+            }
+            function saveProgress(){
+                const modalityState = { ...DEFAULT_MODALITY_STATE };
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        modalityState[modality.key] = checkbox.checked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', checkbox.checked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo = {
+                    teamName: getFieldValue('teamName'),
+                    region: getFieldValue('region'),
+                    country: getFieldValue('country'),
+                    mentorName: getFieldValue('mentorName'),
+                    hqName: getFieldValue('hqName'),
+                    hqEmail: getFieldValue('hqEmail'),
+                    hqPhone: getFieldValue('hqPhone'),
+                    hqPosition: getFieldValue('hqPosition'),
+                    opsName: getFieldValue('opsName'),
+                    opsEmail: getFieldValue('opsEmail'),
+                    opsPhone: getFieldValue('opsPhone'),
+                    opsPosition: getFieldValue('opsPosition'),
+                    deploymentModalities: modalityState
+                };
+
+                assessmentData.scores = {};
+                assessmentData.evidence = {};
+                assessmentData.gaps = {};
+                assessmentData.actions = {};
+                assessmentData.deploymentRequirements = {};
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (select.value) {
+                        assessmentData.scores[key] = select.value;
+                    }
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
+                    if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
+                    if (actionField) assessmentData.actions[key] = actionField.value || '';
+                });
+
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    if (!assessmentData.deploymentRequirements[section]) {
+                        assessmentData.deploymentRequirements[section] = {};
+                    }
+                    if (!assessmentData.deploymentRequirements[section][item]) {
+                        assessmentData.deploymentRequirements[section][item] = {};
+                    }
+                    const record = {};
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        record[field] = textarea.value || '';
+                    });
+                    assessmentData.deploymentRequirements[section][item][modality] = record;
+                });
+
+                assessmentData.comments = {};
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const commentField = document.getElementById(section.section + 'Comments');
+                    if (commentField) {
+                        assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
+                    }
+                });
+
+                assessmentData.summary = {
+                    strengths: getFieldValue('strengths'),
+                    criticalGaps: getFieldValue('criticalGaps'),
+                    immediateActions: getFieldValue('immediateActions'),
+                    shortTermActions: getFieldValue('shortTermActions'),
+                    mediumTermActions: getFieldValue('mediumTermActions'),
+                    technicalAssistance: getFieldValue('technicalAssistance'),
+                    trainingRequirements: getFieldValue('trainingRequirements'),
+                    resourceRequirements: getFieldValue('resourceRequirements'),
+                    nextSteps: getFieldValue('nextSteps'),
+                    completionDate: getFieldValue('completionDate'),
+                    reviewedBy: getFieldValue('reviewedBy'),
+                    mentorAssignment: getFieldValue('mentorAssignment')
+                };
+
+                safeSetStoredItem('hidSCTAssessment', JSON.stringify(assessmentData));
+                showNotification('Progress saved successfully!');
+                updateProgress();
+            }
+            function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+            function updateScoreBadge(select){
+                const value = select.value;
+                select.className = 'form-select score-select compliance-score';
+                if (value !== '' && value !== 'NA') {
+                    select.classList.add('score-' + value);
+                }
+            }
+            function updateProgress(){
+                const sectionSummaries = [];
+                let totalWeight = 0;
+                let weightedScore = 0;
+                let completedSectionCount = 0;
+
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const sectionKey = section.section;
+                    const weight = Number(section.weight) || 0;
+                    const cards = Array.from(document.querySelectorAll('.compliance-card[data-section="' + sectionKey + '"]'));
+                    const activeCards = cards.filter(isCardActive);
+                    const consideredCards = activeCards.filter(card => {
+                        const select = card.querySelector('.score-select');
+                        return !(select && select.value === 'NA');
+                    });
+                    const divisor = consideredCards.length;
+                    const weightShare = divisor > 0 ? weight / divisor : 0;
+                    let sectionScore = 0;
+                    let completedCount = 0;
+
+                    consideredCards.forEach(card => {
+                        const select = card.querySelector('.score-select');
+                        let rawValue = 0;
+                        if (select){
+                            const value = select.value;
+                            if (value && value !== 'NA'){
+                                const parsed = parseInt(value, 10);
+                                rawValue = Number.isNaN(parsed) ? 0 : parsed;
+                            }
+                        }
+                        if (rawValue === 3){
+                            completedCount += 1;
+                        }
+                        const compliance = rawValue > 0 ? Math.min(Math.max(rawValue, 0), 3) / 3 : 0;
+                        sectionScore += weightShare * compliance;
+                    });
+
+                    const pendingCount = divisor > 0 ? Math.max(divisor - completedCount, 0) : 0;
+                    if (divisor > 0 && pendingCount === 0 && completedCount > 0){
+                        completedSectionCount += 1;
+                    }
+
+                    const normalizedPercent = weight > 0 ? Math.max(0, Math.min(100, (sectionScore / weight) * 100)) : 0;
+                    totalWeight += weight;
+                    weightedScore += sectionScore;
+
+                    const pill = document.getElementById(sectionKey + 'Score');
+                    if (pill){
+                        pill.textContent = `${Math.round(normalizedPercent)}% Complete`;
+                    }
+
+                    sectionSummaries.push({
+                        key: sectionKey,
+                        name: section.name,
+                        weight,
+                        percent: normalizedPercent,
+                        completed: completedCount,
+                        pending: pendingCount,
+                        applicable: divisor,
+                        hidden: cards.length - activeCards.length
+                    });
+                });
+
+                const overallPercent = totalWeight > 0 ? Math.max(0, Math.min(100, (weightedScore / totalWeight) * 100)) : 0;
+                const roundedOverall = Math.round(overallPercent);
+
+                const overallProgressBar = document.getElementById('overallProgressBar');
+                if (overallProgressBar){
+                    overallProgressBar.style.width = `${roundedOverall}%`;
+                }
+                const overallProgressText = document.getElementById('overallProgressText');
+                if (overallProgressText){
+                    overallProgressText.textContent = `${roundedOverall}%`;
+                }
+
+                setCircleProgress(document.getElementById('globalProgressCircle'), overallPercent);
+                setCircleProgress(document.getElementById('orgProgressCircle'), overallPercent);
+
+                const sectionList = document.getElementById('sectionProgressList');
+                if (sectionList){
+                    sectionList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+                const orgList = document.getElementById('orgProgressList');
+                if (orgList){
+                    orgList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+
+                bindSectionFocusButtons();
+
+                const selectedModalities = getSelectedModalitiesLabels();
+                const noteCard = document.getElementById('deploymentNoteCard');
+                const noteText = document.getElementById('deploymentNoteText');
+                if (noteCard && noteText){
+                    const hiddenSections = sectionSummaries.filter(summary => summary.hidden > 0);
+                    if ((selectedModalities.length > 0 && selectedModalities.length < MODALITY_METADATA.length) || hiddenSections.length > 0){
+                        noteCard.classList.remove('d-none');
+                        const selectionText = selectedModalities.length > 0
+                            ? `Active profiles: ${selectedModalities.join(', ')}.`
+                            : 'No deployment profile currently selected.';
+                        const hiddenText = hiddenSections.length > 0
+                            ? ` Hidden standards in: ${hiddenSections.map(item => item.name).join(', ')}.`
+                            : '';
+                        noteText.textContent = selectionText + hiddenText;
+                    } else {
+                        noteCard.classList.add('d-none');
+                        noteText.textContent = '';
+                    }
+                }
+
+                const completedSectionsElement = document.getElementById('completedSections');
+                if (completedSectionsElement){
+                    completedSectionsElement.textContent = `${completedSectionCount}/${SECTIONS_WITH_WEIGHT.length}`;
+                }
+                const overallScoreElement = document.getElementById('overallScore');
+                if (overallScoreElement){
+                    overallScoreElement.textContent = `${roundedOverall}%`;
+                }
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement){
+                    lastUpdatedElement.textContent = (new Date()).toLocaleDateString();
+                }
+            }
+            function exportToExcel(){
+                saveProgress();
+                const workbook = XLSX.utils.book_new();
+                const teamInfo = [
+                    ['Team Information', ''],
+                    ['Team Name', assessmentData.teamInfo.teamName || ''],
+                    ['Region', assessmentData.teamInfo.region || ''],
+                    ['Country', assessmentData.teamInfo.country || ''],
+                    ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
+                    [''],
+                    ['Headquarters Contact', ''],
+                    ['Name', assessmentData.teamInfo.hqName || ''],
+                    ['Email', assessmentData.teamInfo.hqEmail || ''],
+                    ['Phone', assessmentData.teamInfo.hqPhone || ''],
+                    ['Position', assessmentData.teamInfo.hqPosition || ''],
+                    [''],
+                    ['Operations Contact', ''],
+                    ['Name', assessmentData.teamInfo.opsName || ''],
+                    ['Email', assessmentData.teamInfo.opsEmail || ''],
+                    ['Phone', assessmentData.teamInfo.opsPhone || ''],
+                    ['Position', assessmentData.teamInfo.opsPosition || '']
+                ];
+                teamInfo.push(['']);
+                teamInfo.push(['Supported Deployment Modalities', '']);
+                MODALITY_METADATA.forEach(modality => {
+                    const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
+                    teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
+                });
+                const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
+                XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
+
+                const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const sectionKey = select.dataset.section;
+                    const itemId = select.dataset.item;
+                    const itemKey = sectionKey + '-' + itemId;
+                    const titleElement = card.querySelector('.subsection-title');
+                    const descElement = card.querySelector('.card-description');
+                    const title = titleElement ? titleElement.textContent.trim() : '';
+                    const description = descElement ? descElement.textContent.trim() : '';
+                    const statement = description ? title + ' — ' + description : title;
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    const evidence = evidenceField ? evidenceField.value : '';
+                    const gaps = gapsField ? gapsField.value : '';
+                    const actions = actionField ? actionField.value : '';
+                    let deploymentRequirementsText = '';
+                    let deploymentMitigationsText = '';
+                    const deploymentRecord = assessmentData.deploymentRequirements &&
+                        assessmentData.deploymentRequirements[sectionKey] &&
+                        assessmentData.deploymentRequirements[sectionKey][itemId];
+                    if (deploymentRecord) {
+                        const requirementParts = [];
+                        const mitigationParts = [];
+                        Object.keys(deploymentRecord).forEach(modalityKey => {
+                            const entry = deploymentRecord[modalityKey] || {};
+                            const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
+                            const label = meta ? meta.label : modalityKey;
+                            if (entry.requirements && entry.requirements.trim() !== '') {
+                                requirementParts.push(label + ': ' + entry.requirements.trim());
+                            }
+                            if (entry.mitigation && entry.mitigation.trim() !== '') {
+                                mitigationParts.push(label + ': ' + entry.mitigation.trim());
+                            }
+                        });
+                        deploymentRequirementsText = requirementParts.join('\n\n');
+                        deploymentMitigationsText = mitigationParts.join('\n\n');
+                    }
+                    assessmentRows.push([
+                        itemKey,
+                        sectionKey,
+                        statement,
+                        select.value || '',
+                        evidence,
+                        gaps,
+                        actions,
+                        (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
+                        deploymentRequirementsText,
+                        deploymentMitigationsText
+                    ]);
+                });
+
+                const assessmentSheet = XLSX.utils.aoa_to_sheet(assessmentRows);
+                XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
+                const dateSuffix = (new Date).toISOString().split('T')[0];
+                XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
+                showNotification('Data exported to Excel successfully!');
+            }
+            function importFromExcel(event){
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(loadEvent){
+                    try {
+                        const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
+
+                        const parsedTeamInfo = {
+                            teamName: '',
+                            region: '',
+                            country: '',
+                            mentorName: '',
+                            hqName: '',
+                            hqEmail: '',
+                            hqPhone: '',
+                            hqPosition: '',
+                            opsName: '',
+                            opsEmail: '',
+                            opsPhone: '',
+                            opsPosition: '',
+                            deploymentModalities: { ...DEFAULT_MODALITY_STATE }
+                        };
+
+                        const teamSheet = workbook.Sheets["Team Info"];
+                        if (teamSheet) {
+                            const rows = XLSX.utils.sheet_to_json(teamSheet, { header: 1, raw: false });
+                            let contactSection = null;
+                            let inModalitySection = false;
+
+                            rows.forEach(row => {
+                                if (!Array.isArray(row) || row.length === 0){
+                                    return;
+                                }
+                                const rawLabel = row[0];
+                                const rawValue = row.length > 1 ? row[1] : '';
+                                const label = rawLabel ? String(rawLabel).trim() : '';
+                                if (!label){
+                                    return;
+                                }
+                                const normalizedLabel = label.toLowerCase();
+                                if (normalizedLabel === 'team information'){
+                                    contactSection = null;
+                                    inModalitySection = false;
+                                    return;
+                                }
+                                if (normalizedLabel === 'headquarters contact'){
+                                    contactSection = 'hq';
+                                    return;
+                                }
+                                if (normalizedLabel === 'operations contact'){
+                                    contactSection = 'ops';
+                                    return;
+                                }
+                                if (normalizedLabel === 'supported deployment modalities'){
+                                    inModalitySection = true;
+                                    contactSection = null;
+                                    return;
+                                }
+                                const value = rawValue === undefined || rawValue === null ? '' : String(rawValue).trim();
+                                if (inModalitySection){
+                                    const modalityMeta = MODALITY_METADATA.find(modality => modality.label.toLowerCase() === normalizedLabel);
+                                    if (modalityMeta){
+                                        const normalizedValue = value.toLowerCase();
+                                        const isSupported = normalizedValue ?
+                                            (normalizedValue.startsWith('y') || normalizedValue === '1' || normalizedValue === 'true')
+                                            : false;
+                                        parsedTeamInfo.deploymentModalities[modalityMeta.key] = isSupported;
+                                    }
+                                    return;
+                                }
+
+                                switch (normalizedLabel){
+                                    case 'team name':
+                                        parsedTeamInfo.teamName = value;
+                                        return;
+                                    case 'region':
+                                        parsedTeamInfo.region = value;
+                                        return;
+                                    case 'country':
+                                        parsedTeamInfo.country = value;
+                                        return;
+                                    case 'mentor name':
+                                        parsedTeamInfo.mentorName = value;
+                                        return;
+                                }
+
+                                if (contactSection === 'hq'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.hqName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.hqEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.hqPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.hqPosition = value;
+                                            return;
+                                    }
+                                }
+
+                                if (contactSection === 'ops'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.opsName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.opsEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.opsPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.opsPosition = value;
+                                            return;
+                                    }
+                                }
+                            });
+                        }
+
+                        assessmentData = {
+                            teamInfo: parsedTeamInfo,
+                            scores: {},
+                            evidence: {},
+                            gaps: {},
+                            actions: {},
+                            comments: {},
+                            summary: {},
+                            deploymentRequirements: {}
+                        };
+
+                        const sheet = workbook.Sheets["HID SCT Assessment"];
+                        if (sheet) {
+                            const rows = XLSX.utils.sheet_to_json(sheet);
+                            for (const row of rows) {
+                                const id = row["Standard ID"];
+                                if (!id) continue;
+
+                                const normalizedScore = normalizeImportedScore(row.Score);
+                                if (normalizedScore !== null){
+                                    assessmentData.scores[id] = normalizedScore;
+                                }
+
+                                if (row.Evidence !== undefined && row.Evidence !== null){
+                                    assessmentData.evidence[id] = String(row.Evidence);
+                                }
+                                if (row.Gaps !== undefined && row.Gaps !== null){
+                                    assessmentData.gaps[id] = String(row.Gaps);
+                                }
+                                if (row.Actions !== undefined && row.Actions !== null){
+                                    assessmentData.actions[id] = String(row.Actions);
+                                }
+
+                                const sectionKey = row.Pillar;
+                                if (sectionKey){
+                                    const commentKey = sectionKey + 'Comments';
+                                    if (row.Comments !== undefined && row.Comments !== null){
+                                        const commentText = String(row.Comments).trim();
+                                        if (commentText && (!assessmentData.comments[commentKey] || !assessmentData.comments[commentKey].trim())){
+                                            assessmentData.comments[commentKey] = commentText;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        safeSetStoredItem("hidSCTAssessment", JSON.stringify(assessmentData));
+                        loadSavedData();
+                        updateProgress();
+                        showNotification("Data imported successfully!");
+                    } catch (error) {
+                        console.warn('Error importing file', error);
+                        showNotification("Error importing file.");
+                    }
+                };
+                reader.readAsBinaryString(file);
+                event.target.value = '';
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                initializeData();
+
+                document.querySelectorAll("input, textarea, select").forEach(element => {
+                    element.addEventListener("change", saveProgress);
+                });
+
+                document.querySelectorAll('.score-select').forEach(select => {
+                    updateScoreBadge(select);
+                    select.addEventListener('change', function () {
+                        updateScoreBadge(select);
+                    });
+                });
+
+                document.getElementById("btn-save").addEventListener("click", saveProgress);
+                document.getElementById("btn-export-json").addEventListener("click", () => {
+                    saveProgress();
+                    const json = JSON.stringify(assessmentData, null, 2);
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "HID_SCT_Assessment_" + (new Date).toISOString().split("T")[0] + ".json";
+                    link.click();
+                    URL.revokeObjectURL(url);
+                });
+
+                document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
+                document.getElementById("btn-submit").addEventListener("click", () => {
+                    saveProgress();
+                    showNotification("Assessment submitted successfully!");
+                });
+
+                document.getElementById("btn-import-excel").addEventListener("click", () => {
+                    document.getElementById("fileInput").click();
+                });
+
+                document.getElementById("fileInput").addEventListener("change", importFromExcel);
+
+                const navLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+                navLinks.forEach(link => {
+                    link.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        navLinks.forEach(item => item.classList.remove("active"));
+                        link.classList.add("active");
+                        const target = link.getAttribute("href");
+                        document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
+                        document.querySelector(target).classList.add("show", "active");
+                    });
+                });
+            });
+    </script>
     <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
     <div id="template-definition" style="display: none;"><h2 class="mb-4">Technical Standards Definition</h2><div class="card section-card"><div class="card-body"><p>HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.</p><p>Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.</p></div></div></div>
-    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><table class="table table-bordered"><thead class="table-light"><tr><th>Section</th><th>Weight</th><th>Status</th><th>% Completed</th></tr></thead><tbody id="progressTableBody"></tbody></table></div></div></div>
+    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><div class="d-flex flex-column flex-md-row align-items-center gap-4"><div class="text-center"><div class="progress-circle" id="orgProgressCircle"><span id="orgProgressValue">0%</span></div><p class="small text-muted mb-0">Weighted completion</p></div><div class="flex-grow-1 w-100"><div class="section-progress-list" id="orgProgressList"></div></div></div></div></div></div>
     <div id="template-summary" style="display: none;"><h2 class="mb-4">Summary & Action Plan</h2><div class="card section-card"><div class="section-header"><h5>Overall Readiness Assessment</h5></div><div class="card-body"><div class="mb-3"><label for="strengths" class="form-label"><strong>Strengths Identified:</strong></label><textarea class="form-control summary-textarea" id="strengths" placeholder="List the top 3-5 strengths identified..."></textarea></div><div class="mb-3"><label for="criticalGaps" class="form-label"><strong>Critical Gaps Requiring Immediate Action:</strong></label><textarea class="form-control summary-textarea" id="criticalGaps" placeholder="List the critical gaps that need..."></textarea></div><div class="mb-3"><label class="form-label"><strong>Timeline for Addressing Gaps:</strong></label><div class="mb-2"><label class="form-label">Immediate (0-1 month):</label><textarea class="form-control summary-textarea" id="immediateActions"></textarea></div><div class="mb-2"><label class="form-label">Short-term (1-3 months):</label><textarea class="form-control summary-textarea" id="shortTermActions"></textarea></div><div class="mb-2"><label class="form-label">Medium-term (3-6 months):</label><textarea class="form-control summary-textarea" id="mediumTermActions"></textarea></div></div><div class="mb-3"><label class="form-label"><strong>Support Required:</strong></label><div class="mb-2"><label class="form-label">Technical assistance needed:</label><textarea class="form-control summary-textarea" id="technicalAssistance"></textarea></div><div class="mb-2"><label class="form-label">Training requirements:</label><textarea class="form-control summary-textarea" id="trainingRequirements"></textarea></div><div class="mb-2"><label class="form-label">Resource requirements:</label><textarea class="form-control summary-textarea" id="resourceRequirements"></textarea></div></div><div class="mb-3"><label for="nextSteps" class="form-label"><strong>Next Steps:</strong></label><textarea class="form-control summary-textarea" id="nextSteps" placeholder="1. First priority action..."></textarea></div><div class="row"><div class="col-md-6"><label for="completionDate" class="form-label">Date of Completion:</label><input type="date" class="form-control" id="completionDate"></div><div class="col-md-6"><label for="reviewedBy" class="form-label">Reviewed by:</label><input type="text" class="form-control" id="reviewedBy" placeholder="Name and title"></div></div><div class="mt-3"><label for="mentorAssignment" class="form-label">Mentor Assignment:</label><input type="text" class="form-control" id="mentorAssignment" placeholder="Mentor name and contact"></div></div></div></div>
 
 </body>
