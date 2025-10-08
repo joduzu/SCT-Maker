@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced SCT  Tool Builder</title>
+    <title>Advanced HID SCT Assessment Builder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -21,14 +21,13 @@
         .modality-option.embedded .modality-icon { background: linear-gradient(135deg, #2563eb, #3b82f6); }
         .modality-option.coupled .modality-icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
         .modality-option.self-sustained .modality-icon { background: linear-gradient(135deg, #16a34a, #22c55e); }
-        .modality-option.selected { border-color: transparent; background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2)); }
+        .modality-option.selected { border-color: transparent; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(129, 140, 248, 0.08)); }
         .subsection-item { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 16px; border: 1px solid #e9ecef; border-radius: 12px; background: #fff; }
         .subsection-item .rich-text-editor { flex: 1; }
         .subsection-actions { display: flex; justify-content: flex-end; }
         .subsection-actions .btn { min-width: 120px; }
         .section-content-editor { margin-top: 10px; }
         .section-content-editor .editor-content { min-height: 160px; }
-        .standard-name-group input { font-weight: 600; }
         .weight-input { width: 100px; }
         .accordion-button:not(.collapsed) { color: #fff; background-color: #0d6efd; }
         .accordion-button:not(.collapsed)::after { filter: brightness(0) invert(1); }
@@ -50,34 +49,13 @@
         .builder-modality-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
         .builder-modality-columns textarea { min-height: 90px; }
         .builder-deployment-summary { display: inline-flex; align-items: center; gap: 6px; }
-        .author-credit { font-size: 0.9rem; color: #6c757d; margin-top: 8px; }
-        .author-credit a { color: #0d6efd; text-decoration: none; }
-        .author-credit a:hover { text-decoration: underline; }
-        @media (max-width: 991.98px) {
-            body { padding: 24px; }
-            .maker-container { padding: 24px 20px; }
-            .deployment-modalities-options { gap: 10px; }
-            .section-header-controls { flex-wrap: wrap; justify-content: flex-start; }
-        }
-        @media (max-width: 767.98px) {
-            body { padding: 16px; }
-            .maker-container { padding: 20px 16px; border-radius: 10px; box-shadow: 0 0 12px rgba(0, 0, 0, 0.08); }
-            .deployment-modalities-card .card-header { align-items: flex-start; }
-            .deployment-modalities-options { flex-direction: column; }
-            .modality-option { width: 100%; justify-content: space-between; }
-            .builder-modality-columns { grid-template-columns: 1fr; }
-            .section-header-controls { flex-direction: column; align-items: stretch; gap: 10px; }
-            .subsection-actions { flex-direction: column; gap: 10px; }
-            .subsection-actions .btn { width: 100%; }
-        }
     </style>
 </head>
 <body>
     <div class="maker-container">
         <div class="maker-header">
-            <h2>🛠️ Advanced SCT Tool Builder</h2>
-            <p class="text-muted">Customize every part of your tool. The generated HTML will be fully functional and match the original experience.</p>
-            <p class="author-credit">Author by: <a href="mailto:joduzu@gmail.com">Jorge Durand Zurdo</a></p>
+            <h2>🛠️ Advanced Assessment Tool Builder</h2>
+            <p class="text-muted">Customize every aspect of your tool. The generated HTML will be fully functional and match the original layout.</p>
         </div>
 
         <div class="card my-4 deployment-modalities-card" id="deployment-modalities-card">
@@ -86,15 +64,7 @@
                 <small class="text-muted">Select the deployment profiles your SCT can support.</small>
             </div>
             <div class="card-body">
-                <div class="row g-3 align-items-end">
-                    <div class="col-12 col-md-5 col-lg-4">
-                        <label for="sctName" class="form-label">Name of the SCT</label>
-                        <input type="text" class="form-control" id="sctName" placeholder="e.g. Rehabilitation">
-                    </div>
-                    <div class="col-12 col-md-7 col-lg-8">
-                        <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
-                    </div>
-                </div>
+                <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
             </div>
         </div>
 
@@ -102,7 +72,7 @@
             <div class="card-header"><h5 class="mb-0">Assign Section Weights (%)</h5></div>
             <div class="card-body">
                 <div class="row" id="weights-container"></div>
-                <div class="alert alert-info mt-3" id="weight-sum-alert">Total weight sum: <span id="weight-sum">0</span>%. Must equal 100%.</div>
+                <div class="alert alert-info mt-3" id="weight-sum-alert">Total weight: <span id="weight-sum">0</span>%. It must equal 100%.</div>
             </div>
         </div>
 
@@ -892,10 +862,6 @@
         ensureDeploymentOverride(sectionKey, itemKey, titleText);
         const subsectionHTML = `
             <div class="subsection-item" data-section="${sectionKey}" data-item-key="${itemKey}" data-default-index="${index}" data-title="${escapeHTML(titleText)}">
-                <div class="standard-name-group mb-2">
-                    <label class="form-label">Standard Name</label>
-                    <input type="text" class="form-control standard-title-input" data-section="${sectionKey}" data-item-key="${itemKey}" value="${escapeHTML(titleText)}" placeholder="Enter the standard title">
-                </div>
                 ${getEditorTemplate(subContent)}
                 ${buildBuilderDeploymentEditor(sectionKey, itemKey, titleText)}
                 <div class="subsection-actions">
@@ -908,26 +874,6 @@
         setupRichTextEditors(newItem);
         setupDeploymentPrefillEditors(newItem);
         updateBuilderModalityEditorsVisibility();
-        const titleInput = newItem.querySelector('.standard-title-input');
-        if (titleInput) {
-            const updateTitle = () => {
-                const defaultIndex = parseInt(newItem.dataset.defaultIndex, 10);
-                const fallbackTitle = Number.isFinite(defaultIndex) ? `Standard ${defaultIndex + 1}` : 'Standard';
-                const value = titleInput.value.trim() || fallbackTitle;
-                newItem.dataset.title = value;
-                const details = newItem.querySelector('.builder-deployment-editor');
-                if (details) {
-                    details.dataset.title = value;
-                }
-                const summaryTitle = newItem.querySelector('.builder-deployment-summary-title');
-                if (summaryTitle) {
-                    summaryTitle.textContent = value;
-                }
-                ensureDeploymentOverride(sectionKey, itemKey, value);
-            };
-            titleInput.addEventListener('input', updateTitle);
-            updateTitle();
-        }
         const removeBtn = newItem.querySelector('.remove-item');
         if (removeBtn) {
             removeBtn.onclick = () => {
@@ -1009,7 +955,7 @@
                 'Dead Body Management: EMTs need to be able to manage dead bodies in a way that is dignified, culturally appropriate, safe and according to public health practices.'
             ]
         },
-        'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true, editableContent: true }
+        'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true }
     };
 
     let activeEditor = null;
@@ -1089,7 +1035,7 @@
         `;
     }
 
-    function buildDeploymentModalitiesCardHTML(selectedKeys = [], sctNameValue = '') {
+    function buildDeploymentModalitiesCardHTML(selectedKeys = []) {
         const selectedSet = new Set(selectedKeys);
         const optionsHTML = DEPLOYMENT_MODALITIES.map(modality => {
             const isSelected = selectedSet.has(modality.key);
@@ -1104,8 +1050,6 @@
         `;
         }).join('');
 
-        const escapedName = escapeHTML(sctNameValue);
-
         return `
             <div class="card section-card deployment-modalities-card">
                 <div class="section-header">
@@ -1113,38 +1057,10 @@
                     <p class="text-muted small mb-0">Select the deployment profiles your SCT can support.</p>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-12 col-md-5 col-lg-4">
-                            <label for="sctName" class="form-label">Name of the SCT</label>
-                            <input type="text" class="form-control" id="sctName" value="${escapedName}" placeholder="e.g. Rehabilitation">
-                        </div>
-                        <div class="col-12 col-md-7 col-lg-8">
-                            <div class="deployment-modality-grid">
-                                ${optionsHTML}
-                            </div>
-                        </div>
+                    <div class="deployment-modality-grid">
+                        ${optionsHTML}
                     </div>
                 </div>
-            </div>
-        `;
-    }
-
-    function buildDeploymentSummaryBannerHTML(selectedKeys = [], headingText = 'HID SCT Tool') {
-        const selectedModalities = DEPLOYMENT_MODALITIES.filter(modality => selectedKeys.includes(modality.key));
-        const pillsHTML = selectedModalities.map(modality => `
-            <span class="deployment-summary-pill ${modality.accentClass || ''}">
-                <i class="fas ${modality.icon || 'fa-clipboard'}"></i>
-                ${escapeHTML(modality.label)}
-            </span>
-        `).join('');
-        const hiddenClass = selectedModalities.length ? '' : ' d-none';
-        return `
-            <div class="deployment-summary-banner${hiddenClass}" id="deploymentSummaryBanner">
-                <div class="deployment-summary-info">
-                    <h2 class="deployment-summary-title" id="deploymentSummaryTitle">${escapeHTML(headingText)}</h2>
-                    <p class="deployment-summary-subtitle" id="deploymentSummarySubtitle">Supported deployment modalities</p>
-                </div>
-                <div class="deployment-summary-pill-group" id="deploymentSummaryPills">${pillsHTML}</div>
             </div>
         `;
     }
@@ -1233,16 +1149,16 @@
 
             let sectionBody = '';
             if (config.hasSubsections) {
-                sectionBody = `<h5>Standards / Subsections (HTML allowed)</h5>
+                sectionBody = `<h5>Standards / Subsections (HTML supported)</h5>
                 <div id="subsections-${key}" class="subsections-container"></div>
                 <button class="btn btn-outline-success mt-2 add-item" data-section="${key}"><i class="fas fa-plus me-2"></i>Add Standard</button>`;
             } else if (config.editableContent) {
-                sectionBody = `<h5>Tab content (HTML allowed)</h5>
+                sectionBody = `<h5>Tab content (HTML supported)</h5>
                 <div class="section-content-editor" data-section="${key}">
                     ${getEditorTemplate(SECTION_CONTENT[key] || '', 'Edit the content for this tab...')}
                 </div>`;
             } else {
-                sectionBody = `<div class="alert alert-light">This section's content is fixed and will be inserted automatically in the final tool.</div>`;
+                sectionBody = `<div class="alert alert-light">The content for this section is fixed and will be inserted automatically in the final tool.</div>`;
             }
 
             const sectionHTML = `
@@ -1261,7 +1177,7 @@
                     <div id="collapse-${key}" class="accordion-collapse collapse" data-bs-parent="#sections-accordion">
                         <div class="accordion-body">
                             <div class="mb-3">
-                                <label class="form-label">Section Title</label>
+                                <label class="form-label">Section title</label>
                                 <input type="text" class="form-control section-title-input" data-key="${key}" value="${config.title}">
                             </div>
                             ${sectionBody}
@@ -1325,89 +1241,65 @@
                 return;
             }
             editor.dataset.editorInitialized = 'true';
-
             const updatePlaceholderState = () => {
                 const text = editor.innerText.trim();
                 editor.classList.toggle('empty', text.length === 0);
             };
-
-            const syncSubsectionMetadata = () => {
-                const subsectionItem = editor.closest('.subsection-item');
-                if (!subsectionItem) {
-                    return;
-                }
-                const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
-                const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
-                subsectionItem.dataset.title = newTitle;
-                const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
-                if (summaryTitle) {
-                    summaryTitle.textContent = newTitle;
-                }
-                const details = subsectionItem.querySelector('.builder-deployment-editor');
-                if (details) {
-                    details.dataset.title = newTitle;
-                }
-            };
-
+            updatePlaceholderState();
             const handleInput = () => {
                 updatePlaceholderState();
-                syncSubsectionMetadata();
                 storeSelection(editor);
+                const subsectionItem = editor.closest('.subsection-item');
+                if (subsectionItem) {
+                    const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
+                    const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
+                    subsectionItem.dataset.title = newTitle;
+                    const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
+                    if (summaryTitle) {
+                        summaryTitle.textContent = newTitle;
+                    }
+                    const details = subsectionItem.querySelector('.builder-deployment-editor');
+                    if (details) {
+                        details.dataset.title = newTitle;
+                    }
+                }
             };
-
-            const handleFocus = () => {
+            editor.addEventListener('input', handleInput);
+            editor.addEventListener('focus', () => {
                 activeEditor = editor;
                 editor.classList.add('focus');
                 storeSelection(editor);
-            };
-
-            const handleBlur = () => {
+            });
+            editor.addEventListener('blur', () => {
                 editor.classList.remove('focus');
                 if (activeEditor === editor) {
                     activeEditor = null;
                     savedRange = null;
                 }
-            };
-
-            const persistSelection = () => storeSelection(editor);
-
-            updatePlaceholderState();
-            syncSubsectionMetadata();
-
-            editor.addEventListener('input', handleInput);
-            editor.addEventListener('focus', handleFocus);
-            editor.addEventListener('blur', handleBlur);
-            editor.addEventListener('keyup', persistSelection);
-            editor.addEventListener('mouseup', persistSelection);
-
+            });
+            editor.addEventListener('keyup', () => storeSelection(editor));
+            editor.addEventListener('mouseup', () => storeSelection(editor));
             editor._updatePlaceholder = updatePlaceholderState;
-            editor._syncSubsectionMetadata = syncSubsectionMetadata;
         });
-
         root.querySelectorAll('.format-btn').forEach(btn => {
-            if (btn.dataset.editorHandlerAttached === 'true') {
-                return;
-            }
-            btn.dataset.editorHandlerAttached = 'true';
-
-            btn.addEventListener('mousedown', e => {
+            btn.onmousedown = e => {
                 e.preventDefault();
                 const command = btn.dataset.command;
                 const value = btn.dataset.value || null;
                 const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
                 const editor = container ? container.querySelector('.editor-content') : null;
-                if (!editor) {
-                    return;
+                if (editor) {
+                    if (activeEditor !== editor) {
+                        activeEditor = editor;
+                    }
+                    restoreSelection(editor);
+                    document.execCommand(command, false, value);
+                    if (typeof editor._updatePlaceholder === 'function') {
+                        editor._updatePlaceholder();
+                    }
+                    storeSelection(editor);
                 }
-                if (activeEditor !== editor) {
-                    activeEditor = editor;
-                }
-                restoreSelection(editor);
-                document.execCommand(command, false, value);
-                editor._updatePlaceholder?.();
-                editor._syncSubsectionMetadata?.();
-                storeSelection(editor);
-            });
+            };
         });
     }
 
@@ -1439,14 +1331,14 @@
                 finalConfig[key].subsections = items.map((item, index) => {
                     const editor = item.querySelector('.editor-content');
                     const content = editor ? editor.innerHTML.trim() : '';
-                    const itemKey = item.dataset.itemKey || generateSubsectionKey(key);
-                    let titleText = item.dataset.title || extractTitleTextFromHTML(content, index);
-                    if (!titleText) {
-                        titleText = `Standard ${index + 1}`;
+                    if (!content) {
+                        return null;
                     }
+                    const itemKey = item.dataset.itemKey || generateSubsectionKey(key);
+                    const titleText = item.dataset.title || extractTitleTextFromHTML(content, index);
                     ensureDeploymentOverride(key, itemKey, titleText);
                     return { content, itemKey, titleText };
-                });
+                }).filter(Boolean);
             }
             if (finalConfig[key].editableContent) {
                 const editor = document.querySelector(`#accordion-item-${key} .section-content-editor .editor-content`);
@@ -1457,14 +1349,8 @@
         const selectedModalities = Array.from(document.querySelectorAll('.deployment-modality-checkbox'))
             .filter(cb => cb.checked)
             .map(cb => cb.dataset.key);
-        const sctNameField = document.getElementById('sctName');
-        const rawSctName = sctNameField ? sctNameField.value.trim() : '';
-        const headingText = rawSctName
-            ? (rawSctName.toLowerCase().endsWith('sct tool') ? rawSctName : rawSctName + ' SCT Tool')
-            : 'HID SCT Tool';
-        const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities, rawSctName);
+        const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
         const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
-        const deploymentSummaryBannerHTML = buildDeploymentSummaryBannerHTML(selectedModalities, headingText);
         const defaultModalityState = {};
         DEPLOYMENT_MODALITIES.forEach(modality => {
             defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
@@ -1647,8 +1533,17 @@
             .filter(([,c]) => c.weight > 0)
             .map(([k,c]) => ({ name: c.title.toUpperCase(), weight: c.weight, section: k }));
 
+        const weightsDataJSON = JSON.stringify(weightsData);
         const modalityMetadataJSON = JSON.stringify(DEPLOYMENT_MODALITIES);
         const defaultModalityStateJSON = JSON.stringify(defaultModalityState);
+
+        const scriptTemplateElement = document.getElementById('generated-tool-script-template');
+        const scriptTemplate = scriptTemplateElement ? scriptTemplateElement.textContent : '';
+        const populatedScript = scriptTemplate
+            .replace(/__SECTIONS_WITH_WEIGHT__/g, weightsDataJSON)
+            .replace(/__MODALITY_METADATA__/g, modalityMetadataJSON)
+            .replace(/__DEFAULT_MODALITY_STATE__/g, defaultModalityStateJSON);
+        const escapedScript = populatedScript.replace(/<\/script>/g, '<\/script>');
 
         const fullHTML = `
 <!DOCTYPE html>
@@ -1724,92 +1619,6 @@
             background: #f8f9ff;
         }
 
-        .author-credit {
-            font-size: 0.9rem;
-            color: #475569;
-            margin-bottom: 16px;
-        }
-
-        .author-credit a {
-            color: #4338ca;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .author-credit a:hover {
-            text-decoration: underline;
-        }
-
-        .deployment-summary-banner {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #312e81, #6366f1);
-            color: #ffffff;
-            padding: 24px;
-            border-radius: 18px;
-            margin-bottom: 24px;
-            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.24);
-            gap: 16px;
-        }
-
-        .deployment-summary-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .deployment-summary-title {
-            font-size: 1.75rem;
-            margin: 0 0 6px;
-            font-weight: 700;
-        }
-
-        .deployment-summary-subtitle {
-            margin: 0;
-            font-size: 0.95rem;
-            opacity: 0.85;
-        }
-
-        .deployment-summary-pill-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .deployment-summary-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.92);
-            color: #1f2937;
-            font-weight: 600;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
-            transition: transform 0.2s ease;
-        }
-
-        .deployment-summary-pill i {
-            font-size: 0.9rem;
-        }
-
-        .deployment-summary-pill.embedded {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .deployment-summary-pill.coupled {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .deployment-summary-pill.self-sustained {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
         .progress-sidebar {
             background-color: #ffffff;
             height: 100vh;
@@ -1818,6 +1627,9 @@
             padding: 24px 18px;
             overflow-y: auto;
             border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
         .progress-bar-container {
@@ -1872,7 +1684,7 @@
         }
 
         .modality-pill.selected {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.24), rgba(59, 130, 246, 0.24));
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(59, 130, 246, 0.12));
             border-color: transparent;
             box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
         }
@@ -2076,307 +1888,105 @@
             animation: slideIn 0.3s ease;
         }
 
-        .btn-report {
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
-            border: none;
-            color: #ffffff;
-            font-weight: 600;
-            padding: 0.75rem 2.2rem;
-            box-shadow: 0 18px 32px rgba(99, 102, 241, 0.25);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn-report:hover,
-        .btn-report:focus {
-            color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 22px 38px rgba(99, 102, 241, 0.35);
-        }
-
-        .btn-report:disabled {
-            opacity: 0.7;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .pdf-report-root {
-            position: fixed;
-            top: -10000px;
-            left: -10000px;
-            width: 1024px;
-            padding: 48px;
-            background: #eef2ff;
-            color: #1f2937;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            z-index: -1;
-        }
-
-        .pdf-report {
-            background: #ffffff;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 24px 60px rgba(79, 70, 229, 0.18);
-        }
-
-        .pdf-header {
-            background: linear-gradient(135deg, #5b21b6 0%, #4338ca 100%);
-            color: #ffffff;
+        .global-progress-card {
+            background: linear-gradient(145deg, #f5f8ff 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem 1.25rem;
             text-align: center;
-            padding: 48px 40px 40px;
+            box-shadow: 0 12px 30px rgba(148, 163, 184, 0.15);
         }
 
-        .pdf-header h1 {
-            margin-bottom: 0.35rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-        }
-
-        .pdf-header .pdf-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.85;
-            margin-bottom: 0.25rem;
-        }
-
-        .pdf-header .pdf-date {
-            font-size: 0.95rem;
-            opacity: 0.75;
-        }
-
-        .pdf-body {
-            padding: 40px;
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
             display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
-
-        .pdf-body section h3 {
-            font-weight: 700;
-            margin-bottom: 1.25rem;
-            color: #312e81;
-        }
-
-        .pdf-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 18px;
-        }
-
-        .pdf-info-item {
-            background: #f8f9ff;
-            border-radius: 18px;
-            padding: 18px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(79, 70, 229, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .pdf-info-label {
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.08em;
-            color: #6366f1;
-        }
-
-        .pdf-info-value {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .pdf-overview-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
-        }
-
-        .pdf-summary-card {
-            background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 102, 241, 0.12));
-            border-radius: 20px;
-            padding: 20px 24px;
-            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.14);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .pdf-summary-label {
-            font-size: 0.85rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #4338ca;
-        }
-
-        .pdf-summary-value {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #1f1b4b;
-        }
-
-        .pdf-summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #ffffff;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 16px 34px rgba(30, 64, 175, 0.12);
-        }
-
-        .pdf-summary-table th,
-        .pdf-summary-table td {
-            padding: 16px 18px;
-            text-align: left;
-        }
-
-        .pdf-summary-table thead {
-            background: #eef2ff;
-            color: #3730a3;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-size: 0.85rem;
-        }
-
-        .pdf-summary-table tbody tr:nth-child(even) {
-            background: #f8faff;
-        }
-
-        .pdf-summary-total td {
-            font-weight: 700;
-            background: #ede9fe;
-        }
-
-        .pdf-details {
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        .pdf-section-block {
-            background: #f5f7ff;
-            border-radius: 22px;
-            padding: 26px;
-            box-shadow: 0 16px 32px rgba(76, 29, 149, 0.12);
-        }
-
-        .pdf-section-block h3 {
-            margin-bottom: 18px;
-            color: #312e81;
-        }
-
-        .pdf-detail-card {
-            background: #ffffff;
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12);
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .pdf-detail-card:last-child {
-            margin-bottom: 0;
-        }
-
-        .pdf-detail-card-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 18px;
-            align-items: flex-start;
-        }
-
-        .pdf-detail-card-header h4 {
-            margin: 0 0 6px;
-            font-size: 1.1rem;
-            color: #1f2937;
-        }
-
-        .pdf-detail-card-header p {
-            margin: 0;
-            color: #4b5563;
-            line-height: 1.6;
-        }
-
-        .pdf-detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-        }
-
-        .pdf-detail-grid h5 {
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.08em;
-            color: #6366f1;
-            margin-bottom: 8px;
-        }
-
-        .pdf-detail-grid p {
-            margin: 0;
-            color: #374151;
-            line-height: 1.6;
-        }
-
-        .pdf-status-pill {
-            display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            padding: 6px 16px;
-            font-size: 0.75rem;
+            position: relative;
+            background: conic-gradient(#4f46e5 0deg, #e2e8f0 0deg 360deg);
+        }
+
+        .progress-circle::after {
+            content: '';
+            position: absolute;
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        .progress-circle span {
+            position: absolute;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .section-progress-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-progress-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: #f8fafc;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+        }
+
+        .section-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
             font-weight: 600;
+            color: #1e293b;
+        }
+
+        .section-progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 0.65rem;
+        }
+
+        .section-progress-bar .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+        }
+
+        .section-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: #475569;
+            gap: 0.5rem;
+        }
+
+        .section-progress-meta .badge {
+            font-size: 0.72rem;
+            padding: 0.35rem 0.6rem;
+        }
+
+        .section-focus-button {
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
 
-        .status-not-started {
-            background: rgba(148, 163, 184, 0.28);
-            color: #1f2937;
-        }
-
-        .status-initial {
-            background: rgba(253, 230, 138, 0.35);
-            color: #b45309;
-        }
-
-        .status-in-progress {
-            background: rgba(96, 165, 250, 0.28);
-            color: #1d4ed8;
-        }
-
-        .status-completed {
-            background: rgba(134, 239, 172, 0.3);
-            color: #047857;
-        }
-
-        .status-na {
-            background: rgba(209, 213, 219, 0.35);
-            color: #374151;
-        }
-
-        .pdf-empty {
-            color: #9ca3af;
-            font-style: italic;
-        }
-
-        .progress-sidebar-table {
-            width: 100%;
-            font-size: 0.85rem;
-        }
-
-        .progress-sidebar-table th,
-        .progress-sidebar-table td {
-            padding: 8px 5px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .progress-sidebar-table th {
-            font-weight: 600;
-        }
-
-        .progress-sidebar-table tr:last-child td {
-            border-bottom: none;
+        .deployment-note-card {
+            border: 1px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 1rem;
+            background: #eef2ff;
+            color: #1e293b;
         }
 
         .compliance-section {
@@ -2720,25 +2330,12 @@
             .main-content {
                 max-height: none;
             }
-
-            .deployment-summary-banner {
-                align-items: flex-start;
-            }
         }
 
         @media (max-width: 768px) {
             .sidebar {
                 height: auto;
                 position: relative;
-            }
-
-            .deployment-summary-banner {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .deployment-summary-pill-group {
-                width: 100%;
             }
 
             .section-banner {
@@ -2781,1245 +2378,31 @@
 </head>
 <body>
     <div class="app-container"><div class="row g-0">
-        <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4" id="sidebarSctTitle">${escapeHTML(headingText)}</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
-        <div class="col-lg-8"><div class="main-content"><div class="author-credit">Author by: <a href="mailto:joduzu@gmail.com">Jorge Durand Zurdo</a></div>${deploymentSummaryBannerHTML}<div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div><div class="text-end mt-3"><button class="btn btn-report" id="btn-generate-pdf"><i class="fas fa-file-pdf me-2"></i>Generate PDF Report</button></div></div></div>
-        <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
+        <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
+        <div class="col-lg-8"><div class="main-content"><div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div></div></div>
+        <div class="col-lg-2">
+            <div class="progress-sidebar">
+                <div class="global-progress-card">
+                    <h6 class="text-uppercase text-muted mb-2">Overall Progress</h6>
+                    <div class="progress-circle" id="globalProgressCircle">
+                        <span id="globalProgressValue">0%</span>
+                    </div>
+                    <p class="small text-muted mb-0 text-center">Weighted across active section standards.</p>
+                </div>
+                <div>
+                    <h6 class="mb-2">Section Breakdown</h6>
+                    <div class="section-progress-list" id="sectionProgressList"></div>
+                </div>
+                <div class="deployment-note-card d-none" id="deploymentNoteCard">
+                    <h6 class="mb-2">Deployment Mode Considerations</h6>
+                    <p class="small mb-0" id="deploymentNoteText"></p>
+                </div>
+            </div>
+        </div>
     </div></div>
     <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
-    <script>
-    const SECTIONS_WITH_WEIGHT = ${JSON.stringify(weightsData)};
-    const MODALITY_METADATA = ${modalityMetadataJSON};
-    const DEFAULT_MODALITY_STATE = ${defaultModalityStateJSON};
-    const SCORE_DESCRIPTORS = {
-        '0': { label: 'Not Started', className: 'status-not-started' },
-        '1': { label: 'Initial', className: 'status-initial' },
-        '2': { label: 'In Progress', className: 'status-in-progress' },
-        '3': { label: 'Completed', className: 'status-completed' },
-        'NA': { label: 'Not Applicable', className: 'status-na' }
-    };
-    const DEFAULT_SCT_NAME = ${JSON.stringify(rawSctName)};
-    const DEFAULT_SUMMARY_TITLE = 'HID SCT Tool';
-    let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
-    function safeGetItem(key){
-        try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-                return window.localStorage.getItem(key);
-            }
-        } catch (error) {
-            console.warn('Unable to read localStorage key', key, error);
-        }
-        return null;
-    }
-    function safeSetItem(key, value){
-        try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-                window.localStorage.setItem(key, value);
-                return true;
-            }
-        } catch (error) {
-            console.warn('Unable to write localStorage key', key, error);
-        }
-        return false;
-    }
-    function getFieldValue(id){
-        const element = document.getElementById(id);
-        return element ? element.value : '';
-    }
-    function setFieldValue(id, value){
-        const element = document.getElementById(id);
-        if (element){
-            element.value = value;
-        }
-    }
-    function deriveSctTitle(rawValue){
-        const trimmed = (rawValue || '').toString().trim();
-        if (!trimmed) {
-            return DEFAULT_SUMMARY_TITLE;
-        }
-        return trimmed.toLowerCase().endsWith('sct tool') ? trimmed : trimmed + ' SCT Tool';
-    }
-    function renderDeploymentSummary(modalityState = DEFAULT_MODALITY_STATE){
-        const pillsContainer = document.getElementById('deploymentSummaryPills');
-        const titleEl = document.getElementById('deploymentSummaryTitle');
-        const sidebarTitle = document.getElementById('sidebarSctTitle');
-        const banner = document.getElementById('deploymentSummaryBanner');
-        const state = { ...DEFAULT_MODALITY_STATE, ...(modalityState || {}) };
-        const activeModalities = MODALITY_METADATA.filter(modality => state[modality.key]);
-        if (pillsContainer) {
-            pillsContainer.innerHTML = '';
-            activeModalities.forEach(modality => {
-                const pill = document.createElement('span');
-                pill.className = 'deployment-summary-pill ' + (modality.accentClass || '');
-                pill.innerHTML = '<i class="fas ' + (modality.icon || 'fa-clipboard') + '"></i> ' + modality.label;
-                pillsContainer.appendChild(pill);
-            });
-        }
-        const currentName = (getFieldValue('sctName') || '').trim();
-        const storedSctName = assessmentData.teamInfo && typeof assessmentData.teamInfo.sctName === 'string'
-            ? assessmentData.teamInfo.sctName
-            : '';
-        const fallbackTeamName = assessmentData.teamInfo && typeof assessmentData.teamInfo.teamName === 'string'
-            ? assessmentData.teamInfo.teamName
-            : '';
-        const derivedTitle = deriveSctTitle(currentName || storedSctName || fallbackTeamName || DEFAULT_SCT_NAME || '');
-        if (titleEl) {
-            titleEl.textContent = derivedTitle;
-        }
-        if (sidebarTitle) {
-            sidebarTitle.textContent = derivedTitle;
-        }
-        if (banner) {
-            banner.classList.toggle('d-none', activeModalities.length === 0);
-        }
-    }
-    function toggleModalityDetails(){
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
-            if (card) {
-                card.classList.toggle('d-none', !(checkbox && checkbox.checked));
-            }
-            document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
-                block.classList.toggle('d-none', !(checkbox && checkbox.checked));
-            });
-        });
-    }
-    function initializeData(){
-        const stored = safeGetItem("hidSCTAssessment");
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                assessmentData = {
-                    teamInfo: parsed.teamInfo || {},
-                    scores: parsed.scores || {},
-                    evidence: parsed.evidence || {},
-                    gaps: parsed.gaps || {},
-                    actions: parsed.actions || {},
-                    comments: parsed.comments || {},
-                    summary: parsed.summary || {},
-                    deploymentRequirements: parsed.deploymentRequirements || {}
-                };
-            } catch (error) {
-                console.warn('Failed to parse saved assessment data', error);
-                assessmentData = {teamInfo:{ sctName: DEFAULT_SCT_NAME || '', deploymentModalities: { ...DEFAULT_MODALITY_STATE } },scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
-            }
-        }
-
-        assessmentData.teamInfo = assessmentData.teamInfo || {};
-        if (assessmentData.teamInfo.sctName === undefined && DEFAULT_SCT_NAME) {
-            assessmentData.teamInfo.sctName = DEFAULT_SCT_NAME;
-        }
-        if (!assessmentData.teamInfo.deploymentModalities) {
-            assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
-        }
-
-        loadSavedData();
-        updateProgress();
-    }
-    function loadSavedData(){
-        assessmentData.teamInfo = assessmentData.teamInfo || {};
-        if (assessmentData.teamInfo.sctName === undefined && DEFAULT_SCT_NAME) {
-            assessmentData.teamInfo.sctName = DEFAULT_SCT_NAME;
-        }
-        const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
-
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            if (checkbox) {
-                const isChecked = !!modalityState[modality.key];
-                checkbox.checked = isChecked;
-                const pill = checkbox.closest('.modality-pill');
-                if (pill) {
-                    pill.classList.toggle('selected', isChecked);
-                }
-            }
-        });
-
-        toggleModalityDetails();
-
-        assessmentData.teamInfo.deploymentModalities = modalityState;
-        assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
-
-        Object.keys(assessmentData.teamInfo).forEach(field => {
-            if (field === 'deploymentModalities') return;
-            const input = document.getElementById(field);
-            if (input) {
-                input.value = assessmentData.teamInfo[field];
-            }
-        });
-
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
-                select.value = assessmentData.scores[key];
-            } else {
-                select.value = '0';
-            }
-            updateScoreBadge(select);
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            if (evidenceField) {
-                evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
-            }
-            if (gapsField) {
-                gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
-            }
-            if (actionField) {
-                actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
-            }
-        });
-
-        const deploymentData = assessmentData.deploymentRequirements || {};
-        document.querySelectorAll('.modality-requirement-block').forEach(block => {
-            const section = block.dataset.section;
-            const item = block.dataset.item;
-            const modality = block.dataset.modality;
-            const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
-            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
-                const field = textarea.dataset.field;
-                if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
-                    textarea.value = stored[field];
-                }
-            });
-        });
-
-        if (assessmentData.comments) {
-            Object.keys(assessmentData.comments).forEach(id => {
-                setFieldValue(id, assessmentData.comments[id]);
-            });
-        }
-
-        if (assessmentData.summary) {
-            Object.keys(assessmentData.summary).forEach(id => {
-                setFieldValue(id, assessmentData.summary[id]);
-            });
-        }
-        renderDeploymentSummary(modalityState);
-    }
-    function saveProgress(arg){
-        if (arg && typeof arg.preventDefault === 'function') {
-            arg.preventDefault();
-        }
-        let shouldNotify = true;
-        if (typeof arg === 'boolean') {
-            shouldNotify = arg;
-        } else if (arg && typeof arg === 'object' && !('type' in arg) && Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
-            shouldNotify = arg.showNotification !== false;
-        }
-        const modalityState = { ...DEFAULT_MODALITY_STATE };
-        MODALITY_METADATA.forEach(modality => {
-            const checkbox = document.getElementById('modality-' + modality.key);
-            if (checkbox) {
-                modalityState[modality.key] = checkbox.checked;
-                const pill = checkbox.closest('.modality-pill');
-                if (pill) {
-                    pill.classList.toggle('selected', checkbox.checked);
-                }
-            }
-        });
-
-        toggleModalityDetails();
-
-        assessmentData.teamInfo = {
-            sctName: getFieldValue('sctName'),
-            teamName: getFieldValue('teamName'),
-            region: getFieldValue('region'),
-            country: getFieldValue('country'),
-            mentorName: getFieldValue('mentorName'),
-            hqName: getFieldValue('hqName'),
-            hqEmail: getFieldValue('hqEmail'),
-            hqPhone: getFieldValue('hqPhone'),
-            hqPosition: getFieldValue('hqPosition'),
-            opsName: getFieldValue('opsName'),
-            opsEmail: getFieldValue('opsEmail'),
-            opsPhone: getFieldValue('opsPhone'),
-            opsPosition: getFieldValue('opsPosition'),
-            deploymentModalities: modalityState
-        };
-        renderDeploymentSummary(modalityState);
-
-        assessmentData.scores = {};
-        assessmentData.evidence = {};
-        assessmentData.gaps = {};
-        assessmentData.actions = {};
-        assessmentData.deploymentRequirements = {};
-
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (select.value) {
-                assessmentData.scores[key] = select.value;
-            }
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
-            if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
-            if (actionField) assessmentData.actions[key] = actionField.value || '';
-        });
-
-        document.querySelectorAll('.modality-requirement-block').forEach(block => {
-            const section = block.dataset.section;
-            const item = block.dataset.item;
-            const modality = block.dataset.modality;
-            if (!assessmentData.deploymentRequirements[section]) {
-                assessmentData.deploymentRequirements[section] = {};
-            }
-            if (!assessmentData.deploymentRequirements[section][item]) {
-                assessmentData.deploymentRequirements[section][item] = {};
-            }
-            const record = {};
-            block.querySelectorAll('textarea[data-field]').forEach(textarea => {
-                const field = textarea.dataset.field;
-                record[field] = textarea.value || '';
-            });
-            assessmentData.deploymentRequirements[section][item][modality] = record;
-        });
-
-        assessmentData.comments = {};
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const commentField = document.getElementById(section.section + 'Comments');
-            if (commentField) {
-                assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
-            }
-        });
-
-        assessmentData.summary = {
-            strengths: getFieldValue('strengths'),
-            criticalGaps: getFieldValue('criticalGaps'),
-            immediateActions: getFieldValue('immediateActions'),
-            shortTermActions: getFieldValue('shortTermActions'),
-            mediumTermActions: getFieldValue('mediumTermActions'),
-            technicalAssistance: getFieldValue('technicalAssistance'),
-            trainingRequirements: getFieldValue('trainingRequirements'),
-            resourceRequirements: getFieldValue('resourceRequirements'),
-            nextSteps: getFieldValue('nextSteps'),
-            completionDate: getFieldValue('completionDate'),
-            reviewedBy: getFieldValue('reviewedBy'),
-            mentorAssignment: getFieldValue('mentorAssignment')
-        };
-
-        safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
-        if (shouldNotify) {
-            showNotification('Progress saved successfully!');
-        }
-        updateProgress();
-        return assessmentData;
-    }
-    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
-    function escapeHtmlForPdf(text){
-        if (text === null || text === undefined) {
-            return '';
-        }
-        return text.toString().replace(/[&<>"']/g, function(match){
-            switch (match) {
-                case '&': return '&amp;';
-                case '<': return '&lt;';
-                case '>': return '&gt;';
-                case '"': return '&quot;';
-                case "'": return '&#39;';
-                default: return match;
-            }
-        });
-    }
-    function formatPdfValue(value, fallback = 'Not provided'){
-        const trimmed = (value || '').toString().trim();
-        if (!trimmed) {
-            return '<span class="pdf-empty">' + escapeHtmlForPdf(fallback) + '</span>';
-        }
-        return escapeHtmlForPdf(trimmed);
-    }
-    function formatPdfParagraph(value, fallback){
-        const trimmed = (value || '').toString().trim();
-        if (!trimmed) {
-            return fallback ? '<span class="pdf-empty">' + escapeHtmlForPdf(fallback) + '</span>' : '';
-        }
-        return escapeHtmlForPdf(trimmed).replace(/\\n/g, '<br>');
-    }
-    function calculateSectionSnapshots(){
-        const sectionScores = {};
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            sectionScores[section.section] = { name: section.name, weight: section.weight, total: 0, max: 0 };
-        });
-        Object.entries(assessmentData.scores || {}).forEach(([key, value]) => {
-            const [sectionKey] = key.split('-');
-            if (!sectionKey || !sectionScores[sectionKey]) {
-                return;
-            }
-            if (value === '' || value === 'NA') {
-                return;
-            }
-            const numeric = parseInt(value, 10);
-            if (!Number.isNaN(numeric)) {
-                sectionScores[sectionKey].total += numeric;
-                sectionScores[sectionKey].max += 3;
-            }
-        });
-        return SECTIONS_WITH_WEIGHT.map(section => {
-            const entry = sectionScores[section.section] || { total: 0, max: 0, weight: section.weight, name: section.name };
-            const percent = entry.max > 0 ? Math.round((entry.total / entry.max) * 100) : 0;
-            let status = 'Not Started';
-            let badgeClass = 'status-not-started';
-            if (percent >= 100) {
-                status = 'Completed';
-                badgeClass = 'status-completed';
-            } else if (percent > 0) {
-                status = 'In Progress';
-                badgeClass = 'status-in-progress';
-            }
-            return {
-                key: section.section,
-                name: section.name,
-                weight: section.weight,
-                percent,
-                status,
-                badgeClass,
-                hasProgress: entry.max > 0
-            };
-        });
-    }
-    function collectSectionDetails(){
-        const sectionDetails = {};
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const sectionKey = select.dataset.section;
-            const itemId = select.dataset.item;
-            if (!sectionKey || !itemId) return;
-            const descriptor = SCORE_DESCRIPTORS[select.value] || SCORE_DESCRIPTORS['0'];
-            const itemKey = sectionKey + '-' + itemId;
-            if (!sectionDetails[sectionKey]) {
-                sectionDetails[sectionKey] = [];
-            }
-            const titleElement = card.querySelector('.subsection-title');
-            const descriptionElement = card.querySelector('.card-description');
-            sectionDetails[sectionKey].push({
-                title: titleElement ? titleElement.textContent.trim() : '',
-                description: descriptionElement ? descriptionElement.innerText.trim() : '',
-                statusLabel: descriptor.label,
-                statusClass: descriptor.className,
-                evidence: (assessmentData.evidence && assessmentData.evidence[itemKey]) || '',
-                gaps: (assessmentData.gaps && assessmentData.gaps[itemKey]) || '',
-                actions: (assessmentData.actions && assessmentData.actions[itemKey]) || ''
-            });
-        });
-        return sectionDetails;
-    }
-    function updateScoreBadge(select){
-        const value = select.value;
-        select.className = 'form-select score-select compliance-score';
-        if (value !== '' && value !== 'NA') {
-            select.classList.add('score-' + value);
-        }
-    }
-    function updateProgress(){
-        const sectionScores = {};
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            sectionScores[section.section] = { score: 0, maxScore: 0, percent: 0 };
-        });
-
-        document.querySelectorAll('.score-select').forEach(select => {
-            const sectionKey = select.dataset.section;
-            if (!sectionKey || !sectionScores[sectionKey]) {
-                return;
-            }
-
-            if (select.value !== '' && select.value !== 'NA') {
-                const numeric = parseInt(select.value, 10);
-                if (!Number.isNaN(numeric)) {
-                    sectionScores[sectionKey].score += numeric;
-                    sectionScores[sectionKey].maxScore += 3;
-                }
-            }
-        });
-
-        let weightedTotal = 0;
-        let totalWeight = 0;
-        let sectionsWithRecordedScores = 0;
-
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const sectionData = sectionScores[section.section];
-            if (!sectionData) {
-                return;
-            }
-
-            if (sectionData.maxScore > 0) {
-                sectionData.percent = Math.round((sectionData.score / sectionData.maxScore) * 100);
-                sectionsWithRecordedScores += 1;
-            }
-
-            const banner = document.getElementById(section.section + 'Score');
-            if (banner) {
-                banner.textContent = sectionData.percent + '% Complete';
-            }
-
-            totalWeight += section.weight;
-            weightedTotal += (section.weight * sectionData.percent) / 100;
-        });
-
-        const overallPercent = totalWeight > 0 ? Math.round((weightedTotal / totalWeight) * 100) : 0;
-
-        const overallProgressBar = document.getElementById('overallProgressBar');
-        if (overallProgressBar) {
-            overallProgressBar.style.width = overallPercent + '%';
-        }
-        const overallProgressText = document.getElementById('overallProgressText');
-        if (overallProgressText) {
-            overallProgressText.textContent = overallPercent + '%';
-        }
-        const sidebarProgressBar = document.getElementById('sidebarProgressBar');
-        if (sidebarProgressBar) {
-            sidebarProgressBar.style.width = overallPercent + '%';
-        }
-        const sidebarProgressText = document.getElementById('sidebarProgressText');
-        if (sidebarProgressText) {
-            sidebarProgressText.textContent = overallPercent + '%';
-        }
-
-        const completedSectionsEl = document.getElementById('completedSections');
-        if (completedSectionsEl) {
-            completedSectionsEl.textContent = sectionsWithRecordedScores + '/' + SECTIONS_WITH_WEIGHT.length;
-        }
-        const overallScoreEl = document.getElementById('overallScore');
-        if (overallScoreEl) {
-            overallScoreEl.textContent = overallPercent + '%';
-        }
-        const lastUpdatedEl = document.getElementById('lastUpdated');
-        if (lastUpdatedEl) {
-            lastUpdatedEl.textContent = (new Date).toLocaleDateString();
-        }
-
-        const tableBody = document.getElementById('progressTableBody');
-        const sidebarBody = document.getElementById('progressSidebarBody');
-        if (tableBody) {
-            tableBody.innerHTML = '';
-        }
-        if (sidebarBody) {
-            sidebarBody.innerHTML = '';
-        }
-
-        let listedWeight = 0;
-        let listedWeightedPercent = 0;
-
-        SECTIONS_WITH_WEIGHT.forEach(section => {
-            const sectionData = sectionScores[section.section];
-            if (!sectionData) {
-                return;
-            }
-
-            const percent = sectionData.percent || 0;
-            const status = percent === 0 ? 'Not Started' : percent < 100 ? 'In Progress' : 'Completed';
-            const badgeClass = status === 'Completed' ? 'bg-success' : status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
-
-            listedWeight += section.weight;
-            listedWeightedPercent += (section.weight * percent) / 100;
-
-            if (tableBody) {
-                tableBody.insertAdjacentHTML(
-                    'beforeend',
-                    '<tr><td>' + section.name + '</td><td>' + section.weight + '%</td><td><span class="badge ' + badgeClass + '">' + status + '</span></td><td>' + percent + '%</td></tr>'
-                );
-            }
-
-            if (sidebarBody) {
-                const shortName = section.name.split(' ')[0];
-                sidebarBody.insertAdjacentHTML(
-                    'beforeend',
-                    '<tr><td>' + shortName + '</td><td><span class="badge ' + badgeClass + '">' + status + '</span></td><td>' + percent + '%</td></tr>'
-                );
-            }
-        });
-
-        if (tableBody) {
-            const totalPercent = listedWeight > 0 ? Math.round((listedWeightedPercent / listedWeight) * 100) : 0;
-            tableBody.insertAdjacentHTML(
-                'beforeend',
-                '<tr class="table-primary fw-bold"><td>TOTAL</td><td>' + listedWeight + '%</td><td></td><td>' + totalPercent + '%</td></tr>'
-            );
-        }
-    }
-
-async function generatePdfReport() {
-    const data = saveProgress(false);
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-        throw new Error('Missing PDF dependencies');
-    }
-
-    const snapshots = calculateSectionSnapshots();
-    const sectionDetails = collectSectionDetails();
-    const totalWeight = snapshots.reduce((sum, section) => sum + section.weight, 0);
-    const weightedProgress = snapshots.reduce((sum, section) => sum + (section.percent * section.weight / 100), 0);
-    const overallPercent = totalWeight > 0 ? Math.round((weightedProgress / totalWeight) * 100) : 0;
-    const sectionsWithProgress = snapshots.filter(section => section.hasProgress).length;
-    const generatedDate = new Date();
-    const formattedDate = generatedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    const teamInfo = data && data.teamInfo ? data.teamInfo : {};
-
-    const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 15;
-    const contentWidth = pageWidth - (margin * 2);
-    let yPos = margin;
-
-    const checkAddPage = (neededHeight, marginTop = 10) => {
-        if (yPos + neededHeight + marginTop > pageHeight - margin) {
-            pdf.addPage();
-            yPos = margin;
-            return true;
-        }
-        yPos += marginTop;
-        return false;
-    };
-
-    const addWrappedText = (text, x, y, maxWidth, lineHeight = 5, fontSize = 10) => {
-        const originalFontSize = pdf.getFontSize();
-        if (fontSize !== originalFontSize) {
-            pdf.setFontSize(fontSize);
-        }
-
-        const lines = pdf.splitTextToSize(text || '', maxWidth);
-        lines.forEach((line, index) => {
-            if (y + (index * lineHeight) > pageHeight - margin) {
-                pdf.addPage();
-                y = margin;
-            }
-            pdf.text(line, x, y + (index * lineHeight));
-        });
-
-        if (fontSize !== originalFontSize) {
-            pdf.setFontSize(originalFontSize);
-        }
-        return y + (lines.length * lineHeight);
-    };
-
-    const addSectionHeader = (text, y) => {
-        pdf.setFillColor(59, 130, 246);
-        pdf.rect(margin, y, contentWidth, 8, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(text, margin + 5, y + 5.5);
-        pdf.setTextColor(0, 0, 0);
-        return y + 12;
-    };
-
-    pdf.setFillColor(30, 64, 175);
-    pdf.rect(0, 0, pageWidth, 100, 'F');
-
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(24);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('HID SCT ASSESSMENT REPORT', pageWidth / 2, 45, { align: 'center' });
-
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('Specialized Care Team - Minimum Standards', pageWidth / 2, 60, { align: 'center' });
-
-    pdf.setFontSize(12);
-    pdf.text('Generated on ' + formattedDate, pageWidth / 2, 75, { align: 'center' });
-
-    if (teamInfo.teamName) {
-        pdf.setFontSize(14);
-        pdf.text(teamInfo.teamName, pageWidth / 2, 85, { align: 'center' });
-    }
-
-    yPos = 120;
-
-    checkAddPage(60);
-    yPos = addSectionHeader('EXECUTIVE SUMMARY', yPos);
-
-    const summaryCards = [
-        { label: 'Overall Progress', value: overallPercent + '%', color: [59, 130, 246] },
-        { label: 'Sections Completed', value: sectionsWithProgress + '/' + snapshots.length, color: [16, 185, 129] },
-        { label: 'Assessment Date', value: formattedDate, color: [139, 92, 246] }
-    ];
-
-    const cardWidth = (contentWidth - 20) / 3;
-    summaryCards.forEach((card, index) => {
-        const x = margin + (index * (cardWidth + 10));
-        pdf.setFillColor(card.color[0], card.color[1], card.color[2]);
-        pdf.roundedRect(x, yPos, cardWidth, 20, 2, 2, 'F');
-
-        pdf.setDrawColor(card.color[0], card.color[1], card.color[2]);
-        pdf.setLineWidth(0.5);
-        pdf.roundedRect(x, yPos, cardWidth, 20, 2, 2, 'S');
-
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(card.label.toUpperCase(), x + 5, yPos + 7);
-
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(card.value, x + 5, yPos + 15);
-    });
-
-    yPos += 30;
-
-    checkAddPage(40);
-    yPos = addSectionHeader('TEAM INFORMATION', yPos);
-
-    const teamFields = [
-        ['Team Name', teamInfo.teamName],
-        ['Region', teamInfo.region],
-        ['Country', teamInfo.country],
-        ['Mentor', teamInfo.mentorName]
-    ].filter(([_, value]) => value);
-
-    teamFields.forEach(([label, value]) => {
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(30, 41, 59);
-        pdf.text(label + ':', margin + 5, yPos);
-
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(value || 'Not provided', margin + 35, yPos);
-
-        yPos += 6;
-    });
-
-    yPos += 10;
-
-    const activeModalities = MODALITY_METADATA.filter(modality =>
-        teamInfo.deploymentModalities && teamInfo.deploymentModalities[modality.key]
-    );
-
-    if (activeModalities.length > 0) {
-        checkAddPage(20);
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(30, 41, 59);
-        pdf.text('Supported Deployment Modalities:', margin + 5, yPos);
-        yPos += 5;
-
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(55, 65, 81);
-        const modalitiesText = activeModalities.map(m => m.label).join(', ');
-        yPos = addWrappedText(modalitiesText, margin + 5, yPos, contentWidth - 10, 5, 10);
-        yPos += 10;
-    }
-
-    checkAddPage(30);
-    yPos = addSectionHeader('DETAILED PROGRESS BY SECTION', yPos);
-
-    pdf.setFillColor(241, 245, 249);
-    pdf.rect(margin, yPos, contentWidth, 8, 'F');
-
-    pdf.setTextColor(30, 41, 59);
-    pdf.setFontSize(9);
-    pdf.setFont('helvetica', 'bold');
-
-    const colWidths = [contentWidth * 0.5, contentWidth * 0.2, contentWidth * 0.15, contentWidth * 0.15];
-    const headers = ['Section', 'Weight', 'Status', 'Progress'];
-    let xOffset = margin;
-
-    headers.forEach((header, i) => {
-        pdf.text(header, xOffset + 3, yPos + 5);
-        xOffset += colWidths[i];
-    });
-
-    yPos += 8;
-
-    pdf.setFont('helvetica', 'normal');
-    snapshots.forEach((section, index) => {
-        checkAddPage(8, 0);
-
-        if (index % 2 === 0) {
-            pdf.setFillColor(248, 250, 252);
-            pdf.rect(margin, yPos, contentWidth, 8, 'F');
-        }
-
-        xOffset = margin;
-
-        const sectionName = section.name.length > 35 ? section.name.substring(0, 32) + '...' : section.name;
-        pdf.text(sectionName, xOffset + 3, yPos + 5);
-        xOffset += colWidths[0];
-
-        pdf.text(section.weight + '%', xOffset + 3, yPos + 5);
-        xOffset += colWidths[1];
-
-        const statusColors = {
-            'Completed': [34, 197, 94],
-            'In Progress': [59, 130, 246],
-            'Not Started': [148, 163, 184]
-        };
-
-        const statusColor = statusColors[section.status] || statusColors['Not Started'];
-        pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
-        pdf.roundedRect(xOffset + 1, yPos + 1, 22, 6, 1, 1, 'F');
-
-        pdf.setFontSize(7);
-        pdf.setTextColor(255, 255, 255);
-        pdf.text(section.status.toUpperCase(), xOffset + 3, yPos + 4.5);
-        pdf.setFontSize(9);
-        pdf.setTextColor(30, 41, 59);
-        xOffset += colWidths[2];
-
-        pdf.text(section.percent + '%', xOffset + 3, yPos + 5);
-
-        yPos += 8;
-    });
-
-    checkAddPage(10, 2);
-    pdf.setFillColor(239, 246, 255);
-    pdf.rect(margin, yPos, contentWidth, 8, 'F');
-    pdf.setFont('helvetica', 'bold');
-
-    xOffset = margin;
-    pdf.text('TOTAL', xOffset + 3, yPos + 5);
-    xOffset += colWidths[0];
-    pdf.text(totalWeight + '%', xOffset + 3, yPos + 5);
-    xOffset += colWidths[1] + colWidths[2];
-    pdf.text(overallPercent + '%', xOffset + 3, yPos + 5);
-
-    yPos += 15;
-
-    pdf.addPage();
-    yPos = margin;
-
-    yPos = addSectionHeader('DETAILED ASSESSMENT RESULTS', yPos);
-    yPos += 5;
-
-    snapshots.forEach(section => {
-        const cards = sectionDetails[section.key] || [];
-        if (!cards.length) {
-            return;
-        }
-
-        checkAddPage(25, 5);
-
-        pdf.setFillColor(248, 250, 252);
-        pdf.rect(margin, yPos, contentWidth, 10, 'F');
-        pdf.setTextColor(30, 41, 59);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(section.name.toUpperCase(), margin + 5, yPos + 7);
-
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(`Progress: ${section.percent}%`, pageWidth - margin - 30, yPos + 7, { align: 'right' });
-
-        yPos += 15;
-
-        cards.forEach((card, cardIndex) => {
-            const cardHeightEstimate = 80;
-            checkAddPage(cardHeightEstimate, 5);
-
-            const cardStartY = yPos;
-
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(30, 41, 59);
-            yPos = addWrappedText(`${cardIndex + 1}. ${card.title || 'Untitled Standard'}`, margin + 5, yPos, contentWidth - 40, 5, 11);
-
-            const statusColors = {
-                'Completed': [34, 197, 94],
-                'In Progress': [59, 130, 246],
-                'Initial': [245, 158, 11],
-                'Not Started': [148, 163, 184],
-                'Not Applicable': [107, 114, 128]
-            };
-
-            const statusColor = statusColors[card.statusLabel] || statusColors['Not Started'];
-            pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
-            pdf.roundedRect(pageWidth - margin - 25, cardStartY, 20, 6, 1, 1, 'F');
-
-            pdf.setFontSize(6);
-            pdf.setTextColor(255, 255, 255);
-            const statusText = (card.statusLabel || 'Not Started').toUpperCase();
-            pdf.text(statusText.length > 10 ? statusText.slice(0, 9) + '..' : statusText, pageWidth - margin - 23, cardStartY + 3.5);
-
-            pdf.setFontSize(10);
-            pdf.setTextColor(30, 41, 59);
-            yPos += 3;
-
-            if (card.description) {
-                pdf.setFont('helvetica', 'normal');
-                yPos = addWrappedText(card.description, margin + 5, yPos, contentWidth - 10, 4.5, 9);
-                yPos += 5;
-            }
-
-            const fieldConfigs = [
-                { label: 'EVIDENCE', content: card.evidence, color: [59, 130, 246] },
-                { label: 'GAPS IDENTIFIED', content: card.gaps, color: [245, 158, 11] },
-                { label: 'ACTION PLAN', content: card.actions, color: [16, 185, 129] }
-            ];
-
-            const fieldWidth = (contentWidth - 20) / 3;
-            let maxFieldHeight = 0;
-
-            fieldConfigs.forEach((field, fieldIndex) => {
-                const fieldX = margin + (fieldIndex * (fieldWidth + 10));
-
-                pdf.setFontSize(8);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setTextColor(field.color[0], field.color[1], field.color[2]);
-                pdf.text(field.label, fieldX, yPos);
-
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(7);
-                pdf.setTextColor(71, 85, 105);
-                const content = field.content && field.content.trim() ? field.content : 'No information provided';
-                const resultingY = addWrappedText(content, fieldX, yPos + 3, fieldWidth - 5, 3.5, 7);
-                const fieldHeight = resultingY - yPos;
-                if (fieldHeight > maxFieldHeight) {
-                    maxFieldHeight = fieldHeight;
-                }
-            });
-
-            yPos += maxFieldHeight + 25;
-
-            pdf.setDrawColor(226, 232, 240);
-            pdf.setLineWidth(0.3);
-            pdf.rect(margin, cardStartY, contentWidth, yPos - cardStartY, 'S');
-
-            yPos += 10;
-        });
-
-        yPos += 10;
-    });
-
-    if (data.comments && Object.keys(data.comments).length > 0) {
-        pdf.addPage();
-        yPos = margin;
-
-        yPos = addSectionHeader('MENTOR COMMENTS & OBSERVATIONS', yPos);
-        yPos += 5;
-
-        Object.entries(data.comments).forEach(([sectionKey, comment]) => {
-            if (!comment || comment.trim() === '') {
-                return;
-            }
-
-            checkAddPage(30, 5);
-
-            const sectionName = sectionKey.replace('Comments', '').replace(/([A-Z])/g, ' $1').trim();
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(30, 41, 59);
-            pdf.text(sectionName + ':', margin + 5, yPos);
-
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(9);
-            pdf.setTextColor(55, 65, 81);
-            yPos = addWrappedText(comment.trim(), margin + 5, yPos + 4, contentWidth - 10, 4.5, 9);
-            yPos += 10;
-        });
-    }
-
-    if (data.summary && Object.values(data.summary).some(val => val && val.trim() !== '')) {
-        pdf.addPage();
-        yPos = margin;
-
-        yPos = addSectionHeader('SUMMARY & ACTION PLAN', yPos);
-        yPos += 5;
-
-        const summaryFields = [
-            { label: 'Strengths Identified', key: 'strengths' },
-            { label: 'Critical Gaps', key: 'criticalGaps' },
-            { label: 'Immediate Actions (0-1 month)', key: 'immediateActions' },
-            { label: 'Short-term Actions (1-3 months)', key: 'shortTermActions' },
-            { label: 'Medium-term Actions (3-6 months)', key: 'mediumTermActions' },
-            { label: 'Technical Assistance Needed', key: 'technicalAssistance' },
-            { label: 'Training Requirements', key: 'trainingRequirements' },
-            { label: 'Resource Requirements', key: 'resourceRequirements' },
-            { label: 'Next Steps', key: 'nextSteps' }
-        ];
-
-        summaryFields.forEach(field => {
-            const content = data.summary[field.key];
-            if (!content || content.trim() === '') {
-                return;
-            }
-
-            checkAddPage(25, 5);
-
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(30, 41, 59);
-            pdf.text(field.label + ':', margin + 5, yPos);
-
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(9);
-            pdf.setTextColor(55, 65, 81);
-            yPos = addWrappedText(content.trim(), margin + 5, yPos + 4, contentWidth - 10, 4.5, 9);
-            yPos += 10;
-        });
-
-        if (data.summary.completionDate || data.summary.reviewedBy) {
-            checkAddPage(20, 5);
-            yPos += 10;
-
-            pdf.setDrawColor(226, 232, 240);
-            pdf.setLineWidth(0.5);
-            pdf.line(margin, yPos, pageWidth - margin, yPos);
-            yPos += 10;
-
-            if (data.summary.completionDate) {
-                pdf.setFontSize(9);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setTextColor(30, 41, 59);
-                pdf.text('Completion Date:', margin + 5, yPos);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text(data.summary.completionDate, margin + 40, yPos);
-                yPos += 6;
-            }
-
-            if (data.summary.reviewedBy) {
-                pdf.setFontSize(9);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setTextColor(30, 41, 59);
-                pdf.text('Reviewed By:', margin + 5, yPos);
-                pdf.setFont('helvetica', 'normal');
-                pdf.text(data.summary.reviewedBy, margin + 35, yPos);
-            }
-        }
-    }
-
-    const totalPages = pdf.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 116, 139);
-        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
-        pdf.text('HID SCT Assessment Tool', margin, pageHeight - 10);
-    }
-
-    const dateSuffix = generatedDate.toISOString().split('T')[0];
-    pdf.save('HID_SCT_Assessment_Report_' + dateSuffix + '.pdf');
-    showNotification('Professional PDF report generated successfully!');
- }
-    function exportToExcel(){
-        saveProgress();
-        const workbook = XLSX.utils.book_new();
-        const teamInfo = [
-            ['Team Information', ''],
-            ['Team Name', assessmentData.teamInfo.teamName || ''],
-            ['Region', assessmentData.teamInfo.region || ''],
-            ['Country', assessmentData.teamInfo.country || ''],
-            ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
-            [''],
-            ['Headquarters Contact', ''],
-            ['Name', assessmentData.teamInfo.hqName || ''],
-            ['Email', assessmentData.teamInfo.hqEmail || ''],
-            ['Phone', assessmentData.teamInfo.hqPhone || ''],
-            ['Position', assessmentData.teamInfo.hqPosition || ''],
-            [''],
-            ['Operations Contact', ''],
-            ['Name', assessmentData.teamInfo.opsName || ''],
-            ['Email', assessmentData.teamInfo.opsEmail || ''],
-            ['Phone', assessmentData.teamInfo.opsPhone || ''],
-            ['Position', assessmentData.teamInfo.opsPosition || '']
-        ];
-        teamInfo.push(['']);
-        teamInfo.push(['Supported Deployment Modalities', '']);
-        MODALITY_METADATA.forEach(modality => {
-            const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
-            teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
-        });
-        const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
-        XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
-
-        const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
-        document.querySelectorAll('.compliance-card').forEach(card => {
-            const select = card.querySelector('.score-select');
-            if (!select) return;
-            const sectionKey = select.dataset.section;
-            const itemId = select.dataset.item;
-            const itemKey = sectionKey + '-' + itemId;
-            const titleElement = card.querySelector('.subsection-title');
-            const descElement = card.querySelector('.card-description');
-            const title = titleElement ? titleElement.textContent.trim() : '';
-            const description = descElement ? descElement.textContent.trim() : '';
-            const statement = description ? title + ' — ' + description : title;
-            const evidenceField = card.querySelector('.evidence-input');
-            const gapsField = card.querySelector('.gaps-input');
-            const actionField = card.querySelector('.action-input');
-            const evidence = evidenceField ? evidenceField.value : '';
-            const gaps = gapsField ? gapsField.value : '';
-            const actions = actionField ? actionField.value : '';
-            let deploymentRequirementsText = '';
-            let deploymentMitigationsText = '';
-            const deploymentRecord = assessmentData.deploymentRequirements &&
-                assessmentData.deploymentRequirements[sectionKey] &&
-                assessmentData.deploymentRequirements[sectionKey][itemId];
-            if (deploymentRecord) {
-                const requirementParts = [];
-                const mitigationParts = [];
-                Object.keys(deploymentRecord).forEach(modalityKey => {
-                    const entry = deploymentRecord[modalityKey] || {};
-                    const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
-                    const label = meta ? meta.label : modalityKey;
-                    if (entry.requirements && entry.requirements.trim() !== '') {
-                        requirementParts.push(label + ': ' + entry.requirements.trim());
-                    }
-                    if (entry.mitigation && entry.mitigation.trim() !== '') {
-                        mitigationParts.push(label + ': ' + entry.mitigation.trim());
-                    }
-                });
-                deploymentRequirementsText = requirementParts.join('\\n\\n');
-                deploymentMitigationsText = mitigationParts.join('\\n\\n');
-            }
-            assessmentRows.push([
-                itemKey,
-                sectionKey,
-                statement,
-                select.value || '',
-                evidence,
-                gaps,
-                actions,
-                (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
-                deploymentRequirementsText,
-                deploymentMitigationsText
-            ]);
-        });
-
-        const assessmentSheet = XLSX.utils.aoa_to_sheet(assessmentRows);
-        XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
-        const dateSuffix = (new Date).toISOString().split('T')[0];
-        XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
-        showNotification('Data exported to Excel successfully!');
-    }
-    function importFromExcel(event){
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(loadEvent){
-            try {
-                const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
-                assessmentData = {
-                    teamInfo: { sctName: DEFAULT_SCT_NAME || '', deploymentModalities: { ...DEFAULT_MODALITY_STATE } },
-                    scores: {},
-                    evidence: {},
-                    gaps: {},
-                    actions: {},
-                    comments: {},
-                    summary: {},
-                    deploymentRequirements: {}
-                };
-
-                const sheet = workbook.Sheets["HID SCT Assessment"];
-                if (sheet) {
-                    const rows = XLSX.utils.sheet_to_json(sheet);
-                    for (const row of rows) {
-                        const id = row["Standard ID"];
-                        if (!id) continue;
-                        assessmentData.scores[id] = row.Score;
-                        assessmentData.evidence[id] = row.Evidence;
-                        assessmentData.gaps[id] = row.Gaps;
-                        assessmentData.actions[id] = row.Actions;
-                    }
-                }
-
-                safeSetItem("hidSCTAssessment", JSON.stringify(assessmentData));
-                loadSavedData();
-                updateProgress();
-                showNotification("Data imported successfully!");
-            } catch (error) {
-                console.warn('Error importing file', error);
-                showNotification("Error importing file.");
-            }
-        };
-        reader.readAsBinaryString(file);
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-        initializeData();
-
-        ['sctName', 'teamName'].forEach(fieldId => {
-            const input = document.getElementById(fieldId);
-            if (input) {
-                input.addEventListener('input', () => {
-                    const currentState = { ...DEFAULT_MODALITY_STATE };
-                    MODALITY_METADATA.forEach(modality => {
-                        const checkbox = document.getElementById('modality-' + modality.key);
-                        if (checkbox) {
-                            currentState[modality.key] = checkbox.checked;
-                        }
-                    });
-                    renderDeploymentSummary(currentState);
-                });
-            }
-        });
-
-        document.querySelectorAll("input, textarea, select").forEach(element => {
-            element.addEventListener("change", saveProgress);
-        });
-
-        document.querySelectorAll('.score-select').forEach(select => {
-            updateScoreBadge(select);
-            select.addEventListener('change', function () {
-                updateScoreBadge(select);
-            });
-        });
-
-        document.getElementById("btn-save").addEventListener("click", saveProgress);
-        document.getElementById("btn-export-json").addEventListener("click", () => {
-            saveProgress();
-            const json = JSON.stringify(assessmentData, null, 2);
-            const blob = new Blob([json], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "HID_SCT_Assessment_" + (new Date).toISOString().split("T")[0] + ".json";
-            link.click();
-            URL.revokeObjectURL(url);
-        });
-
-        document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
-        document.getElementById("btn-submit").addEventListener("click", () => {
-            saveProgress();
-            showNotification("Assessment submitted successfully!");
-        });
-
-        const pdfButton = document.getElementById("btn-generate-pdf");
-        if (pdfButton) {
-            const originalHtml = pdfButton.innerHTML;
-            pdfButton.addEventListener("click", async () => {
-                if (pdfButton.disabled) {
-                    return;
-                }
-                pdfButton.disabled = true;
-                pdfButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating PDF...';
-                try {
-                    await generatePdfReport();
-                } catch (error) {
-                    console.warn('Failed to generate PDF report', error);
-                    showNotification('Unable to generate PDF report. Please try again.');
-                } finally {
-                    pdfButton.disabled = false;
-                    pdfButton.innerHTML = originalHtml;
-                }
-            });
-        }
-
-        document.getElementById("btn-import-excel").addEventListener("click", () => {
-            document.getElementById("fileInput").click();
-        });
-
-        document.getElementById("fileInput").addEventListener("change", importFromExcel);
-
-        const navLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
-        navLinks.forEach(link => {
-            link.addEventListener("click", function (event) {
-                event.preventDefault();
-                navLinks.forEach(item => item.classList.remove("active"));
-                link.classList.add("active");
-                const target = link.getAttribute("href");
-                document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
-                document.querySelector(target).classList.add("show", "active");
-            });
-        });
-    });
-    <\/script>
+    <script>${escapedScript}<\/script>
 </body>
 </html>
 `;
@@ -4037,9 +2420,877 @@ async function generatePdfReport() {
     document.addEventListener('DOMContentLoaded', renderMakerUI);
     </script>
     
+    <script type="text/template" id="generated-tool-script-template">
+            const SECTIONS_WITH_WEIGHT = __SECTIONS_WITH_WEIGHT__;
+            const MODALITY_METADATA = __MODALITY_METADATA__;
+            const DEFAULT_MODALITY_STATE = __DEFAULT_MODALITY_STATE__;
+            let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+            const memoryStorage={};
+            let storageSupported=true;
+
+            function safeGetStoredItem(key){
+                if (storageSupported){
+                    try {
+                        return window.localStorage.getItem(key);
+                    } catch(error){
+                        console.warn('localStorage unavailable, switching to in-memory store', error);
+                        storageSupported=false;
+                    }
+                }
+                return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
+            }
+
+            function safeSetStoredItem(key, value){
+                if (storageSupported){
+                    try {
+                        window.localStorage.setItem(key, value);
+                        return;
+                    } catch(error){
+                        console.warn('localStorage unavailable, persisting in memory', error);
+                        storageSupported=false;
+                    }
+                }
+                memoryStorage[key] = value;
+            }
+            function getFieldValue(id){
+                const element = document.getElementById(id);
+                return element ? element.value : '';
+            }
+            function setFieldValue(id, value){
+                const element = document.getElementById(id);
+                if (element){
+                    element.value = value;
+                }
+            }
+
+            function normalizeImportedScore(value){
+                if (value === null || value === undefined){
+                    return null;
+                }
+                if (typeof value === 'number' && Number.isFinite(value)){
+                    if (value >= 0 && value <= 3){
+                        return String(Math.round(value));
+                    }
+                    return null;
+                }
+                const text = String(value).trim();
+                if (!text){
+                    return null;
+                }
+                const upper = text.toUpperCase();
+                if (upper === 'NA' || upper === 'N/A'){
+                    return 'NA';
+                }
+                const lower = text.toLowerCase();
+                if (lower.includes('not') && lower.includes('start')){
+                    return '0';
+                }
+                if (lower.includes('initial')){
+                    return '1';
+                }
+                if (lower.includes('progress')){
+                    return '2';
+                }
+                if (lower.includes('complete')){
+                    return '3';
+                }
+                const numeric = parseFloat(text);
+                if (!Number.isNaN(numeric) && numeric >= 0 && numeric <= 3){
+                    return String(Math.round(numeric));
+                }
+                const digitMatch = text.match(/([0-3])/);
+                if (digitMatch){
+                    return digitMatch[1];
+                }
+                return null;
+            }
+
+            function isCardActive(card){
+                if (!card){
+                    return false;
+                }
+                if (card.hidden || card.classList.contains('d-none')){
+                    return false;
+                }
+                if (card.style && card.style.display === 'none'){
+                    return false;
+                }
+                if (card.hasAttribute('data-hidden') || card.closest('[data-hidden="true"]')){
+                    return false;
+                }
+                if (card.closest('.d-none')){
+                    return false;
+                }
+                if (card.closest('[hidden]')){
+                    return false;
+                }
+                return true;
+            }
+
+            function setCircleProgress(circle, percent){
+                if (!circle){
+                    return;
+                }
+                const safePercent = isFinite(percent) ? percent : 0;
+                const clamped = Math.max(0, Math.min(100, Math.round(safePercent)));
+                const angle = clamped * 3.6;
+                circle.style.background = `conic-gradient(#4f46e5 ${angle}deg, #e2e8f0 ${angle}deg 360deg)`;
+                const label = circle.querySelector('span');
+                if (label){
+                    label.textContent = `${clamped}%`;
+                }
+            }
+
+            function buildSectionProgressHTML(summaries){
+                if (!Array.isArray(summaries) || summaries.length === 0){
+                    return '<p class="text-muted mb-0">Progress data will appear here as scores are recorded.</p>';
+                }
+                return summaries.map(summary => {
+                    const percent = Math.max(0, Math.min(100, Math.round(summary.percent || 0)));
+                    const pending = Math.max(0, summary.pending || 0);
+                    const buttonState = pending === 0 ? 'disabled' : '';
+                    return `
+                        <div class="section-progress-item">
+                            <div class="section-progress-header">
+                                <span>${summary.name}</span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div class="section-progress-bar">
+                                <div class="bar-fill" style="width:${percent}%"></div>
+                            </div>
+                            <div class="section-progress-meta">
+                                <span><span class="badge bg-success me-1">${summary.completed || 0}</span>Completed</span>
+                                <span><span class="badge bg-secondary me-1">${pending}</span>Pending</span>
+                            </div>
+                            <p class="text-muted small mb-2">Active standards: ${summary.applicable || 0}</p>
+                            <button type="button" class="btn btn-link btn-sm section-focus-button p-0" data-target-section="${summary.key}" ${buttonState}>View pending</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function focusSection(sectionKey){
+                if (!sectionKey){
+                    return;
+                }
+                const navLink = document.querySelector('.sidebar .nav-link[href="#' + sectionKey + '"]');
+                if (navLink){
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Tab){
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(navLink);
+                        tabInstance.show();
+                    } else {
+                        navLink.click();
+                    }
+                }
+                setTimeout(() => {
+                    const tabPane = document.getElementById(sectionKey);
+                    if (!tabPane){
+                        return;
+                    }
+                    const pendingSelect = tabPane.querySelector('.compliance-card:not(.d-none) .score-select:not([value="3"])');
+                    const targetCard = pendingSelect ? pendingSelect.closest('.compliance-card') : tabPane.querySelector('.compliance-card:not(.d-none)');
+                    if (targetCard){
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const select = targetCard.querySelector('.score-select');
+                        if (select){
+                            select.focus();
+                        }
+                    }
+                }, 200);
+            }
+
+            function bindSectionFocusButtons(){
+                document.querySelectorAll('.section-focus-button').forEach(button => {
+                    button.onclick = event => {
+                        event.preventDefault();
+                        focusSection(button.dataset.targetSection);
+                    };
+                });
+            }
+
+            function getSelectedModalitiesLabels(){
+                return MODALITY_METADATA
+                    .filter(modality => {
+                        const checkbox = document.getElementById('modality-' + modality.key);
+                        return checkbox && checkbox.checked;
+                    })
+                    .map(modality => modality.label);
+            }
+            function toggleModalityDetails(){
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    const card = document.querySelector('.modality-detail-card[data-modality="' + modality.key + '"]');
+                    if (card) {
+                        card.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    }
+                    document.querySelectorAll('.modality-requirement-block[data-modality="' + modality.key + '"]').forEach(block => {
+                        block.classList.toggle('d-none', !(checkbox && checkbox.checked));
+                    });
+                });
+            }
+            function initializeData(){
+                const stored = safeGetStoredItem("hidSCTAssessment");
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        assessmentData = {
+                            teamInfo: parsed.teamInfo || {},
+                            scores: parsed.scores || {},
+                            evidence: parsed.evidence || {},
+                            gaps: parsed.gaps || {},
+                            actions: parsed.actions || {},
+                            comments: parsed.comments || {},
+                            summary: parsed.summary || {},
+                            deploymentRequirements: parsed.deploymentRequirements || {}
+                        };
+                    } catch (error) {
+                        console.warn('Failed to parse saved assessment data', error);
+                        assessmentData = {teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+                    }
+                }
+
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                if (!assessmentData.teamInfo.deploymentModalities) {
+                    assessmentData.teamInfo.deploymentModalities = { ...DEFAULT_MODALITY_STATE };
+                }
+
+                loadSavedData();
+                updateProgress();
+            }
+            function loadSavedData(){
+                assessmentData.teamInfo = assessmentData.teamInfo || {};
+                const modalityState = { ...DEFAULT_MODALITY_STATE, ...(assessmentData.teamInfo.deploymentModalities || {}) };
+
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        const isChecked = !!modalityState[modality.key];
+                        checkbox.checked = isChecked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', isChecked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo.deploymentModalities = modalityState;
+                assessmentData.deploymentRequirements = assessmentData.deploymentRequirements || {};
+
+                Object.keys(assessmentData.teamInfo).forEach(field => {
+                    if (field === 'deploymentModalities') return;
+                    const input = document.getElementById(field);
+                    if (input) {
+                        input.value = assessmentData.teamInfo[field];
+                    }
+                });
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
+                        select.value = assessmentData.scores[key];
+                    } else {
+                        select.value = '0';
+                    }
+                    updateScoreBadge(select);
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) {
+                        evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
+                    }
+                    if (gapsField) {
+                        gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
+                    }
+                    if (actionField) {
+                        actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
+                    }
+                });
+
+                const deploymentData = assessmentData.deploymentRequirements || {};
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
+                            textarea.value = stored[field];
+                        }
+                    });
+                });
+
+                if (assessmentData.comments) {
+                    Object.keys(assessmentData.comments).forEach(id => {
+                        setFieldValue(id, assessmentData.comments[id]);
+                    });
+                }
+
+                if (assessmentData.summary) {
+                    Object.keys(assessmentData.summary).forEach(id => {
+                        setFieldValue(id, assessmentData.summary[id]);
+                    });
+                }
+            }
+            function saveProgress(){
+                const modalityState = { ...DEFAULT_MODALITY_STATE };
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        modalityState[modality.key] = checkbox.checked;
+                        const pill = checkbox.closest('.modality-pill');
+                        if (pill) {
+                            pill.classList.toggle('selected', checkbox.checked);
+                        }
+                    }
+                });
+
+                toggleModalityDetails();
+
+                assessmentData.teamInfo = {
+                    teamName: getFieldValue('teamName'),
+                    region: getFieldValue('region'),
+                    country: getFieldValue('country'),
+                    mentorName: getFieldValue('mentorName'),
+                    hqName: getFieldValue('hqName'),
+                    hqEmail: getFieldValue('hqEmail'),
+                    hqPhone: getFieldValue('hqPhone'),
+                    hqPosition: getFieldValue('hqPosition'),
+                    opsName: getFieldValue('opsName'),
+                    opsEmail: getFieldValue('opsEmail'),
+                    opsPhone: getFieldValue('opsPhone'),
+                    opsPosition: getFieldValue('opsPosition'),
+                    deploymentModalities: modalityState
+                };
+
+                assessmentData.scores = {};
+                assessmentData.evidence = {};
+                assessmentData.gaps = {};
+                assessmentData.actions = {};
+                assessmentData.deploymentRequirements = {};
+
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const key = select.dataset.section + '-' + select.dataset.item;
+                    if (select.value) {
+                        assessmentData.scores[key] = select.value;
+                    }
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
+                    if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
+                    if (actionField) assessmentData.actions[key] = actionField.value || '';
+                });
+
+                document.querySelectorAll('.modality-requirement-block').forEach(block => {
+                    const section = block.dataset.section;
+                    const item = block.dataset.item;
+                    const modality = block.dataset.modality;
+                    if (!assessmentData.deploymentRequirements[section]) {
+                        assessmentData.deploymentRequirements[section] = {};
+                    }
+                    if (!assessmentData.deploymentRequirements[section][item]) {
+                        assessmentData.deploymentRequirements[section][item] = {};
+                    }
+                    const record = {};
+                    block.querySelectorAll('textarea[data-field]').forEach(textarea => {
+                        const field = textarea.dataset.field;
+                        record[field] = textarea.value || '';
+                    });
+                    assessmentData.deploymentRequirements[section][item][modality] = record;
+                });
+
+                assessmentData.comments = {};
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const commentField = document.getElementById(section.section + 'Comments');
+                    if (commentField) {
+                        assessmentData.comments[section.section + 'Comments'] = commentField.value || '';
+                    }
+                });
+
+                assessmentData.summary = {
+                    strengths: getFieldValue('strengths'),
+                    criticalGaps: getFieldValue('criticalGaps'),
+                    immediateActions: getFieldValue('immediateActions'),
+                    shortTermActions: getFieldValue('shortTermActions'),
+                    mediumTermActions: getFieldValue('mediumTermActions'),
+                    technicalAssistance: getFieldValue('technicalAssistance'),
+                    trainingRequirements: getFieldValue('trainingRequirements'),
+                    resourceRequirements: getFieldValue('resourceRequirements'),
+                    nextSteps: getFieldValue('nextSteps'),
+                    completionDate: getFieldValue('completionDate'),
+                    reviewedBy: getFieldValue('reviewedBy'),
+                    mentorAssignment: getFieldValue('mentorAssignment')
+                };
+
+                safeSetStoredItem('hidSCTAssessment', JSON.stringify(assessmentData));
+                showNotification('Progress saved successfully!');
+                updateProgress();
+            }
+            function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+            function updateScoreBadge(select){
+                const value = select.value;
+                select.className = 'form-select score-select compliance-score';
+                if (value !== '' && value !== 'NA') {
+                    select.classList.add('score-' + value);
+                }
+            }
+            function updateProgress(){
+                const sectionSummaries = [];
+                let totalWeight = 0;
+                let weightedScore = 0;
+                let completedSectionCount = 0;
+
+                SECTIONS_WITH_WEIGHT.forEach(section => {
+                    const sectionKey = section.section;
+                    const weight = Number(section.weight) || 0;
+                    const cards = Array.from(document.querySelectorAll('.compliance-card[data-section="' + sectionKey + '"]'));
+                    const activeCards = cards.filter(isCardActive);
+                    const consideredCards = activeCards.filter(card => {
+                        const select = card.querySelector('.score-select');
+                        return !(select && select.value === 'NA');
+                    });
+                    const divisor = consideredCards.length;
+                    const weightShare = divisor > 0 ? weight / divisor : 0;
+                    let sectionScore = 0;
+                    let completedCount = 0;
+
+                    consideredCards.forEach(card => {
+                        const select = card.querySelector('.score-select');
+                        let rawValue = 0;
+                        if (select){
+                            const value = select.value;
+                            if (value && value !== 'NA'){
+                                const parsed = parseInt(value, 10);
+                                rawValue = Number.isNaN(parsed) ? 0 : parsed;
+                            }
+                        }
+                        if (rawValue === 3){
+                            completedCount += 1;
+                        }
+                        const compliance = rawValue > 0 ? Math.min(Math.max(rawValue, 0), 3) / 3 : 0;
+                        sectionScore += weightShare * compliance;
+                    });
+
+                    const pendingCount = divisor > 0 ? Math.max(divisor - completedCount, 0) : 0;
+                    if (divisor > 0 && pendingCount === 0 && completedCount > 0){
+                        completedSectionCount += 1;
+                    }
+
+                    const normalizedPercent = weight > 0 ? Math.max(0, Math.min(100, (sectionScore / weight) * 100)) : 0;
+                    totalWeight += weight;
+                    weightedScore += sectionScore;
+
+                    const pill = document.getElementById(sectionKey + 'Score');
+                    if (pill){
+                        pill.textContent = `${Math.round(normalizedPercent)}% Complete`;
+                    }
+
+                    sectionSummaries.push({
+                        key: sectionKey,
+                        name: section.name,
+                        weight,
+                        percent: normalizedPercent,
+                        completed: completedCount,
+                        pending: pendingCount,
+                        applicable: divisor,
+                        hidden: cards.length - activeCards.length
+                    });
+                });
+
+                const overallPercent = totalWeight > 0 ? Math.max(0, Math.min(100, (weightedScore / totalWeight) * 100)) : 0;
+                const roundedOverall = Math.round(overallPercent);
+
+                const overallProgressBar = document.getElementById('overallProgressBar');
+                if (overallProgressBar){
+                    overallProgressBar.style.width = `${roundedOverall}%`;
+                }
+                const overallProgressText = document.getElementById('overallProgressText');
+                if (overallProgressText){
+                    overallProgressText.textContent = `${roundedOverall}%`;
+                }
+
+                setCircleProgress(document.getElementById('globalProgressCircle'), overallPercent);
+                setCircleProgress(document.getElementById('orgProgressCircle'), overallPercent);
+
+                const sectionList = document.getElementById('sectionProgressList');
+                if (sectionList){
+                    sectionList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+                const orgList = document.getElementById('orgProgressList');
+                if (orgList){
+                    orgList.innerHTML = buildSectionProgressHTML(sectionSummaries);
+                }
+
+                bindSectionFocusButtons();
+
+                const selectedModalities = getSelectedModalitiesLabels();
+                const noteCard = document.getElementById('deploymentNoteCard');
+                const noteText = document.getElementById('deploymentNoteText');
+                if (noteCard && noteText){
+                    const hiddenSections = sectionSummaries.filter(summary => summary.hidden > 0);
+                    if ((selectedModalities.length > 0 && selectedModalities.length < MODALITY_METADATA.length) || hiddenSections.length > 0){
+                        noteCard.classList.remove('d-none');
+                        const selectionText = selectedModalities.length > 0
+                            ? `Active profiles: ${selectedModalities.join(', ')}.`
+                            : 'No deployment profile currently selected.';
+                        const hiddenText = hiddenSections.length > 0
+                            ? ` Hidden standards in: ${hiddenSections.map(item => item.name).join(', ')}.`
+                            : '';
+                        noteText.textContent = selectionText + hiddenText;
+                    } else {
+                        noteCard.classList.add('d-none');
+                        noteText.textContent = '';
+                    }
+                }
+
+                const completedSectionsElement = document.getElementById('completedSections');
+                if (completedSectionsElement){
+                    completedSectionsElement.textContent = `${completedSectionCount}/${SECTIONS_WITH_WEIGHT.length}`;
+                }
+                const overallScoreElement = document.getElementById('overallScore');
+                if (overallScoreElement){
+                    overallScoreElement.textContent = `${roundedOverall}%`;
+                }
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement){
+                    lastUpdatedElement.textContent = (new Date()).toLocaleDateString();
+                }
+            }
+            function exportToExcel(){
+                saveProgress();
+                const workbook = XLSX.utils.book_new();
+                const teamInfo = [
+                    ['Team Information', ''],
+                    ['Team Name', assessmentData.teamInfo.teamName || ''],
+                    ['Region', assessmentData.teamInfo.region || ''],
+                    ['Country', assessmentData.teamInfo.country || ''],
+                    ['Mentor Name', assessmentData.teamInfo.mentorName || ''],
+                    [''],
+                    ['Headquarters Contact', ''],
+                    ['Name', assessmentData.teamInfo.hqName || ''],
+                    ['Email', assessmentData.teamInfo.hqEmail || ''],
+                    ['Phone', assessmentData.teamInfo.hqPhone || ''],
+                    ['Position', assessmentData.teamInfo.hqPosition || ''],
+                    [''],
+                    ['Operations Contact', ''],
+                    ['Name', assessmentData.teamInfo.opsName || ''],
+                    ['Email', assessmentData.teamInfo.opsEmail || ''],
+                    ['Phone', assessmentData.teamInfo.opsPhone || ''],
+                    ['Position', assessmentData.teamInfo.opsPosition || '']
+                ];
+                teamInfo.push(['']);
+                teamInfo.push(['Supported Deployment Modalities', '']);
+                MODALITY_METADATA.forEach(modality => {
+                    const supported = assessmentData.teamInfo.deploymentModalities && assessmentData.teamInfo.deploymentModalities[modality.key];
+                    teamInfo.push([modality.label, supported ? 'Yes' : 'No']);
+                });
+                const teamSheet = XLSX.utils.aoa_to_sheet(teamInfo);
+                XLSX.utils.book_append_sheet(workbook, teamSheet, 'Team Info');
+
+                const assessmentRows = [['Standard ID', 'Pillar', 'Standard Statement', 'Score', 'Evidence', 'Gaps', 'Actions', 'Comments', 'Deployment Requirements', 'Deployment Mitigations']];
+                document.querySelectorAll('.compliance-card').forEach(card => {
+                    const select = card.querySelector('.score-select');
+                    if (!select) return;
+                    const sectionKey = select.dataset.section;
+                    const itemId = select.dataset.item;
+                    const itemKey = sectionKey + '-' + itemId;
+                    const titleElement = card.querySelector('.subsection-title');
+                    const descElement = card.querySelector('.card-description');
+                    const title = titleElement ? titleElement.textContent.trim() : '';
+                    const description = descElement ? descElement.textContent.trim() : '';
+                    const statement = description ? title + ' — ' + description : title;
+                    const evidenceField = card.querySelector('.evidence-input');
+                    const gapsField = card.querySelector('.gaps-input');
+                    const actionField = card.querySelector('.action-input');
+                    const evidence = evidenceField ? evidenceField.value : '';
+                    const gaps = gapsField ? gapsField.value : '';
+                    const actions = actionField ? actionField.value : '';
+                    let deploymentRequirementsText = '';
+                    let deploymentMitigationsText = '';
+                    const deploymentRecord = assessmentData.deploymentRequirements &&
+                        assessmentData.deploymentRequirements[sectionKey] &&
+                        assessmentData.deploymentRequirements[sectionKey][itemId];
+                    if (deploymentRecord) {
+                        const requirementParts = [];
+                        const mitigationParts = [];
+                        Object.keys(deploymentRecord).forEach(modalityKey => {
+                            const entry = deploymentRecord[modalityKey] || {};
+                            const meta = MODALITY_METADATA.find(modality => modality.key === modalityKey);
+                            const label = meta ? meta.label : modalityKey;
+                            if (entry.requirements && entry.requirements.trim() !== '') {
+                                requirementParts.push(label + ': ' + entry.requirements.trim());
+                            }
+                            if (entry.mitigation && entry.mitigation.trim() !== '') {
+                                mitigationParts.push(label + ': ' + entry.mitigation.trim());
+                            }
+                        });
+                        deploymentRequirementsText = requirementParts.join('\n\n');
+                        deploymentMitigationsText = mitigationParts.join('\n\n');
+                    }
+                    assessmentRows.push([
+                        itemKey,
+                        sectionKey,
+                        statement,
+                        select.value || '',
+                        evidence,
+                        gaps,
+                        actions,
+                        (assessmentData.comments && assessmentData.comments[sectionKey + 'Comments']) || '',
+                        deploymentRequirementsText,
+                        deploymentMitigationsText
+                    ]);
+                });
+
+                const assessmentSheet = XLSX.utils.aoa_to_sheet(assessmentRows);
+                XLSX.utils.book_append_sheet(workbook, assessmentSheet, 'HID SCT Assessment');
+                const dateSuffix = (new Date).toISOString().split('T')[0];
+                XLSX.writeFile(workbook, 'HID_SCT_Assessment_' + dateSuffix + '.xlsx');
+                showNotification('Data exported to Excel successfully!');
+            }
+            function importFromExcel(event){
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(loadEvent){
+                    try {
+                        const workbook = XLSX.read(loadEvent.target.result, { type: "binary" });
+
+                        const parsedTeamInfo = {
+                            teamName: '',
+                            region: '',
+                            country: '',
+                            mentorName: '',
+                            hqName: '',
+                            hqEmail: '',
+                            hqPhone: '',
+                            hqPosition: '',
+                            opsName: '',
+                            opsEmail: '',
+                            opsPhone: '',
+                            opsPosition: '',
+                            deploymentModalities: { ...DEFAULT_MODALITY_STATE }
+                        };
+
+                        const teamSheet = workbook.Sheets["Team Info"];
+                        if (teamSheet) {
+                            const rows = XLSX.utils.sheet_to_json(teamSheet, { header: 1, raw: false });
+                            let contactSection = null;
+                            let inModalitySection = false;
+
+                            rows.forEach(row => {
+                                if (!Array.isArray(row) || row.length === 0){
+                                    return;
+                                }
+                                const rawLabel = row[0];
+                                const rawValue = row.length > 1 ? row[1] : '';
+                                const label = rawLabel ? String(rawLabel).trim() : '';
+                                if (!label){
+                                    return;
+                                }
+                                const normalizedLabel = label.toLowerCase();
+                                if (normalizedLabel === 'team information'){
+                                    contactSection = null;
+                                    inModalitySection = false;
+                                    return;
+                                }
+                                if (normalizedLabel === 'headquarters contact'){
+                                    contactSection = 'hq';
+                                    return;
+                                }
+                                if (normalizedLabel === 'operations contact'){
+                                    contactSection = 'ops';
+                                    return;
+                                }
+                                if (normalizedLabel === 'supported deployment modalities'){
+                                    inModalitySection = true;
+                                    contactSection = null;
+                                    return;
+                                }
+                                const value = rawValue === undefined || rawValue === null ? '' : String(rawValue).trim();
+                                if (inModalitySection){
+                                    const modalityMeta = MODALITY_METADATA.find(modality => modality.label.toLowerCase() === normalizedLabel);
+                                    if (modalityMeta){
+                                        const normalizedValue = value.toLowerCase();
+                                        const isSupported = normalizedValue ?
+                                            (normalizedValue.startsWith('y') || normalizedValue === '1' || normalizedValue === 'true')
+                                            : false;
+                                        parsedTeamInfo.deploymentModalities[modalityMeta.key] = isSupported;
+                                    }
+                                    return;
+                                }
+
+                                switch (normalizedLabel){
+                                    case 'team name':
+                                        parsedTeamInfo.teamName = value;
+                                        return;
+                                    case 'region':
+                                        parsedTeamInfo.region = value;
+                                        return;
+                                    case 'country':
+                                        parsedTeamInfo.country = value;
+                                        return;
+                                    case 'mentor name':
+                                        parsedTeamInfo.mentorName = value;
+                                        return;
+                                }
+
+                                if (contactSection === 'hq'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.hqName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.hqEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.hqPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.hqPosition = value;
+                                            return;
+                                    }
+                                }
+
+                                if (contactSection === 'ops'){
+                                    switch (normalizedLabel){
+                                        case 'name':
+                                            parsedTeamInfo.opsName = value;
+                                            return;
+                                        case 'email':
+                                            parsedTeamInfo.opsEmail = value;
+                                            return;
+                                        case 'phone':
+                                            parsedTeamInfo.opsPhone = value;
+                                            return;
+                                        case 'position':
+                                            parsedTeamInfo.opsPosition = value;
+                                            return;
+                                    }
+                                }
+                            });
+                        }
+
+                        assessmentData = {
+                            teamInfo: parsedTeamInfo,
+                            scores: {},
+                            evidence: {},
+                            gaps: {},
+                            actions: {},
+                            comments: {},
+                            summary: {},
+                            deploymentRequirements: {}
+                        };
+
+                        const sheet = workbook.Sheets["HID SCT Assessment"];
+                        if (sheet) {
+                            const rows = XLSX.utils.sheet_to_json(sheet);
+                            for (const row of rows) {
+                                const id = row["Standard ID"];
+                                if (!id) continue;
+
+                                const normalizedScore = normalizeImportedScore(row.Score);
+                                if (normalizedScore !== null){
+                                    assessmentData.scores[id] = normalizedScore;
+                                }
+
+                                if (row.Evidence !== undefined && row.Evidence !== null){
+                                    assessmentData.evidence[id] = String(row.Evidence);
+                                }
+                                if (row.Gaps !== undefined && row.Gaps !== null){
+                                    assessmentData.gaps[id] = String(row.Gaps);
+                                }
+                                if (row.Actions !== undefined && row.Actions !== null){
+                                    assessmentData.actions[id] = String(row.Actions);
+                                }
+
+                                const sectionKey = row.Pillar;
+                                if (sectionKey){
+                                    const commentKey = sectionKey + 'Comments';
+                                    if (row.Comments !== undefined && row.Comments !== null){
+                                        const commentText = String(row.Comments).trim();
+                                        if (commentText && (!assessmentData.comments[commentKey] || !assessmentData.comments[commentKey].trim())){
+                                            assessmentData.comments[commentKey] = commentText;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        safeSetStoredItem("hidSCTAssessment", JSON.stringify(assessmentData));
+                        loadSavedData();
+                        updateProgress();
+                        showNotification("Data imported successfully!");
+                    } catch (error) {
+                        console.warn('Error importing file', error);
+                        showNotification("Error importing file.");
+                    }
+                };
+                reader.readAsBinaryString(file);
+                event.target.value = '';
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                initializeData();
+
+                document.querySelectorAll("input, textarea, select").forEach(element => {
+                    element.addEventListener("change", saveProgress);
+                });
+
+                document.querySelectorAll('.score-select').forEach(select => {
+                    updateScoreBadge(select);
+                    select.addEventListener('change', function () {
+                        updateScoreBadge(select);
+                    });
+                });
+
+                document.getElementById("btn-save").addEventListener("click", saveProgress);
+                document.getElementById("btn-export-json").addEventListener("click", () => {
+                    saveProgress();
+                    const json = JSON.stringify(assessmentData, null, 2);
+                    const blob = new Blob([json], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "HID_SCT_Assessment_" + (new Date).toISOString().split("T")[0] + ".json";
+                    link.click();
+                    URL.revokeObjectURL(url);
+                });
+
+                document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
+                document.getElementById("btn-submit").addEventListener("click", () => {
+                    saveProgress();
+                    showNotification("Assessment submitted successfully!");
+                });
+
+                document.getElementById("btn-import-excel").addEventListener("click", () => {
+                    document.getElementById("fileInput").click();
+                });
+
+                document.getElementById("fileInput").addEventListener("change", importFromExcel);
+
+                const navLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+                navLinks.forEach(link => {
+                    link.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        navLinks.forEach(item => item.classList.remove("active"));
+                        link.classList.add("active");
+                        const target = link.getAttribute("href");
+                        document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("show", "active"));
+                        document.querySelector(target).classList.add("show", "active");
+                    });
+                });
+            });
+    </script>
     <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
     <div id="template-definition" style="display: none;"><h2 class="mb-4">Technical Standards Definition</h2><div class="card section-card"><div class="card-body"><p>HID SCTs are national or international teams deployed at the request of the Ministry of Health (MOH)/ coordination cell of the host country. The HID SCT's modality of deployment (embed, coupled or self-sustained) depends on context and defined capacity/level of care.</p><p>Depending on modality of deployment, some operations support, logistics and WASH elements may be provided by a host facility.</p></div></div></div>
-    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><table class="table table-bordered"><thead class="table-light"><tr><th>Section</th><th>Weight</th><th>Status</th><th>% Completed</th></tr></thead><tbody id="progressTableBody"></tbody></table></div></div></div>
+    <div id="template-org-detail" style="display: none;"><h2 class="mb-4">Organizational Details</h2><div class="card section-card"><div class="section-header"><h5>Team Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><label for="teamName" class="form-label">Team Name</label><input type="text" class="form-control" id="teamName"></div><div class="col-md-6"><label for="region" class="form-label">Region</label><input type="text" class="form-control" id="region"></div></div><div class="row mb-3"><div class="col-md-6"><label for="country" class="form-label">Country</label><input type="text" class="form-control" id="country"></div><div class="col-md-6"><label for="mentorName" class="form-label">Mentor Name</label><input type="text" class="form-control" id="mentorName"></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Contact Information</h5></div><div class="card-body"><div class="row mb-3"><div class="col-md-6"><h6>Headquarters Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="hqName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="hqEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="hqPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="hqPosition"></div></div><div class="col-md-6"><h6>Operations Contact</h6><div class="mb-2"><label class="form-label">Name</label><input type="text" class="form-control" id="opsName"></div><div class="mb-2"><label class="form-label">Email</label><input type="email" class="form-control" id="opsEmail"></div><div class="mb-2"><label class="form-label">Phone</label><input type="tel" class="form-control" id="opsPhone"></div><div class="mb-2"><label class="form-label">Position</label><input type="text" class="form-control" id="opsPosition"></div></div></div></div></div><div class="card section-card"><div class="section-header"><h5>Progress Overview</h5></div><div class="card-body"><div class="d-flex flex-column flex-md-row align-items-center gap-4"><div class="text-center"><div class="progress-circle" id="orgProgressCircle"><span id="orgProgressValue">0%</span></div><p class="small text-muted mb-0">Weighted completion</p></div><div class="flex-grow-1 w-100"><div class="section-progress-list" id="orgProgressList"></div></div></div></div></div></div>
     <div id="template-summary" style="display: none;"><h2 class="mb-4">Summary & Action Plan</h2><div class="card section-card"><div class="section-header"><h5>Overall Readiness Assessment</h5></div><div class="card-body"><div class="mb-3"><label for="strengths" class="form-label"><strong>Strengths Identified:</strong></label><textarea class="form-control summary-textarea" id="strengths" placeholder="List the top 3-5 strengths identified..."></textarea></div><div class="mb-3"><label for="criticalGaps" class="form-label"><strong>Critical Gaps Requiring Immediate Action:</strong></label><textarea class="form-control summary-textarea" id="criticalGaps" placeholder="List the critical gaps that need..."></textarea></div><div class="mb-3"><label class="form-label"><strong>Timeline for Addressing Gaps:</strong></label><div class="mb-2"><label class="form-label">Immediate (0-1 month):</label><textarea class="form-control summary-textarea" id="immediateActions"></textarea></div><div class="mb-2"><label class="form-label">Short-term (1-3 months):</label><textarea class="form-control summary-textarea" id="shortTermActions"></textarea></div><div class="mb-2"><label class="form-label">Medium-term (3-6 months):</label><textarea class="form-control summary-textarea" id="mediumTermActions"></textarea></div></div><div class="mb-3"><label class="form-label"><strong>Support Required:</strong></label><div class="mb-2"><label class="form-label">Technical assistance needed:</label><textarea class="form-control summary-textarea" id="technicalAssistance"></textarea></div><div class="mb-2"><label class="form-label">Training requirements:</label><textarea class="form-control summary-textarea" id="trainingRequirements"></textarea></div><div class="mb-2"><label class="form-label">Resource requirements:</label><textarea class="form-control summary-textarea" id="resourceRequirements"></textarea></div></div><div class="mb-3"><label for="nextSteps" class="form-label"><strong>Next Steps:</strong></label><textarea class="form-control summary-textarea" id="nextSteps" placeholder="1. First priority action..."></textarea></div><div class="row"><div class="col-md-6"><label for="completionDate" class="form-label">Date of Completion:</label><input type="date" class="form-control" id="completionDate"></div><div class="col-md-6"><label for="reviewedBy" class="form-label">Reviewed by:</label><input type="text" class="form-control" id="reviewedBy" placeholder="Name and title"></div></div><div class="mt-3"><label for="mentorAssignment" class="form-label">Mentor Assignment:</label><input type="text" class="form-control" id="mentorAssignment" placeholder="Mentor name and contact"></div></div></div></div>
 
 </body>
