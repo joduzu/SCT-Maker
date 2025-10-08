@@ -980,7 +980,7 @@
                 'Dead Body Management: EMTs need to be able to manage dead bodies in a way that is dignified, culturally appropriate, safe and according to public health practices.'
             ]
         },
-        'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true }
+        'summary': { title: 'SUMMARY', icon: 'fa-file-alt', hasSubsections: false, weight: 0, enabled: true, editableContent: true }
     };
 
     let activeEditor = null;
@@ -1086,6 +1086,26 @@
                         ${optionsHTML}
                     </div>
                 </div>
+            </div>
+        `;
+    }
+
+    function buildDeploymentSummaryBannerHTML(selectedKeys = []) {
+        const selectedModalities = DEPLOYMENT_MODALITIES.filter(modality => selectedKeys.includes(modality.key));
+        const pillsHTML = selectedModalities.map(modality => `
+            <span class="deployment-summary-pill ${modality.accentClass || ''}">
+                <i class="fas ${modality.icon || 'fa-clipboard'}"></i>
+                ${escapeHTML(modality.label)}
+            </span>
+        `).join('');
+        const hiddenClass = selectedModalities.length ? '' : ' d-none';
+        return `
+            <div class="deployment-summary-banner${hiddenClass}" id="deploymentSummaryBanner">
+                <div class="deployment-summary-info">
+                    <h2 class="deployment-summary-title" id="deploymentSummaryTitle">HID SCT Assessment</h2>
+                    <p class="deployment-summary-subtitle" id="deploymentSummarySubtitle">Supported deployment modalities</p>
+                </div>
+                <div class="deployment-summary-pill-group" id="deploymentSummaryPills">${pillsHTML}</div>
             </div>
         `;
     }
@@ -4323,6 +4343,290 @@
             font-style: italic;
         }
 
+        .btn-report {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.75rem 2.2rem;
+            box-shadow: 0 18px 32px rgba(99, 102, 241, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-report:hover,
+        .btn-report:focus {
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 22px 38px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-report:disabled {
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .pdf-report-root {
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
+            width: 1024px;
+            padding: 48px;
+            background: #eef2ff;
+            color: #1f2937;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: -1;
+        }
+
+        .pdf-report {
+            background: #ffffff;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(79, 70, 229, 0.18);
+        }
+
+        .pdf-header {
+            background: linear-gradient(135deg, #5b21b6 0%, #4338ca 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 48px 40px 40px;
+        }
+
+        .pdf-header h1 {
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .pdf-header .pdf-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-header .pdf-date {
+            font-size: 0.95rem;
+            opacity: 0.75;
+        }
+
+        .pdf-body {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .pdf-body section h3 {
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: #312e81;
+        }
+
+        .pdf-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .pdf-info-item {
+            background: #f8f9ff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(79, 70, 229, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pdf-info-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+        }
+
+        .pdf-info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .pdf-overview-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .pdf-summary-card {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 102, 241, 0.12));
+            border-radius: 20px;
+            padding: 20px 24px;
+            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.14);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pdf-summary-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #4338ca;
+        }
+
+        .pdf-summary-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1f1b4b;
+        }
+
+        .pdf-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 16px 34px rgba(30, 64, 175, 0.12);
+        }
+
+        .pdf-summary-table th,
+        .pdf-summary-table td {
+            padding: 16px 18px;
+            text-align: left;
+        }
+
+        .pdf-summary-table thead {
+            background: #eef2ff;
+            color: #3730a3;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+        }
+
+        .pdf-summary-table tbody tr:nth-child(even) {
+            background: #f8faff;
+        }
+
+        .pdf-summary-total td {
+            font-weight: 700;
+            background: #ede9fe;
+        }
+
+        .pdf-details {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .pdf-section-block {
+            background: #f5f7ff;
+            border-radius: 22px;
+            padding: 26px;
+            box-shadow: 0 16px 32px rgba(76, 29, 149, 0.12);
+        }
+
+        .pdf-section-block h3 {
+            margin-bottom: 18px;
+            color: #312e81;
+        }
+
+        .pdf-detail-card {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .pdf-detail-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .pdf-detail-card-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .pdf-detail-card-header h4 {
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .pdf-detail-card-header p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .pdf-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .pdf-detail-grid h5 {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            color: #6366f1;
+            margin-bottom: 8px;
+        }
+
+        .pdf-detail-grid p {
+            margin: 0;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .pdf-status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .status-not-started {
+            background: rgba(148, 163, 184, 0.28);
+            color: #1f2937;
+        }
+
+        .status-initial {
+            background: rgba(253, 230, 138, 0.35);
+            color: #b45309;
+        }
+
+        .status-in-progress {
+            background: rgba(96, 165, 250, 0.28);
+            color: #1d4ed8;
+        }
+
+        .status-completed {
+            background: rgba(134, 239, 172, 0.3);
+            color: #047857;
+        }
+
+        .status-na {
+            background: rgba(209, 213, 219, 0.35);
+            color: #374151;
+        }
+
+        .pdf-empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
         .progress-sidebar-table {
             width: 100%;
             font-size: 0.85rem;
@@ -4835,6 +5139,7 @@
     }
     function initializeData(){
         const stored = safeGetItem("hidSCTAssessment");
+        const stored = safeGetItem("hidSCTAssessment");
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -4957,6 +5262,28 @@
             const checkbox = document.getElementById('modality-' + modality.key);
             if (checkbox) {
                 modalityState[modality.key] = checkbox.checked;
+        if (assessmentData.summary) {
+            Object.keys(assessmentData.summary).forEach(id => {
+                setFieldValue(id, assessmentData.summary[id]);
+            });
+        }
+        renderDeploymentSummary(modalityState);
+    }
+    function saveProgress(arg){
+        if (arg && typeof arg.preventDefault === 'function') {
+            arg.preventDefault();
+        }
+        let shouldNotify = true;
+        if (typeof arg === 'boolean') {
+            shouldNotify = arg;
+        } else if (arg && typeof arg === 'object' && !('type' in arg) && Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
+            shouldNotify = arg.showNotification !== false;
+        }
+        const modalityState = { ...DEFAULT_MODALITY_STATE };
+        MODALITY_METADATA.forEach(modality => {
+            const checkbox = document.getElementById('modality-' + modality.key);
+            if (checkbox) {
+                modalityState[modality.key] = checkbox.checked;
                 const pill = checkbox.closest('.modality-pill');
                 if (pill) {
                     pill.classList.toggle('selected', checkbox.checked);
@@ -4966,6 +5293,24 @@
 
         toggleModalityDetails();
 
+        assessmentData.teamInfo = {
+            teamName: getFieldValue('teamName'),
+            region: getFieldValue('region'),
+            country: getFieldValue('country'),
+            mentorName: getFieldValue('mentorName'),
+            hqName: getFieldValue('hqName'),
+            hqEmail: getFieldValue('hqEmail'),
+            hqPhone: getFieldValue('hqPhone'),
+            hqPosition: getFieldValue('hqPosition'),
+            opsName: getFieldValue('opsName'),
+            opsEmail: getFieldValue('opsEmail'),
+            opsPhone: getFieldValue('opsPhone'),
+            opsPosition: getFieldValue('opsPosition'),
+            deploymentModalities: modalityState
+        };
+        renderDeploymentSummary(modalityState);
+
+        assessmentData.scores = {};
         assessmentData.teamInfo = {
             teamName: getFieldValue('teamName'),
             region: getFieldValue('region'),
@@ -5045,6 +5390,112 @@
             mentorAssignment: getFieldValue('mentorAssignment')
         };
 
+        safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
+        if (shouldNotify) {
+            showNotification('Progress saved successfully!');
+        }
+        updateProgress();
+        return assessmentData;
+    }
+    function showNotification(e){const t=document.createElement("div");t.className="notification",t.textContent=e,document.body.appendChild(t),setTimeout(()=>{t.style.animation="fadeOut .3s ease",setTimeout(()=>t.remove(),300)},3e3)}
+    function escapeHtmlForPdf(text){
+        if (text === null || text === undefined) {
+            return '';
+        }
+        return text.toString().replace(/[&<>"']/g, function(match){
+            switch (match) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#39;';
+                default: return match;
+            }
+        });
+    }
+    function formatPdfValue(value, fallback = 'Not provided'){
+        const trimmed = (value || '').toString().trim();
+        if (!trimmed) {
+            return '<span class="pdf-empty">' + escapeHtmlForPdf(fallback) + '</span>';
+        }
+        return escapeHtmlForPdf(trimmed);
+    }
+    function formatPdfParagraph(value, fallback){
+        const trimmed = (value || '').toString().trim();
+        if (!trimmed) {
+            return fallback ? '<span class="pdf-empty">' + escapeHtmlForPdf(fallback) + '</span>' : '';
+        }
+        return escapeHtmlForPdf(trimmed).replace(/\\n/g, '<br>');
+    }
+    function calculateSectionSnapshots(){
+        const sectionScores = {};
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            sectionScores[section.section] = { name: section.name, weight: section.weight, total: 0, max: 0 };
+        });
+        Object.entries(assessmentData.scores || {}).forEach(([key, value]) => {
+            const [sectionKey] = key.split('-');
+            if (!sectionKey || !sectionScores[sectionKey]) {
+                return;
+            }
+            if (value === '' || value === 'NA') {
+                return;
+            }
+            const numeric = parseInt(value, 10);
+            if (!Number.isNaN(numeric)) {
+                sectionScores[sectionKey].total += numeric;
+                sectionScores[sectionKey].max += 3;
+            }
+        });
+        return SECTIONS_WITH_WEIGHT.map(section => {
+            const entry = sectionScores[section.section] || { total: 0, max: 0, weight: section.weight, name: section.name };
+            const percent = entry.max > 0 ? Math.round((entry.total / entry.max) * 100) : 0;
+            let status = 'Not Started';
+            let badgeClass = 'status-not-started';
+            if (percent >= 100) {
+                status = 'Completed';
+                badgeClass = 'status-completed';
+            } else if (percent > 0) {
+                status = 'In Progress';
+                badgeClass = 'status-in-progress';
+            }
+            return {
+                key: section.section,
+                name: section.name,
+                weight: section.weight,
+                percent,
+                status,
+                badgeClass,
+                hasProgress: entry.max > 0
+            };
+        });
+    }
+    function collectSectionDetails(){
+        const sectionDetails = {};
+        document.querySelectorAll('.compliance-card').forEach(card => {
+            const select = card.querySelector('.score-select');
+            if (!select) return;
+            const sectionKey = select.dataset.section;
+            const itemId = select.dataset.item;
+            if (!sectionKey || !itemId) return;
+            const descriptor = SCORE_DESCRIPTORS[select.value] || SCORE_DESCRIPTORS['0'];
+            const itemKey = sectionKey + '-' + itemId;
+            if (!sectionDetails[sectionKey]) {
+                sectionDetails[sectionKey] = [];
+            }
+            const titleElement = card.querySelector('.subsection-title');
+            const descriptionElement = card.querySelector('.card-description');
+            sectionDetails[sectionKey].push({
+                title: titleElement ? titleElement.textContent.trim() : '',
+                description: descriptionElement ? descriptionElement.innerText.trim() : '',
+                statusLabel: descriptor.label,
+                statusClass: descriptor.className,
+                evidence: (assessmentData.evidence && assessmentData.evidence[itemKey]) || '',
+                gaps: (assessmentData.gaps && assessmentData.gaps[itemKey]) || '',
+                actions: (assessmentData.actions && assessmentData.actions[itemKey]) || ''
+            });
+        });
+        return sectionDetails;
+    }
         safeSetItem('hidSCTAssessment', JSON.stringify(assessmentData));
         if (shouldNotify) {
             showNotification('Progress saved successfully!');
@@ -5334,6 +5785,182 @@
         showNotification('PDF report generated successfully!');
     }
     function exportToExcel(){
+    function updateProgress(){
+        const sectionScores = {};
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            sectionScores[section.section] = { score: 0, maxScore: 0, percent: 0 };
+        });
+
+        document.querySelectorAll('.score-select').forEach(select => {
+            const sectionKey = select.dataset.section;
+            if (!sectionKey || !sectionScores[sectionKey]) {
+                return;
+            }
+
+            if (select.value !== '' && select.value !== 'NA') {
+                const numeric = parseInt(select.value, 10);
+                if (!Number.isNaN(numeric)) {
+                    sectionScores[sectionKey].score += numeric;
+                    sectionScores[sectionKey].maxScore += 3;
+                }
+            }
+        });
+
+        let weightedTotal = 0;
+        let totalWeight = 0;
+        let sectionsWithRecordedScores = 0;
+
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            const sectionData = sectionScores[section.section];
+            if (!sectionData) {
+                return;
+            }
+
+            if (sectionData.maxScore > 0) {
+                sectionData.percent = Math.round((sectionData.score / sectionData.maxScore) * 100);
+                sectionsWithRecordedScores += 1;
+            }
+
+            const banner = document.getElementById(section.section + 'Score');
+            if (banner) {
+                banner.textContent = sectionData.percent + '% Complete';
+            }
+
+            totalWeight += section.weight;
+            weightedTotal += (section.weight * sectionData.percent) / 100;
+        });
+
+        const overallPercent = totalWeight > 0 ? Math.round((weightedTotal / totalWeight) * 100) : 0;
+
+        const overallProgressBar = document.getElementById('overallProgressBar');
+        if (overallProgressBar) {
+            overallProgressBar.style.width = overallPercent + '%';
+        }
+        const overallProgressText = document.getElementById('overallProgressText');
+        if (overallProgressText) {
+            overallProgressText.textContent = overallPercent + '%';
+        }
+        const sidebarProgressBar = document.getElementById('sidebarProgressBar');
+        if (sidebarProgressBar) {
+            sidebarProgressBar.style.width = overallPercent + '%';
+        }
+        const sidebarProgressText = document.getElementById('sidebarProgressText');
+        if (sidebarProgressText) {
+            sidebarProgressText.textContent = overallPercent + '%';
+        }
+
+        const completedSectionsEl = document.getElementById('completedSections');
+        if (completedSectionsEl) {
+            completedSectionsEl.textContent = sectionsWithRecordedScores + '/' + SECTIONS_WITH_WEIGHT.length;
+        }
+        const overallScoreEl = document.getElementById('overallScore');
+        if (overallScoreEl) {
+            overallScoreEl.textContent = overallPercent + '%';
+        }
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        if (lastUpdatedEl) {
+            lastUpdatedEl.textContent = (new Date).toLocaleDateString();
+        }
+
+        const tableBody = document.getElementById('progressTableBody');
+        const sidebarBody = document.getElementById('progressSidebarBody');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+        }
+        if (sidebarBody) {
+            sidebarBody.innerHTML = '';
+        }
+
+        let listedWeight = 0;
+        let listedWeightedPercent = 0;
+
+        SECTIONS_WITH_WEIGHT.forEach(section => {
+            const sectionData = sectionScores[section.section];
+            if (!sectionData) {
+                return;
+            }
+
+            const percent = sectionData.percent || 0;
+            const status = percent === 0 ? 'Not Started' : percent < 100 ? 'In Progress' : 'Completed';
+            const badgeClass = status === 'Completed' ? 'bg-success' : status === 'In Progress' ? 'bg-warning' : 'bg-secondary';
+
+            listedWeight += section.weight;
+            listedWeightedPercent += (section.weight * percent) / 100;
+
+            if (tableBody) {
+                tableBody.insertAdjacentHTML(
+                    'beforeend',
+                    '<tr><td>' + section.name + '</td><td>' + section.weight + '%</td><td><span class="badge ' + badgeClass + '">' + status + '</span></td><td>' + percent + '%</td></tr>'
+                );
+            }
+
+            if (sidebarBody) {
+                const shortName = section.name.split(' ')[0];
+                sidebarBody.insertAdjacentHTML(
+                    'beforeend',
+                    '<tr><td>' + shortName + '</td><td><span class="badge ' + badgeClass + '">' + status + '</span></td><td>' + percent + '%</td></tr>'
+                );
+            }
+        });
+
+        if (tableBody) {
+            const totalPercent = listedWeight > 0 ? Math.round((listedWeightedPercent / listedWeight) * 100) : 0;
+            tableBody.insertAdjacentHTML(
+                'beforeend',
+                '<tr class="table-primary fw-bold"><td>TOTAL</td><td>' + listedWeight + '%</td><td></td><td>' + totalPercent + '%</td></tr>'
+            );
+        }
+    }
+    async function generatePdfReport(){
+        const data = saveProgress(false);
+        if (!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF) {
+            throw new Error('Missing PDF dependencies');
+        }
+        const snapshots = calculateSectionSnapshots();
+        const sectionDetails = collectSectionDetails();
+        const totalWeight = snapshots.reduce((sum, section) => sum + section.weight, 0);
+        const weightedProgress = snapshots.reduce((sum, section) => sum + (section.percent * section.weight / 100), 0);
+        const overallPercent = totalWeight > 0 ? Math.round((weightedProgress / totalWeight) * 100) : 0;
+        const sectionsWithProgress = snapshots.filter(section => section.hasProgress).length;
+        const generatedDate = new Date();
+        const formattedDate = generatedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        const summaryRows = snapshots.map(section => '<tr><td>' + escapeHtmlForPdf(section.name) + '</td><td>' + section.weight + '%</td><td><span class="pdf-status-pill ' + section.badgeClass + '">' + section.status + '</span></td><td>' + section.percent + '%</td></tr>').join('');
+        const summaryTableHtml = '<table class="pdf-summary-table"><thead><tr><th>Section</th><th>Weight</th><th>Status</th><th>Progress</th></tr></thead><tbody>' + summaryRows + '<tr class="pdf-summary-total"><td>Total</td><td>' + totalWeight + '%</td><td></td><td>' + overallPercent + '%</td></tr></tbody></table>';
+        const detailsHtml = snapshots
+            .filter(section => (sectionDetails[section.key] || []).length > 0)
+            .map(section => {
+                const cardsHtml = sectionDetails[section.key].map(card => '<div class="pdf-detail-card"><div class="pdf-detail-card-header"><div><h4>' + escapeHtmlForPdf(card.title || 'Untitled Standard') + '</h4>' + (card.description ? '<p>' + formatPdfParagraph(card.description) + '</p>' : '') + '</div><span class="pdf-status-pill ' + card.statusClass + '">' + card.statusLabel + '</span></div><div class="pdf-detail-grid"><div><h5>Evidence</h5><p>' + formatPdfParagraph(card.evidence, 'No evidence provided') + '</p></div><div><h5>Gaps</h5><p>' + formatPdfParagraph(card.gaps, 'No gaps identified') + '</p></div><div><h5>Actions</h5><p>' + formatPdfParagraph(card.actions, 'No actions planned') + '</p></div></div></div>').join('');
+                return '<div class="pdf-section-block"><h3>' + escapeHtmlForPdf(section.name) + '</h3>' + cardsHtml + '</div>';
+            }).join('') || '<p class="pdf-empty">No assessment data captured yet.</p>';
+        const teamInfo = data && data.teamInfo ? data.teamInfo : {};
+        const reportRoot = document.createElement('div');
+        reportRoot.className = 'pdf-report-root';
+        reportRoot.innerHTML = '<div class="pdf-report"><div class="pdf-header"><h1>HID SCT Assessment Report</h1><p class="pdf-subtitle">Minimum Standards Assessment</p><p class="pdf-date">Generated on ' + escapeHtmlForPdf(formattedDate) + '</p></div><div class="pdf-body"><section class="pdf-team-info"><h3>Team Information</h3><div class="pdf-info-grid"><div class="pdf-info-item"><span class="pdf-info-label">Team Name</span><span class="pdf-info-value">' + formatPdfValue(teamInfo.teamName) + '</span></div><div class="pdf-info-item"><span class="pdf-info-label">Region</span><span class="pdf-info-value">' + formatPdfValue(teamInfo.region) + '</span></div><div class="pdf-info-item"><span class="pdf-info-label">Country</span><span class="pdf-info-value">' + formatPdfValue(teamInfo.country) + '</span></div><div class="pdf-info-item"><span class="pdf-info-label">Mentor</span><span class="pdf-info-value">' + formatPdfValue(teamInfo.mentorName) + '</span></div></div></section><section class="pdf-overview"><h3>Overall Progress Summary</h3><div class="pdf-overview-cards"><div class="pdf-summary-card"><span class="pdf-summary-label">Overall Progress</span><span class="pdf-summary-value">' + overallPercent + '%</span></div><div class="pdf-summary-card"><span class="pdf-summary-label">Sections Completed</span><span class="pdf-summary-value">' + sectionsWithProgress + '/' + snapshots.length + '</span></div></div>' + summaryTableHtml + '</section><section class="pdf-details"><h3>Detailed Assessment Results</h3>' + detailsHtml + '</section></div></div>';
+        document.body.appendChild(reportRoot);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        const canvas = await html2canvas(reportRoot, { scale: 2, useCORS: true, backgroundColor: '#eef2ff' });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        const dateSuffix = generatedDate.toISOString().split('T')[0];
+        pdf.save('HID_SCT_Assessment_Report_' + dateSuffix + '.pdf');
+        document.body.removeChild(reportRoot);
+        showNotification('PDF report generated successfully!');
+    }
+    function exportToExcel(){
         saveProgress();
         const workbook = XLSX.utils.book_new();
         const teamInfo = [
@@ -5403,6 +6030,8 @@
                 });
                 deploymentRequirementsText = requirementParts.join('\\n\\n');
                 deploymentMitigationsText = mitigationParts.join('\\n\\n');
+                deploymentRequirementsText = requirementParts.join('\\n\\n');
+                deploymentMitigationsText = mitigationParts.join('\\n\\n');
             }
             assessmentRows.push([
                 itemKey,
@@ -5457,6 +6086,7 @@
                 }
 
                 safeSetItem("hidSCTAssessment", JSON.stringify(assessmentData));
+                safeSetItem("hidSCTAssessment", JSON.stringify(assessmentData));
                 loadSavedData();
                 updateProgress();
                 showNotification("Data imported successfully!");
@@ -5467,6 +6097,26 @@
         };
         reader.readAsBinaryString(file);
     }
+    document.addEventListener("DOMContentLoaded", function () {
+        initializeData();
+
+        const teamNameInput = document.getElementById('teamName');
+        if (teamNameInput) {
+            teamNameInput.addEventListener('input', () => {
+                const currentState = { ...DEFAULT_MODALITY_STATE };
+                MODALITY_METADATA.forEach(modality => {
+                    const checkbox = document.getElementById('modality-' + modality.key);
+                    if (checkbox) {
+                        currentState[modality.key] = checkbox.checked;
+                    }
+                });
+                renderDeploymentSummary(currentState);
+            });
+        }
+
+        document.querySelectorAll("input, textarea, select").forEach(element => {
+            element.addEventListener("change", saveProgress);
+        });
     document.addEventListener("DOMContentLoaded", function () {
         initializeData();
 
@@ -5538,6 +6188,36 @@
         document.getElementById("btn-import-excel").addEventListener("click", () => {
             document.getElementById("fileInput").click();
         });
+        document.getElementById("btn-export-excel").addEventListener("click", exportToExcel);
+        document.getElementById("btn-submit").addEventListener("click", () => {
+            saveProgress();
+            showNotification("Assessment submitted successfully!");
+        });
+
+        const pdfButton = document.getElementById("btn-generate-pdf");
+        if (pdfButton) {
+            const originalHtml = pdfButton.innerHTML;
+            pdfButton.addEventListener("click", async () => {
+                if (pdfButton.disabled) {
+                    return;
+                }
+                pdfButton.disabled = true;
+                pdfButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating PDF...';
+                try {
+                    await generatePdfReport();
+                } catch (error) {
+                    console.warn('Failed to generate PDF report', error);
+                    showNotification('Unable to generate PDF report. Please try again.');
+                } finally {
+                    pdfButton.disabled = false;
+                    pdfButton.innerHTML = originalHtml;
+                }
+            });
+        }
+
+        document.getElementById("btn-import-excel").addEventListener("click", () => {
+            document.getElementById("fileInput").click();
+        });
 
         document.getElementById("fileInput").addEventListener("change", importFromExcel);
 
@@ -5552,6 +6232,10 @@
                 document.querySelector(target).classList.add("show", "active");
             });
         });
+    });
+    <\/script>
+</body>
+</html>
     });
     <\/script>
 </body>
