@@ -3416,9 +3416,7 @@ async function generatePdfReport() {
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    const sctNameTitle = (teamInfo.sctName || '').trim();
-    const coverTitle = sctNameTitle ? `${sctNameTitle} SCT Report` : 'HID SCT ASSESSMENT REPORT';
-    pdf.text(coverTitle, pageWidth / 2, 45, { align: 'center' });
+    pdf.text('HID SCT ASSESSMENT REPORT', pageWidth / 2, 45, { align: 'center' });
 
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'normal');
