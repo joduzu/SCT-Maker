@@ -95,7 +95,6 @@
                         <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
                     </div>
                 </div>
-                <div class="deployment-modalities-options" id="deployment-modalities-options"></div>
             </div>
         </div>
 
@@ -1091,7 +1090,6 @@
     }
 
     function buildDeploymentModalitiesCardHTML(selectedKeys = [], sctNameValue = '') {
-    function buildDeploymentModalitiesCardHTML(selectedKeys = []) {
         const selectedSet = new Set(selectedKeys);
         const optionsHTML = DEPLOYMENT_MODALITIES.map(modality => {
             const isSelected = selectedSet.has(modality.key);
@@ -1125,8 +1123,6 @@
                                 ${optionsHTML}
                             </div>
                         </div>
-                    <div class="deployment-modality-grid">
-                        ${optionsHTML}
                     </div>
                 </div>
             </div>
@@ -1134,7 +1130,6 @@
     }
 
     function buildDeploymentSummaryBannerHTML(selectedKeys = [], headingText = 'HID SCT Tool') {
-    function buildDeploymentSummaryBannerHTML(selectedKeys = []) {
         const selectedModalities = DEPLOYMENT_MODALITIES.filter(modality => selectedKeys.includes(modality.key));
         const pillsHTML = selectedModalities.map(modality => `
             <span class="deployment-summary-pill ${modality.accentClass || ''}">
@@ -1147,7 +1142,6 @@
             <div class="deployment-summary-banner${hiddenClass}" id="deploymentSummaryBanner">
                 <div class="deployment-summary-info">
                     <h2 class="deployment-summary-title" id="deploymentSummaryTitle">${escapeHTML(headingText)}</h2>
-                    <h2 class="deployment-summary-title" id="deploymentSummaryTitle">HID SCT Assessment</h2>
                     <p class="deployment-summary-subtitle" id="deploymentSummarySubtitle">Supported deployment modalities</p>
                 </div>
                 <div class="deployment-summary-pill-group" id="deploymentSummaryPills">${pillsHTML}</div>
@@ -1331,74 +1325,91 @@
                 return;
             }
             editor.dataset.editorInitialized = 'true';
+
             const updatePlaceholderState = () => {
                 const text = editor.innerText.trim();
                 editor.classList.toggle('empty', text.length === 0);
             };
-            updatePlaceholderState();
-            const handleInput = () => {
-                updatePlaceholderState();
-                storeSelection(editor);
+
+            const syncSubsectionMetadata = () => {
                 const subsectionItem = editor.closest('.subsection-item');
-                if (subsectionItem) {
-                    const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
-                    const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
-                    subsectionItem.dataset.title = newTitle;
-                    const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
-                    if (summaryTitle) {
-                        summaryTitle.textContent = newTitle;
-                    }
-                    const details = subsectionItem.querySelector('.builder-deployment-editor');
-                    if (details) {
-                        details.dataset.title = newTitle;
-                    }
+                if (!subsectionItem) {
+                    return;
+                }
+                const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
+                const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
+                subsectionItem.dataset.title = newTitle;
+                const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
+                if (summaryTitle) {
+                    summaryTitle.textContent = newTitle;
+                }
+                const details = subsectionItem.querySelector('.builder-deployment-editor');
+                if (details) {
+                    details.dataset.title = newTitle;
                 }
             };
-            editor.addEventListener('input', handleInput);
-            editor.addEventListener('focus', () => {
+
+            const handleInput = () => {
+                updatePlaceholderState();
+                syncSubsectionMetadata();
+                storeSelection(editor);
+            };
+
+            const handleFocus = () => {
                 activeEditor = editor;
                 editor.classList.add('focus');
                 storeSelection(editor);
-            });
-            editor.addEventListener('blur', () => {
+            };
+
+            const handleBlur = () => {
                 editor.classList.remove('focus');
                 if (activeEditor === editor) {
                     activeEditor = null;
                     savedRange = null;
                 }
-            });
-            editor.addEventListener('keyup', () => storeSelection(editor));
-            editor.addEventListener('mouseup', () => storeSelection(editor));
+            };
+
+            const persistSelection = () => storeSelection(editor);
+
+            updatePlaceholderState();
+            syncSubsectionMetadata();
+
+            editor.addEventListener('input', handleInput);
+            editor.addEventListener('focus', handleFocus);
+            editor.addEventListener('blur', handleBlur);
+            editor.addEventListener('keyup', persistSelection);
+            editor.addEventListener('mouseup', persistSelection);
+
             editor._updatePlaceholder = updatePlaceholderState;
+            editor._syncSubsectionMetadata = syncSubsectionMetadata;
         });
+
         root.querySelectorAll('.format-btn').forEach(btn => {
-            btn.onmousedown = e => {
+            if (btn.dataset.editorHandlerAttached === 'true') {
+                return;
+            }
+            btn.dataset.editorHandlerAttached = 'true';
+
+            btn.addEventListener('mousedown', e => {
                 e.preventDefault();
                 const command = btn.dataset.command;
                 const value = btn.dataset.value || null;
                 const container = btn.closest('.subsection-item') || btn.closest('.section-content-editor') || btn.closest('.rich-text-editor');
                 const editor = container ? container.querySelector('.editor-content') : null;
-                if (editor) {
-                    if (activeEditor !== editor) {
-                        activeEditor = editor;
-                    }
-                    restoreSelection(editor);
-                    document.execCommand(command, false, value);
-                    if (typeof editor._updatePlaceholder === 'function') {
-                        editor._updatePlaceholder();
-                    }
-                    storeSelection(editor);
+                if (!editor) {
+                    return;
                 }
-            };
+                if (activeEditor !== editor) {
+                    activeEditor = editor;
+                }
+                restoreSelection(editor);
+                document.execCommand(command, false, value);
+                editor._updatePlaceholder?.();
+                editor._syncSubsectionMetadata?.();
+                storeSelection(editor);
+            });
         });
     }
-
-
-
-
-
-
-
 
     function updateWeightSum() {
         const sum = Array.from(document.querySelectorAll('.weight-input:not(:disabled)')).reduce((acc, input) => acc + (parseInt(input.value) || 0), 0);
@@ -1454,9 +1465,6 @@
         const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities, rawSctName);
         const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
         const deploymentSummaryBannerHTML = buildDeploymentSummaryBannerHTML(selectedModalities, headingText);
-        const deploymentModalitiesCardHTML = buildDeploymentModalitiesCardHTML(selectedModalities);
-        const deploymentModalityDetailsHTML = buildDeploymentModalityDetailsHTML(selectedModalities);
-        const deploymentSummaryBannerHTML = buildDeploymentSummaryBannerHTML(selectedModalities);
         const defaultModalityState = {};
         DEPLOYMENT_MODALITIES.forEach(modality => {
             defaultModalityState[modality.key] = selectedModalities.includes(modality.key);
@@ -2774,7 +2782,6 @@
 <body>
     <div class="app-container"><div class="row g-0">
         <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4" id="sidebarSctTitle">${escapeHTML(headingText)}</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
-        <div class="col-lg-2"><div class="sidebar"><h4 class="text-center mb-4">HID SCT Assessment</h4><ul class="nav flex-column">${sidebarLinks}</ul><div class="mt-4 p-3"><div class="progress-bar-container"><div class="progress-bar bg-success" id="overallProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center" id="overallProgressText">0%</h5></div></div></div>
         <div class="col-lg-8"><div class="main-content"><div class="author-credit">Author by: <a href="mailto:joduzu@gmail.com">Jorge Durand Zurdo</a></div>${deploymentSummaryBannerHTML}<div class="tab-content">${tabPanes}</div><div class="d-flex justify-content-between mt-4"><div><button class="btn btn-outline-secondary" id="btn-import-excel"><i class="fas fa-upload me-2"></i>Import Excel</button><button class="btn btn-outline-secondary" id="btn-export-json"><i class="fas fa-download me-2"></i>Export JSON</button></div><div><button class="btn btn-outline-primary me-2" id="btn-save"><i class="fas fa-save me-2"></i>Save Draft</button><button class="btn btn-outline-info me-2" id="btn-export-excel"><i class="fas fa-file-excel me-2"></i>Export to Excel</button><button class="btn btn-success" id="btn-submit"><i class="fas fa-check-circle me-2"></i>Submit Assessment</button></div></div><div class="text-end mt-3"><button class="btn btn-report" id="btn-generate-pdf"><i class="fas fa-file-pdf me-2"></i>Generate PDF Report</button></div></div></div>
         <div class="col-lg-2"><div class="progress-sidebar"><h5 class="mb-3">Progress Overview</h5><div class="progress-bar-container mb-3"><div class="progress-bar bg-success" id="sidebarProgressBar" style="width:0%"></div></div><p class="mb-1">Overall Completion</p><h5 class="text-center mb-4" id="sidebarProgressText">0%</h5><table class="progress-sidebar-table"><thead><tr><th>Section</th><th>Status</th><th>%</th></tr></thead><tbody id="progressSidebarBody"></tbody></table></div></div>
     </div></div>
@@ -2795,7 +2802,6 @@
     };
     const DEFAULT_SCT_NAME = ${JSON.stringify(rawSctName)};
     const DEFAULT_SUMMARY_TITLE = 'HID SCT Tool';
-    const DEFAULT_SUMMARY_TITLE = 'HID SCT Assessment';
     let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
     function safeGetItem(key){
         try {
@@ -2840,13 +2846,6 @@
         const titleEl = document.getElementById('deploymentSummaryTitle');
         const sidebarTitle = document.getElementById('sidebarSctTitle');
         const banner = document.getElementById('deploymentSummaryBanner');
-    function renderDeploymentSummary(modalityState = DEFAULT_MODALITY_STATE){
-        const banner = document.getElementById('deploymentSummaryBanner');
-        if (!banner) {
-            return;
-        }
-        const pillsContainer = document.getElementById('deploymentSummaryPills');
-        const titleEl = document.getElementById('deploymentSummaryTitle');
         const state = { ...DEFAULT_MODALITY_STATE, ...(modalityState || {}) };
         const activeModalities = MODALITY_METADATA.filter(modality => state[modality.key]);
         if (pillsContainer) {
@@ -2875,12 +2874,6 @@
         if (banner) {
             banner.classList.toggle('d-none', activeModalities.length === 0);
         }
-        if (titleEl) {
-            const currentName = (getFieldValue('teamName') || '').trim();
-            const storedName = assessmentData.teamInfo && assessmentData.teamInfo.teamName ? assessmentData.teamInfo.teamName : '';
-            titleEl.textContent = currentName || storedName || DEFAULT_SUMMARY_TITLE;
-        }
-        banner.classList.toggle('d-none', activeModalities.length === 0);
     }
     function toggleModalityDetails(){
         MODALITY_METADATA.forEach(modality => {
