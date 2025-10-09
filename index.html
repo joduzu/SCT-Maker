@@ -775,6 +775,56 @@
 
     const builderDeploymentOverrides = {};
 
+    function getDatasetItemKey(element) {
+        if (!element || !element.dataset) {
+            return '';
+        }
+        return element.dataset.itemKey || element.dataset.item || '';
+    }
+
+    function getLegacyDatasetItemId(element) {
+        if (!element || !element.dataset) {
+            return '';
+        }
+        const { itemKey = '', item = '', legacyItem = '', itemLegacy = '' } = element.dataset;
+        if (legacyItem) {
+            return legacyItem;
+        }
+        if (itemLegacy) {
+            return itemLegacy;
+        }
+        if (item && item !== itemKey) {
+            return item;
+        }
+        return '';
+    }
+
+    function buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId = '') {
+        if (!sectionKey) {
+            return '';
+        }
+        if (itemKey) {
+            return itemKey.startsWith(`${sectionKey}-`) ? itemKey : `${sectionKey}-${itemKey}`;
+        }
+        if (legacyItemId) {
+            return `${sectionKey}-${legacyItemId}`;
+        }
+        return '';
+    }
+
+    function resolveSectionItemRecord(sectionData, primaryKey, legacyKey) {
+        if (!sectionData) {
+            return undefined;
+        }
+        if (primaryKey && Object.prototype.hasOwnProperty.call(sectionData, primaryKey)) {
+            return sectionData[primaryKey];
+        }
+        if (legacyKey && Object.prototype.hasOwnProperty.call(sectionData, legacyKey)) {
+            return sectionData[legacyKey];
+        }
+        return undefined;
+    }
+
     function ensureDeploymentOverride(sectionKey, itemKey, titleText = '') {
         if (!builderDeploymentOverrides[sectionKey]) {
             builderDeploymentOverrides[sectionKey] = {};
@@ -842,10 +892,35 @@
             const idx = raw.indexOf(sep);
             if (idx > -1) {
                 titleHTML = raw.slice(0, idx);
-                bodyHTML = raw.slice(idx + sep.length).trim() || raw;
+                bodyHTML = raw.slice(idx + sep.length).trim();
                 break;
             }
         }
+
+        if (bodyHTML === raw && raw) {
+            const container = document.createElement('div');
+            container.innerHTML = raw;
+            const nodes = Array.from(container.childNodes);
+            let firstContentNode = null;
+            for (const node of nodes) {
+                if (node.nodeType === 3 && (node.textContent || '').trim() === '') {
+                    container.removeChild(node);
+                    continue;
+                }
+                firstContentNode = node;
+                break;
+            }
+            if (firstContentNode) {
+                if (typeof firstContentNode.outerHTML === 'string' && firstContentNode.outerHTML.trim()) {
+                    titleHTML = firstContentNode.outerHTML;
+                } else {
+                    titleHTML = (firstContentNode.textContent || '').trim();
+                }
+                container.removeChild(firstContentNode);
+            }
+            bodyHTML = container.innerHTML.trim();
+        }
+
         const titleText = extractTitleTextFromHTML(titleHTML, fallbackIndex);
         return { titleHTML, bodyHTML, titleText };
     }
@@ -1500,7 +1575,7 @@
             return findModalityDetailSource(modalityKey, sectionKey, standardTitle);
         };
 
-        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId, itemKey) => {
+        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, legacyItemId, itemKey) => {
             const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
             if (!mappedSection || !selectedModalities || selectedModalities.length === 0) {
                 return '';
@@ -1519,18 +1594,18 @@
                     ? details.mitigation
                     : Array.isArray(details.mitigation) ? details.mitigation.join('\n') : '';
                 return `
-                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}">
+                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}">
                         <div class="modality-requirement-header">
                             <span class="modality-badge"><i class="fas ${meta.icon || 'fa-clipboard'}"></i> ${escapeHTML(meta.label)} Mode</span>
                         </div>
                         <div class="modality-requirement-columns">
                             <div>
                                 <label>Requirements</label>
-                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
+                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
                             </div>
                             <div>
                                 <label>Mitigations</label>
-                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemId}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
+                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
                             </div>
                         </div>
                     </div>
@@ -1567,9 +1642,10 @@
             const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
             const safeTitle = escapeHTML(titleText);
             const itemKey = entry.itemKey || generateSubsectionKey(key);
-            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId, itemKey);
+            const legacyItemId = subId;
+            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, legacyItemId, itemKey);
             return `
-                <div class="compliance-card" data-section="${key}" data-item="${subId}">
+                <div class="compliance-card" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
                     <div class="card-inner">
                         <div class="card-header">
                             <h5 class="subsection-title">${safeTitle}</h5>
@@ -1580,25 +1656,25 @@
                             <div class="card-fields">
                                 <div class="field-group">
                                     <label>Describe evidence</label>
-                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
-                                        </div>
-                                        <div class="field-group">
-                                            <label>Gaps</label>
-                                            <textarea class="form-control gaps-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
-                                        </div>
-                                        <div class="field-group">
-                                            <label>Actions</label>
-                                            <textarea class="form-control action-input" data-section="${key}" data-item="${subId}" rows="3"></textarea>
-                                        </div>
-                                    </div>
+                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
                                 </div>
-                                <div class="card-footer">
-                                    <div class="score-select-wrapper">
-                                        <label>Compliance score</label>
-                                        <select class="form-select score-select compliance-score" data-section="${key}" data-item="${subId}">
-                                            <option value="">-</option>
-                                            <option value="0" selected>0 - Not started</option>
-                                            <option value="1">1 - Initial</option>
+                                <div class="field-group">
+                                    <label>Gaps</label>
+                                    <textarea class="form-control gaps-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
+                                </div>
+                                <div class="field-group">
+                                    <label>Actions</label>
+                                    <textarea class="form-control action-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="score-select-wrapper">
+                                <label>Compliance score</label>
+                                <select class="form-select score-select compliance-score" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
+                                    <option value="">-</option>
+                                    <option value="0" selected>0 - Not started</option>
+                                    <option value="1">1 - Initial</option>
                                             <option value="2">2 - In progress</option>
                                             <option value="3">3 - Completed</option>
                                             <option value="NA">N/A</option>
@@ -2802,6 +2878,52 @@
     const DEFAULT_SCT_NAME = ${JSON.stringify(rawSctName)};
     const DEFAULT_SUMMARY_TITLE = 'HID SCT Tool';
     let assessmentData={teamInfo:{},scores:{},evidence:{},gaps:{},actions:{},comments:{},summary:{},deploymentRequirements:{}};
+    function getDatasetItemKey(element){
+        if (!element || !element.dataset) {
+            return '';
+        }
+        return element.dataset.itemKey || element.dataset.item || '';
+    }
+    function getLegacyDatasetItemId(element){
+        if (!element || !element.dataset) {
+            return '';
+        }
+        const { itemKey = '', item = '', legacyItem = '', itemLegacy = '' } = element.dataset;
+        if (legacyItem) {
+            return legacyItem;
+        }
+        if (itemLegacy) {
+            return itemLegacy;
+        }
+        if (item && item !== itemKey) {
+            return item;
+        }
+        return '';
+    }
+    function buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId = ''){
+        if (!sectionKey) {
+            return '';
+        }
+        if (itemKey) {
+            return itemKey.startsWith(sectionKey + '-') ? itemKey : sectionKey + '-' + itemKey;
+        }
+        if (legacyItemId) {
+            return sectionKey + '-' + legacyItemId;
+        }
+        return '';
+    }
+    function resolveSectionItemRecord(sectionData, primaryKey, legacyKey){
+        if (!sectionData) {
+            return undefined;
+        }
+        if (primaryKey && Object.prototype.hasOwnProperty.call(sectionData, primaryKey)) {
+            return sectionData[primaryKey];
+        }
+        if (legacyKey && Object.prototype.hasOwnProperty.call(sectionData, legacyKey)) {
+            return sectionData[legacyKey];
+        }
+        return undefined;
+    }
     function safeGetItem(key){
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
@@ -2953,9 +3075,17 @@
         document.querySelectorAll('.compliance-card').forEach(card => {
             const select = card.querySelector('.score-select');
             if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
-            if (assessmentData.scores && assessmentData.scores[key] !== undefined && assessmentData.scores[key] !== null && assessmentData.scores[key] !== '') {
-                select.value = assessmentData.scores[key];
+            const sectionKey = select.dataset.section || '';
+            const itemKey = getDatasetItemKey(select);
+            const legacyItemId = getLegacyDatasetItemId(select);
+            const storageKey = buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId);
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : storageKey;
+            const savedScores = assessmentData.scores || {};
+            const savedScore = savedScores[storageKey] !== undefined && savedScores[storageKey] !== null && savedScores[storageKey] !== ''
+                ? savedScores[storageKey]
+                : savedScores[legacyKey];
+            if (savedScore !== undefined && savedScore !== null && savedScore !== '') {
+                select.value = savedScore;
             } else {
                 select.value = '0';
             }
@@ -2963,27 +3093,40 @@
             const evidenceField = card.querySelector('.evidence-input');
             const gapsField = card.querySelector('.gaps-input');
             const actionField = card.querySelector('.action-input');
+            const evidenceData = assessmentData.evidence || {};
+            const gapsData = assessmentData.gaps || {};
+            const actionsData = assessmentData.actions || {};
+            const evidenceValue = evidenceData[storageKey] !== undefined ? evidenceData[storageKey] : evidenceData[legacyKey];
+            const gapsValue = gapsData[storageKey] !== undefined ? gapsData[storageKey] : gapsData[legacyKey];
+            const actionsValue = actionsData[storageKey] !== undefined ? actionsData[storageKey] : actionsData[legacyKey];
             if (evidenceField) {
-                evidenceField.value = (assessmentData.evidence && assessmentData.evidence[key]) || '';
+                evidenceField.value = evidenceValue || '';
             }
             if (gapsField) {
-                gapsField.value = (assessmentData.gaps && assessmentData.gaps[key]) || '';
+                gapsField.value = gapsValue || '';
             }
             if (actionField) {
-                actionField.value = (assessmentData.actions && assessmentData.actions[key]) || '';
+                actionField.value = actionsValue || '';
             }
         });
 
         const deploymentData = assessmentData.deploymentRequirements || {};
         document.querySelectorAll('.modality-requirement-block').forEach(block => {
             const section = block.dataset.section;
-            const item = block.dataset.item;
+            const primaryItemKey = getDatasetItemKey(block);
+            const legacyItemId = getLegacyDatasetItemId(block);
             const modality = block.dataset.modality;
-            const stored = deploymentData[section] && deploymentData[section][item] && deploymentData[section][item][modality];
+            const sectionData = deploymentData[section] || {};
+            const baseItemRecord = resolveSectionItemRecord(sectionData, primaryItemKey, legacyItemId);
+            const baseModalityRecord = baseItemRecord ? baseItemRecord[modality] : undefined;
             block.querySelectorAll('textarea[data-field]').forEach(textarea => {
                 const field = textarea.dataset.field;
-                if (stored && Object.prototype.hasOwnProperty.call(stored, field)) {
-                    textarea.value = stored[field];
+                const textareaItemKey = getDatasetItemKey(textarea) || primaryItemKey;
+                const textareaLegacyKey = getLegacyDatasetItemId(textarea) || legacyItemId;
+                const itemRecord = resolveSectionItemRecord(sectionData, textareaItemKey, textareaLegacyKey);
+                const record = itemRecord && itemRecord[modality] ? itemRecord[modality] : baseModalityRecord;
+                if (record && Object.prototype.hasOwnProperty.call(record, field)) {
+                    textarea.value = record[field];
                 }
             });
         });
@@ -3052,34 +3195,60 @@
         document.querySelectorAll('.compliance-card').forEach(card => {
             const select = card.querySelector('.score-select');
             if (!select) return;
-            const key = select.dataset.section + '-' + select.dataset.item;
+            const sectionKey = select.dataset.section || '';
+            const itemKey = getDatasetItemKey(select);
+            const legacyItemId = getLegacyDatasetItemId(select);
+            const storageKey = buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId);
             if (select.value) {
-                assessmentData.scores[key] = select.value;
+                assessmentData.scores[storageKey] = select.value;
+            }
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : '';
+            if (legacyKey && legacyKey !== storageKey) {
+                delete assessmentData.scores[legacyKey];
             }
             const evidenceField = card.querySelector('.evidence-input');
             const gapsField = card.querySelector('.gaps-input');
             const actionField = card.querySelector('.action-input');
-            if (evidenceField) assessmentData.evidence[key] = evidenceField.value || '';
-            if (gapsField) assessmentData.gaps[key] = gapsField.value || '';
-            if (actionField) assessmentData.actions[key] = actionField.value || '';
+            if (evidenceField) {
+                assessmentData.evidence[storageKey] = evidenceField.value || '';
+                if (legacyKey && legacyKey !== storageKey) {
+                    delete assessmentData.evidence[legacyKey];
+                }
+            }
+            if (gapsField) {
+                assessmentData.gaps[storageKey] = gapsField.value || '';
+                if (legacyKey && legacyKey !== storageKey) {
+                    delete assessmentData.gaps[legacyKey];
+                }
+            }
+            if (actionField) {
+                assessmentData.actions[storageKey] = actionField.value || '';
+                if (legacyKey && legacyKey !== storageKey) {
+                    delete assessmentData.actions[legacyKey];
+                }
+            }
         });
 
         document.querySelectorAll('.modality-requirement-block').forEach(block => {
             const section = block.dataset.section;
-            const item = block.dataset.item;
+            const itemKey = getDatasetItemKey(block) || getLegacyDatasetItemId(block);
             const modality = block.dataset.modality;
             if (!assessmentData.deploymentRequirements[section]) {
                 assessmentData.deploymentRequirements[section] = {};
             }
-            if (!assessmentData.deploymentRequirements[section][item]) {
-                assessmentData.deploymentRequirements[section][item] = {};
+            if (!assessmentData.deploymentRequirements[section][itemKey]) {
+                assessmentData.deploymentRequirements[section][itemKey] = {};
             }
             const record = {};
             block.querySelectorAll('textarea[data-field]').forEach(textarea => {
                 const field = textarea.dataset.field;
                 record[field] = textarea.value || '';
             });
-            assessmentData.deploymentRequirements[section][item][modality] = record;
+            assessmentData.deploymentRequirements[section][itemKey][modality] = record;
+            const legacyItemId = getLegacyDatasetItemId(block);
+            if (legacyItemId && legacyItemId !== itemKey && assessmentData.deploymentRequirements[section][legacyItemId]) {
+                delete assessmentData.deploymentRequirements[section][legacyItemId];
+            }
         });
 
         assessmentData.comments = {};
@@ -3190,10 +3359,12 @@
             const select = card.querySelector('.score-select');
             if (!select) return;
             const sectionKey = select.dataset.section;
-            const itemId = select.dataset.item;
-            if (!sectionKey || !itemId) return;
+            const itemKeyPart = getDatasetItemKey(select) || getLegacyDatasetItemId(select);
+            const legacyItemId = getLegacyDatasetItemId(select);
+            if (!sectionKey || !itemKeyPart) return;
             const descriptor = SCORE_DESCRIPTORS[select.value] || SCORE_DESCRIPTORS['0'];
-            const itemKey = sectionKey + '-' + itemId;
+            const storageKey = buildSectionItemStorageKey(sectionKey, itemKeyPart, legacyItemId);
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : storageKey;
             if (!sectionDetails[sectionKey]) {
                 sectionDetails[sectionKey] = [];
             }
@@ -3204,9 +3375,9 @@
                 description: descriptionElement ? descriptionElement.innerText.trim() : '',
                 statusLabel: descriptor.label,
                 statusClass: descriptor.className,
-                evidence: (assessmentData.evidence && assessmentData.evidence[itemKey]) || '',
-                gaps: (assessmentData.gaps && assessmentData.gaps[itemKey]) || '',
-                actions: (assessmentData.actions && assessmentData.actions[itemKey]) || ''
+                evidence: (assessmentData.evidence && (assessmentData.evidence[storageKey] ?? assessmentData.evidence[legacyKey])) || '',
+                gaps: (assessmentData.gaps && (assessmentData.gaps[storageKey] ?? assessmentData.gaps[legacyKey])) || '',
+                actions: (assessmentData.actions && (assessmentData.actions[storageKey] ?? assessmentData.actions[legacyKey])) || ''
             });
         });
         return sectionDetails;
@@ -3691,8 +3862,10 @@
             const select = card.querySelector('.score-select');
             if (!select) return;
             const sectionKey = select.dataset.section;
-            const itemId = select.dataset.item;
-            const itemKey = sectionKey + '-' + itemId;
+            const itemKeyPart = getDatasetItemKey(select) || getLegacyDatasetItemId(select);
+            const legacyItemId = getLegacyDatasetItemId(select);
+            if (!sectionKey || !itemKeyPart) return;
+            const itemKey = buildSectionItemStorageKey(sectionKey, itemKeyPart, legacyItemId);
             const titleElement = card.querySelector('.subsection-title');
             const descElement = card.querySelector('.card-description');
             const title = titleElement ? titleElement.textContent.trim() : '';
@@ -3708,7 +3881,7 @@
             let deploymentMitigationsText = '';
             const deploymentRecord = assessmentData.deploymentRequirements &&
                 assessmentData.deploymentRequirements[sectionKey] &&
-                assessmentData.deploymentRequirements[sectionKey][itemId];
+                resolveSectionItemRecord(assessmentData.deploymentRequirements[sectionKey], itemKeyPart, legacyItemId);
             if (deploymentRecord) {
                 const requirementParts = [];
                 const mitigationParts = [];
