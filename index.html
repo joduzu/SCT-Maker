@@ -1336,16 +1336,20 @@
                 if (!subsectionItem) {
                     return;
                 }
+                const titleInput = subsectionItem.querySelector('.standard-title-input');
+                if (titleInput && titleInput.value.trim().length > 0) {
+                    return;
+                }
+
                 const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
-                const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
-                subsectionItem.dataset.title = newTitle;
+                const fallbackTitle = subsectionItem.dataset.title || `Standard ${isNaN(defaultIndex) ? 1 : defaultIndex + 1}`;
                 const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
                 if (summaryTitle) {
-                    summaryTitle.textContent = newTitle;
+                    summaryTitle.textContent = fallbackTitle;
                 }
                 const details = subsectionItem.querySelector('.builder-deployment-editor');
                 if (details) {
-                    details.dataset.title = newTitle;
+                    details.dataset.title = fallbackTitle;
                 }
             };
 
