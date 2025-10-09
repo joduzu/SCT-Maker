@@ -1411,16 +1411,20 @@
                 if (!subsectionItem) {
                     return;
                 }
+                const titleInput = subsectionItem.querySelector('.standard-title-input');
+                if (titleInput && titleInput.value.trim().length > 0) {
+                    return;
+                }
+
                 const defaultIndex = parseInt(subsectionItem.dataset.defaultIndex || '0', 10);
-                const newTitle = extractTitleTextFromHTML(editor.innerHTML, isNaN(defaultIndex) ? 0 : defaultIndex);
-                subsectionItem.dataset.title = newTitle;
+                const fallbackTitle = subsectionItem.dataset.title || `Standard ${isNaN(defaultIndex) ? 1 : defaultIndex + 1}`;
                 const summaryTitle = subsectionItem.querySelector('.builder-deployment-summary-title');
                 if (summaryTitle) {
-                    summaryTitle.textContent = newTitle;
+                    summaryTitle.textContent = fallbackTitle;
                 }
                 const details = subsectionItem.querySelector('.builder-deployment-editor');
                 if (details) {
-                    details.dataset.title = newTitle;
+                    details.dataset.title = fallbackTitle;
                 }
             };
 
@@ -1651,7 +1655,7 @@
                             <h5 class="subsection-title">${safeTitle}</h5>
                         </div>
                         <div class="card-body">
-                            <div class="card-description">${parsed.bodyHTML}</div>
+                            ${descriptionBlock}
                             ${deploymentBlock}
                             <div class="card-fields">
                                 <div class="field-group">
@@ -1682,8 +1686,23 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>`;
-                }).join('');
+                        </div>
+                        <div class="card-footer">
+                            <div class="score-select-wrapper">
+                                <label>Compliance score</label>
+                                <select class="form-select score-select compliance-score" data-section="${key}" data-item="${subId}">
+                                    <option value="">-</option>
+                                    <option value="0" selected>0 - Not started</option>
+                                    <option value="1">1 - Initial</option>
+                                    <option value="2">2 - In progress</option>
+                                    <option value="3">3 - Completed</option>
+                                    <option value="NA">N/A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
 
                 content = `
                     <section class="compliance-section">
@@ -1795,8 +1814,6 @@
 
         .main-content {
             padding: 24px;
-            max-height: 100vh;
-            overflow-y: auto;
             background: #f8f9ff;
         }
 
@@ -2514,6 +2531,12 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .compliance-card .card-inner {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
         .compliance-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 18px 40px rgba(79, 70, 229, 0.18);
@@ -2695,6 +2718,7 @@
             gap: 1rem;
             justify-content: space-between;
             align-items: center;
+            margin-top: auto;
         }
 
         .score-select-wrapper label {
@@ -2791,10 +2815,6 @@
         @media (max-width: 1200px) {
             .progress-sidebar {
                 display: none;
-            }
-
-            .main-content {
-                max-height: none;
             }
 
             .deployment-summary-banner {
@@ -3145,14 +3165,28 @@
         renderDeploymentSummary(modalityState);
     }
     function saveProgress(arg){
-        if (arg && typeof arg.preventDefault === 'function') {
-            arg.preventDefault();
+        let eventRef = null;
+        let config = null;
+        if (arg && typeof arg === 'object') {
+            if (typeof arg.preventDefault === 'function') {
+                eventRef = arg;
+            } else if (arg.event && typeof arg.event.preventDefault === 'function') {
+                eventRef = arg.event;
+                config = arg;
+            } else if (!('type' in arg)) {
+                config = arg;
+            }
         }
+
+        if (eventRef) {
+            eventRef.preventDefault();
+        }
+
         let shouldNotify = true;
         if (typeof arg === 'boolean') {
             shouldNotify = arg;
-        } else if (arg && typeof arg === 'object' && !('type' in arg) && Object.prototype.hasOwnProperty.call(arg, 'showNotification')) {
-            shouldNotify = arg.showNotification !== false;
+        } else if (config && Object.prototype.hasOwnProperty.call(config, 'showNotification')) {
+            shouldNotify = config.showNotification !== false;
         }
         const modalityState = { ...DEFAULT_MODALITY_STATE };
         MODALITY_METADATA.forEach(modality => {
@@ -3981,15 +4015,27 @@
             }
         });
 
-        document.querySelectorAll("input, textarea, select").forEach(element => {
-            element.addEventListener("change", saveProgress);
+        document.querySelectorAll("input, textarea").forEach(element => {
+            if (element.id === 'fileInput') {
+                return;
+            }
+            element.addEventListener("change", event => {
+                saveProgress({ event, showNotification: false });
+            });
         });
 
-        document.querySelectorAll('.score-select').forEach(select => {
-            updateScoreBadge(select);
-            select.addEventListener('change', function () {
+        document.querySelectorAll('select').forEach(select => {
+            if (select.classList.contains('score-select')) {
                 updateScoreBadge(select);
-            });
+                select.addEventListener('change', event => {
+                    updateScoreBadge(select);
+                    saveProgress({ event, showNotification: false });
+                });
+            } else {
+                select.addEventListener('change', event => {
+                    saveProgress({ event, showNotification: false });
+                });
+            }
         });
 
         document.getElementById("btn-save").addEventListener("click", saveProgress);
