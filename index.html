@@ -50,6 +50,12 @@
         .builder-modality-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
         .builder-modality-columns textarea { min-height: 90px; }
         .builder-deployment-summary { display: inline-flex; align-items: center; gap: 6px; }
+        .deployment-textarea:disabled,
+        textarea:disabled {
+            background-image: none !important;
+            background-color: #f8faff;
+            opacity: 0.6;
+        }
         .author-credit { font-size: 0.9rem; color: #6c757d; margin-top: 8px; }
         .author-credit a { color: #0d6efd; text-decoration: none; }
         .author-credit a:hover { text-decoration: underline; }
@@ -1025,6 +1031,7 @@
         'clinical-standards': 'CLINICAL',
         'logistic-standards': 'LOGISTICS',
         'wash-standards': 'WASH'
+        // Note: 'guiding-principles' is intentionally NOT mapped
     };
 
     let builderSelectedModalities = new Set(['embedded', 'coupled']);
@@ -1668,7 +1675,10 @@
             const safeTitle = escapeHTML(titleText);
             const itemKey = entry.itemKey || generateSubsectionKey(key);
             const legacyItemId = subId;
-            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, legacyItemId, itemKey);
+            // Only generate deployment block for sections that have modality mappings
+            const deploymentBlock = SECTION_KEY_TO_MODALITY_SECTION[key]
+                ? buildDeploymentRequirementsBlock(key, titleText, legacyItemId, itemKey)
+                : '';
             const descriptionBlock = `<div class="card-description">${parsed.bodyHTML || ''}</div>`;
             return `
                 <div class="compliance-card" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
