@@ -842,10 +842,35 @@
             const idx = raw.indexOf(sep);
             if (idx > -1) {
                 titleHTML = raw.slice(0, idx);
-                bodyHTML = raw.slice(idx + sep.length).trim() || raw;
+                bodyHTML = raw.slice(idx + sep.length).trim();
                 break;
             }
         }
+
+        if (bodyHTML === raw && raw) {
+            const container = document.createElement('div');
+            container.innerHTML = raw;
+            const nodes = Array.from(container.childNodes);
+            let firstContentNode = null;
+            for (const node of nodes) {
+                if (node.nodeType === 3 && (node.textContent || '').trim() === '') {
+                    container.removeChild(node);
+                    continue;
+                }
+                firstContentNode = node;
+                break;
+            }
+            if (firstContentNode) {
+                if (typeof firstContentNode.outerHTML === 'string' && firstContentNode.outerHTML.trim()) {
+                    titleHTML = firstContentNode.outerHTML;
+                } else {
+                    titleHTML = (firstContentNode.textContent || '').trim();
+                }
+                container.removeChild(firstContentNode);
+            }
+            bodyHTML = container.innerHTML.trim();
+        }
+
         const titleText = extractTitleTextFromHTML(titleHTML, fallbackIndex);
         return { titleHTML, bodyHTML, titleText };
     }
