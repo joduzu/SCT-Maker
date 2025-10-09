@@ -1669,6 +1669,7 @@
             const itemKey = entry.itemKey || generateSubsectionKey(key);
             const legacyItemId = subId;
             const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, legacyItemId, itemKey);
+            const descriptionBlock = `<div class="card-description">${parsed.bodyHTML || ''}</div>`;
             return `
                 <div class="compliance-card" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
                     <div class="card-inner">
