@@ -779,14 +779,24 @@
         if (!element || !element.dataset) {
             return '';
         }
-        return element.dataset.itemKey || '';
+        return element.dataset.itemKey || element.dataset.item || '';
     }
 
     function getLegacyDatasetItemId(element) {
         if (!element || !element.dataset) {
             return '';
         }
-        return element.dataset.item || '';
+        const { itemKey = '', item = '', legacyItem = '', itemLegacy = '' } = element.dataset;
+        if (legacyItem) {
+            return legacyItem;
+        }
+        if (itemLegacy) {
+            return itemLegacy;
+        }
+        if (item && item !== itemKey) {
+            return item;
+        }
+        return '';
     }
 
     function buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId = '') {
@@ -1569,7 +1579,7 @@
             return findModalityDetailSource(modalityKey, sectionKey, standardTitle);
         };
 
-        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, itemId, itemKey) => {
+        const buildDeploymentRequirementsBlock = (sectionKey, standardTitle, legacyItemId, itemKey) => {
             const mappedSection = SECTION_KEY_TO_MODALITY_SECTION[sectionKey];
             if (!mappedSection || !selectedModalities || selectedModalities.length === 0) {
                 return '';
@@ -1588,18 +1598,18 @@
                     ? details.mitigation
                     : Array.isArray(details.mitigation) ? details.mitigation.join('\n') : '';
                 return `
-                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemId}" data-item-key="${itemKey}" data-modality="${modalityKey}">
+                    <div class="modality-requirement-block ${meta.accentClass || ''}" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}">
                         <div class="modality-requirement-header">
                             <span class="modality-badge"><i class="fas ${meta.icon || 'fa-clipboard'}"></i> ${escapeHTML(meta.label)} Mode</span>
                         </div>
                         <div class="modality-requirement-columns">
                             <div>
                                 <label>Requirements</label>
-                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemId}" data-item-key="${itemKey}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
+                                <textarea class="form-control deployment-textarea deployment-requirement-input" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}" data-field="requirements" rows="4">${escapeHTML(requirementsValue)}</textarea>
                             </div>
                             <div>
                                 <label>Mitigations</label>
-                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemId}" data-item-key="${itemKey}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
+                                <textarea class="form-control deployment-textarea deployment-mitigation-input" data-section="${sectionKey}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" data-modality="${modalityKey}" data-field="mitigation" rows="4">${escapeHTML(mitigationValue)}</textarea>
                             </div>
                         </div>
                     </div>
@@ -1636,10 +1646,10 @@
             const subId = `${index + 1}-${baseId || 'item'}`.slice(0, 60);
             const safeTitle = escapeHTML(titleText);
             const itemKey = entry.itemKey || generateSubsectionKey(key);
-            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, subId, itemKey);
-            const descriptionBlock = parsed.bodyHTML ? `<div class="card-description">${parsed.bodyHTML}</div>` : '';
+            const legacyItemId = subId;
+            const deploymentBlock = buildDeploymentRequirementsBlock(key, titleText, legacyItemId, itemKey);
             return `
-                <div class="compliance-card" data-section="${key}" data-item="${subId}" data-item-key="${itemKey}">
+                <div class="compliance-card" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
                     <div class="card-inner">
                         <div class="card-header">
                             <h5 class="subsection-title">${safeTitle}</h5>
@@ -1650,22 +1660,22 @@
                             <div class="card-fields">
                                 <div class="field-group">
                                     <label>Describe evidence</label>
-                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${subId}" data-item-key="${itemKey}" rows="3"></textarea>
+                                    <textarea class="form-control evidence-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
                                 </div>
                                 <div class="field-group">
                                     <label>Gaps</label>
-                                    <textarea class="form-control gaps-input" data-section="${key}" data-item="${subId}" data-item-key="${itemKey}" rows="3"></textarea>
+                                    <textarea class="form-control gaps-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
                                 </div>
                                 <div class="field-group">
                                     <label>Actions</label>
-                                    <textarea class="form-control action-input" data-section="${key}" data-item="${subId}" data-item-key="${itemKey}" rows="3"></textarea>
+                                    <textarea class="form-control action-input" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}" rows="3"></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer">
                             <div class="score-select-wrapper">
                                 <label>Compliance score</label>
-                                <select class="form-select score-select compliance-score" data-section="${key}" data-item="${subId}" data-item-key="${itemKey}">
+                                <select class="form-select score-select compliance-score" data-section="${key}" data-item="${itemKey}" data-item-key="${itemKey}" data-legacy-item="${legacyItemId}">
                                     <option value="">-</option>
                                     <option value="0" selected>0 - Not started</option>
                                     <option value="1">1 - Initial</option>
@@ -2892,13 +2902,23 @@
         if (!element || !element.dataset) {
             return '';
         }
-        return element.dataset.itemKey || '';
+        return element.dataset.itemKey || element.dataset.item || '';
     }
     function getLegacyDatasetItemId(element){
         if (!element || !element.dataset) {
             return '';
         }
-        return element.dataset.item || '';
+        const { itemKey = '', item = '', legacyItem = '', itemLegacy = '' } = element.dataset;
+        if (legacyItem) {
+            return legacyItem;
+        }
+        if (itemLegacy) {
+            return itemLegacy;
+        }
+        if (item && item !== itemKey) {
+            return item;
+        }
+        return '';
     }
     function buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId = ''){
         if (!sectionKey) {
