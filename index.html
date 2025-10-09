@@ -3043,7 +3043,7 @@
             const itemKey = getDatasetItemKey(select);
             const legacyItemId = getLegacyDatasetItemId(select);
             const storageKey = buildSectionItemStorageKey(sectionKey, itemKey, legacyItemId);
-            const legacyKey = legacyItemId ? `${sectionKey}-${legacyItemId}` : storageKey;
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : storageKey;
             const savedScores = assessmentData.scores || {};
             const savedScore = savedScores[storageKey] !== undefined && savedScores[storageKey] !== null && savedScores[storageKey] !== ''
                 ? savedScores[storageKey]
@@ -3180,7 +3180,7 @@
             if (select.value) {
                 assessmentData.scores[storageKey] = select.value;
             }
-            const legacyKey = legacyItemId ? `${sectionKey}-${legacyItemId}` : '';
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : '';
             if (legacyKey && legacyKey !== storageKey) {
                 delete assessmentData.scores[legacyKey];
             }
@@ -3342,7 +3342,7 @@
             if (!sectionKey || !itemKeyPart) return;
             const descriptor = SCORE_DESCRIPTORS[select.value] || SCORE_DESCRIPTORS['0'];
             const storageKey = buildSectionItemStorageKey(sectionKey, itemKeyPart, legacyItemId);
-            const legacyKey = legacyItemId ? `${sectionKey}-${legacyItemId}` : storageKey;
+            const legacyKey = legacyItemId ? sectionKey + '-' + legacyItemId : storageKey;
             if (!sectionDetails[sectionKey]) {
                 sectionDetails[sectionKey] = [];
             }
