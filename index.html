@@ -109,7 +109,7 @@
         <div class="accordion" id="sections-accordion"></div>
 
         <div class="d-grid mt-4">
-            <button class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generate Complete HTML Tool</button>
+            <button type="button" class="btn btn-primary btn-lg" id="btn-make"><i class="fas fa-magic me-2"></i>Generate Complete HTML Tool</button>
         </div>
     </div>
 
@@ -1391,7 +1391,28 @@
             document.getElementById(`accordion-item-${key}`).style.opacity = e.currentTarget.checked ? '1' : '0.5';
             updateWeightSum();
         });
-        document.getElementById('btn-make').onclick = generateHTML;
+        attachGenerateHandler();
+    }
+
+    function attachGenerateHandler() {
+        const makeBtn = document.getElementById('btn-make');
+        if (!makeBtn || makeBtn.dataset.generateHandlerAttached === 'true') {
+            return;
+        }
+        makeBtn.dataset.generateHandlerAttached = 'true';
+        makeBtn.addEventListener('click', handleGenerateClick);
+    }
+
+    function handleGenerateClick(event) {
+        if (event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+        }
+        try {
+            generateHTML();
+        } catch (error) {
+            console.error('Failed to generate customized HTML output', error);
+            alert('Unable to generate the HTML export. Please check the console for details and try again.');
+        }
     }
 
     function setupRichTextEditors(root = document) {
@@ -4111,7 +4132,10 @@
         URL.revokeObjectURL(url);
     }
     
-    document.addEventListener('DOMContentLoaded', renderMakerUI);
+    document.addEventListener('DOMContentLoaded', () => {
+        renderMakerUI();
+        attachGenerateHandler();
+    });
     </script>
     
     <div id="template-info" style="display: none;"><h2 class="mb-4">Self-Assessment Checklist for Emergency Medical Teams</h2><div class="card section-card"><div class="card-body"><h5 class="card-title">Minimum Standards for Highly Infectious Disease (HID) Specialized Care Team (SCT) – AWD Inpatient</h5><p class="card-text">This self-assessment tool is designed to help HID SCTs evaluate their readiness and capabilities according to the established minimum standards.</p><p class="card-text">Use this digital tool to complete your assessment, track progress, and generate reports for your organization and the coordination mechanism.</p><p class="text-muted">Version 1.0/2025</p></div></div><div class="row mt-4"><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-check-circle fa-2x text-success"></i><h5>Completed Sections</h5><div class="card-value" id="completedSections">0/8</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-chart-line fa-2x text-primary"></i><h5>Overall Score</h5><div class="card-value" id="overallScore">0%</div></div></div><div class="col-md-4"><div class="overview-card bg-light"><i class="fas fa-clock fa-2x text-warning"></i><h5>Last Updated</h5><div class="card-value" id="lastUpdated">Today</div></div></div></div></div>
